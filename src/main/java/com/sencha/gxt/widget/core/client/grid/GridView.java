@@ -239,6 +239,10 @@ public class  GridView<M> {
     String footer();
 
     String grid();
+
+	String cellCommented();
+
+	String cellDirtyCommented();
   }
 
   public interface GridTemplates extends SafeHtmlTemplates {
@@ -330,7 +334,7 @@ public class  GridView<M> {
   protected boolean focusConstrainScheduled = false;
   protected boolean forceFit;
   protected Grid<M> grid;
-  private ColumnHeader<M> header;
+  protected ColumnHeader<M> header;
   protected int headerColumnIndex;
   protected boolean headerDisabled;
   /**
@@ -2723,7 +2727,7 @@ public class  GridView<M> {
    * 
    * @param state the state as returned from a previous call to {@link #getScrollState()}.
    */
-  protected void restoreScroll(Point state) {
+  public void restoreScroll(Point state) {
     if (state.getY() < scroller.getWidth(false)) {
       scroller.setScrollLeft(state.getX());
     }
@@ -3005,6 +3009,10 @@ public class  GridView<M> {
         }
       }
     }
+  }
+  
+  public ColumnModel<M> getColumnModel() {
+	  return cm;
   }
 
 }

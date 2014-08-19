@@ -283,7 +283,7 @@ public class TreeGrid<M> extends Grid<M> implements HasBeforeCollapseItemHandler
   private boolean expandOnFilter = true;
   private IconProvider<M> iconProvider;
   private TreeStyle style = new TreeStyle();
-  private TreeAppearance treeAppearance;
+  protected TreeAppearance treeAppearance;
   private ColumnConfig<M, ?> treeColumn;
   private boolean expandOnDoubleClick = true;
 
@@ -1119,7 +1119,7 @@ public class TreeGrid<M> extends Grid<M> implements HasBeforeCollapseItemHandler
     }
   }
 
-  private void doInitialLoad() {
+  protected void doInitialLoad() {
     if (treeStore.getRootItems().size() == 0 && loader != null) {
       loader.load();
     } else {

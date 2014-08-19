@@ -54,7 +54,7 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
 
   }
 
-  private class MouseDownHandler extends DelayedTask implements NativePreviewHandler {
+  public class MouseDownHandler extends DelayedTask implements NativePreviewHandler {
 
     private final Context context;
     private final XElement parent;
@@ -142,7 +142,7 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
   private boolean editable = true;
   private boolean hideTrigger;
   private boolean monitorTab = true;
-  private MouseDownHandler focusManagerRegistration;
+  protected MouseDownHandler focusManagerRegistration;
   private static Logger logger = Logger.getLogger(TriggerFieldCell.class.getName());
 
   /**
@@ -596,7 +596,7 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
     onBlur(lastContext, lastParent, lastValue, null, lastValueUpdater);
   }
 
-  private native void clearFocusKey() /*-{
+  protected native void clearFocusKey() /*-{
 		this.@com.google.gwt.cell.client.AbstractInputCell::focusedKey = null;
   }-*/;
 

@@ -26,6 +26,9 @@ import com.sencha.gxt.widget.core.client.event.UpdateEvent.HasUpdateHandlers;
 import com.sencha.gxt.widget.core.client.event.UpdateEvent.UpdateHandler;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.event.BeforeFilterEvent.BeforeFilterHandler;
+import com.sencha.gxt.widget.core.client.event.BeforeFilterEvent.HasBeforeFilterHandlers;
+import com.sencha.gxt.widget.core.client.event.BeforeFilterEvent;
 
 /**
  * Provides an abstract base class for filters. A filter is applied to an object such as a {@link Grid} to reduce the
@@ -44,7 +47,7 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
  * @param <V> the filter type
  */
 public abstract class Filter<M, V> implements HasUpdateHandlers, HasActivateHandlers<Filter<M, ?>>,
-    HasDeactivateHandlers<Filter<M, ?>> {
+	HasDeactivateHandlers<Filter<M, ?>>, HasBeforeFilterHandlers<Filter<M, ?>> {
 
   protected Menu menu;
 
@@ -65,6 +68,11 @@ public abstract class Filter<M, V> implements HasUpdateHandlers, HasActivateHand
     this.valueProvider = valueProvider;
 
     menu = new Menu();
+  }
+  
+  @Override
+  public HandlerRegistration addBeforeFilterHandler(BeforeFilterHandler<Filter<M, ?>> handler) {
+  	  return ensureHandlers().addHandler(BeforeFilterEvent.getType(), handler);
   }
 
   @Override
@@ -154,6 +162,8 @@ public abstract class Filter<M, V> implements HasUpdateHandlers, HasActivateHand
    */
   public void setActive(boolean active, boolean suppressEvent) {
     active = active && isActivatable();
+    ensureHandlers().fireEventFromSource(new BeforeFilterEvent(this), this);
+    	  active = active && isActivatable();
     if (this.active != active) {
       this.active = active;
       if (!suppressEvent) {
@@ -206,7 +216,7 @@ public abstract class Filter<M, V> implements HasUpdateHandlers, HasActivateHand
    * 
    * @return true if if the filter has enough configuration information to be activated
    */
-  protected boolean isActivatable() {
+  public boolean isActivatable() {
     return true;
   }
 
@@ -217,7 +227,7 @@ public abstract class Filter<M, V> implements HasUpdateHandlers, HasActivateHand
    * @param model the model
    * @return true if valid
    */
-  protected boolean validateModel(M model) {
+  public boolean validateModel(M model) {
     return true;
   }
 

@@ -92,12 +92,20 @@
 
 .cellDirty {
   background: transparent no-repeat 0 0; 
-  background-image: dirty;
+  background-image: black;
 }
 
 .cellDirty {
   background: transparent no-repeat 0 0;
   background-image: dirty;
+}
+.cellCommented {
+  background: transparent no-repeat 0 0;
+  background-image: commented;
+}
+.cellDirtyCommented {
+  background: transparent no-repeat 0 0;
+  background-image: dirtyCommented;
 }
 
 .row .grid-cellSelected {

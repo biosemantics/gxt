@@ -328,14 +328,19 @@ public class ColumnHeader<M> extends Component {
 
   public class Head extends Component {
 
-    protected int column;
-    protected ColumnConfig<M, ?> config;
+    public int column;
+    public ColumnConfig<M, ?> config;
 
-    private AnchorElement btn;
-    private ImageElement img;
-    private InlineHTML text;
-    private Widget widget;
-    private int row;
+    protected AnchorElement btn;
+    protected ImageElement img;
+    protected InlineHTML text;
+    protected Widget widget;
+    public int row;
+    
+    /**
+     * For subclasses
+     */
+    public Head() { } 
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Head(ColumnConfig column) {
@@ -712,10 +717,10 @@ public class ColumnHeader<M> extends Component {
    */
   private int rightAlignOffset;
 
-  private QuickTip quickTip;
+  public QuickTip quickTip;
   private boolean enableColumnReorder;
   private final ColumnHeaderAppearance appearance;
-  private ColumnHeaderStyles styles;
+  protected ColumnHeaderStyles styles;
   private TableSectionElement tbody = Document.get().createTBodyElement();
   private int oldWidth;
   private int oldHeight;

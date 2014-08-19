@@ -41,6 +41,11 @@ public class ColumnModel<M> implements HasColumnModelHandlers {
   private boolean userResized;
 
   /**
+   * For subclasses
+   */
+  protected ColumnModel() { }
+  
+  /**
    * Creates a new column model.
    * 
    * @param list the columns
@@ -489,7 +494,7 @@ public class ColumnModel<M> implements HasColumnModelHandlers {
     return handlerManager;
   }
 
-  protected HeaderGroupConfig getGroup(int row, int column) {
+  public HeaderGroupConfig getGroup(int row, int column) {
     for (HeaderGroupConfig config : getHeaderGroups()) {
       Rectangle r = new Rectangle();
       r.setX(config.getColumn());
