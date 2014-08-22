@@ -26,9 +26,9 @@ theme {
       padding = util.padding(1);
       arrowColor = "#ffffff"
 
-      gradient = '#4B9CD7 0%, #3892D3 50%, #358AC8 51%, #3892D3'
-      overGradient = '#4792C8, #3386C2 50%, #307FB8 51%, #3386C2'
-      pressedGradient = '#2A6D9E, #276796 50%, #2A6D9E 51%, #3F7BA7'
+      gradient = '#279446 0%, #279446 50%, #279446 51%, #279446'
+      overGradient = '#2ca44e, #2ca44e 50%, #2ca44e 51%, #2ca44e'
+      pressedGradient = '#23803e, #23803e 50%, #23803e 51%, #23803e'
 
       font = util.fontStyle("helvetica,arial,verdana,sans-serif", '12px', '#FFFFFF', 'bold');
       smallFontSize = 12
@@ -184,9 +184,9 @@ theme {
     })
     
     window = util.extend(framedPanel, {
-      border = util.border('solid', '#3291d6', 5)
+      border = util.border('solid', '#279446', 5)
       backgroundColor = "#ffffff"
-      headerGradient = util.solidGradientString("#3291d6")
+      headerGradient = util.solidGradientString("#279446")
     })
 
     messagebox {

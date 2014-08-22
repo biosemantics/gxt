@@ -4853,12 +4853,12 @@ public class ThemeDetailsImpl implements ThemeDetails {
 
   @Override
   public java.lang.String overGradient() {
-  return "#4792C8, #3386C2 50%, #307FB8 51%, #3386C2";
+  return "#2ca44e, #2ca44e 50%, #2ca44e 51%, #2ca44e";
   }
 
   @Override
   public java.lang.String gradient() {
-  return "#4B9CD7 0%, #3892D3 50%, #358AC8 51%, #3892D3";
+  return "#279446 0%, #279446 50%, #279446 51%, #279446";
   }
 
   @Override
@@ -4878,7 +4878,7 @@ public class ThemeDetailsImpl implements ThemeDetails {
 
   @Override
   public java.lang.String pressedGradient() {
-  return "#2A6D9E, #276796 50%, #2A6D9E 51%, #3F7BA7";
+  return "#23803e, #23803e 50%, #23803e 51%, #23803e";
   }
 
   @Override
@@ -5006,7 +5006,7 @@ public class ThemeDetailsImpl implements ThemeDetails {
 
   @Override
   public java.lang.String color() {
-  return "#3291d6";
+  return "#279446";
   }
 
   @Override
@@ -5105,7 +5105,7 @@ public class ThemeDetailsImpl implements ThemeDetails {
 
   @Override
   public java.lang.String headerGradient() {
-  return "#3291d6 0%, #3291d6 100%";
+  return "#279446 0%, #279446 100%";
   }
 
   @Override

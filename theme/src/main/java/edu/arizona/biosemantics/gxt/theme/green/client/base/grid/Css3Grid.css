@@ -155,6 +155,24 @@
   height: 100%;
 }
 
+.cellDirty {
+  background: transparent no-repeat 0 0; 
+  background-image: black;
+}
+
+.cellDirty {
+  background: transparent no-repeat 0 0;
+  background-image: dirty;
+}
+.cellCommented {
+  background: transparent no-repeat 0 0;
+  background-image: commented;
+}
+.cellDirtyCommented {
+  background: transparent no-repeat 0 0;
+  background-image: dirtyCommented;
+}
+
 .empty {
   padding: 10px;
   color: gray;

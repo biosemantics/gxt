@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.arizona.biosemantics.gxt</groupId>
   <artifactId>theme</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
   <name>gxt themes</name>
   <properties>
     <gxt.version>3.1.1</gxt.version>
