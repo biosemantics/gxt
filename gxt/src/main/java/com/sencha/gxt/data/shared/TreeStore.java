@@ -63,7 +63,7 @@ public class TreeStore<M> extends Store<M> {
      */
     T getData();
   }
-  private class TreeModel implements TreeNode<M> {
+  public class TreeModel implements TreeNode<M> {
     // data
     private M data;
     // tree traversal
