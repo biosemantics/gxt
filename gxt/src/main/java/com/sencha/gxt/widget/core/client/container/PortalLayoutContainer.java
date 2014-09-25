@@ -422,13 +422,10 @@ public class PortalLayoutContainer extends Composite implements HasPortalValidat
   protected void onPortletDragEnd(DragEndEvent de) {
     dummy.removeFromParent();
 
-    System.out.println("insertRowBefore: " + insertRow);
     if (insertCol != -1 && insertRow != -1) {
       if (startCol == insertCol && insertRow > startRow) {
         insertRow--;
-        System.out.println("adapted insert row");
       }
-      System.out.println("insertRow: " + insertRow);
       active.setVisible(true);
       active.removeFromParent();
             
