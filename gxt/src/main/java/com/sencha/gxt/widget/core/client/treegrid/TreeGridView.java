@@ -361,7 +361,7 @@ public class TreeGridView<M> extends GridView<M> {
   }
 
   @Override
-  protected void initData(ListStore<M> ds, ColumnModel<M> cm) {
+  public void initData(ListStore<M> ds, ColumnModel<M> cm) {
     super.initData(ds, cm);
     treeStore = tree.getTreeStore();
   }
