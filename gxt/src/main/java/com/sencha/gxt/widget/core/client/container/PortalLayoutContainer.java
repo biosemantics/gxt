@@ -422,12 +422,23 @@ public class PortalLayoutContainer extends Composite implements HasPortalValidat
   protected void onPortletDragEnd(DragEndEvent de) {
     dummy.removeFromParent();
 
+    System.out.println("insertRowBefore: " + insertRow);
     if (insertCol != -1 && insertRow != -1) {
       if (startCol == insertCol && insertRow > startRow) {
         insertRow--;
+        System.out.println("adapted insert row");
       }
+      System.out.println("insertRow: " + insertRow);
       active.setVisible(true);
       active.removeFromParent();
+            
+      //fix bug in 3.1.0 implementation, where one would drag and drop a panel outside of this container. Due to the already removed "active" from the panel
+      //the size is smaller than calculated by insertRow. Can simply be reproduced with a single cell in a column and dragging and dropping it out of this container.
+      if(insertRow < 0 || insertRow > getWidget(insertCol).getWidgetCount()) {
+    	  insertRow = 0;
+      }
+      //end fix
+      
       getWidget(insertCol).insert(active, insertRow);
       getWidget(insertCol).forceLayout();
 
