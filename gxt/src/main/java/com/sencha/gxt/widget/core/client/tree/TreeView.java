@@ -246,7 +246,7 @@ public class TreeView<M> {
       if (e != null) {
         tree.getAppearance().onSelect(e.<XElement> cast(), select);
       }
-      tree.moveFocus(node.getElement());
+      //tree.moveFocus(node.getElement()); %causes tree to jump to incorrect scroll position
     }
   }
 
