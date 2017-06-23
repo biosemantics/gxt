@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.dom.client.Style.Overflow;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.DragLeaveEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -138,7 +140,11 @@ public class PortalLayoutContainer extends Composite implements HasPortalValidat
 
     for (int i = 0; i < numColumns; i++) {
       CssFloatLayoutContainer con = new CssFloatLayoutContainer();
-      con.getElement().getStyle().setProperty("padding", spacing + "px 0 0 " + spacing + "px");
+      Style columnStyle = con.getElement().getStyle();
+      columnStyle.setPaddingTop(spacing, Unit.PX);
+      columnStyle.setPaddingRight((i < numColumns - 1) ? (spacing / 2) : spacing, Unit.PX);
+      columnStyle.setPaddingBottom(0, Unit.PX);  // bottom is set on the portlet
+      columnStyle.setPaddingLeft((i > 0) ? (spacing / 2) : spacing, Unit.PX);
       container.insert(con, container.getWidgetCount());
     }
   }
@@ -292,8 +298,9 @@ public class PortalLayoutContainer extends Composite implements HasPortalValidat
     d.setSizeProxyToSource(true);
     d.setEnabled(!portlet.isPinned());
 
+    portlet.getElement().getStyle().setMarginBottom(spacing, Unit.PX);
 
-    getWidget(column).insert(portlet, index, new CssFloatData(1, new Margins(0, 0, 10, 0)));
+    getWidget(column).insert(portlet, index, new CssFloatData(1));
     getWidget(column).forceLayout();
   }
 
@@ -366,9 +373,17 @@ public class PortalLayoutContainer extends Composite implements HasPortalValidat
    */
   public void setSpacing(int spacing) {
     this.spacing = spacing;
-    for (int i = 0; i < container.getWidgetCount(); i++) {
+    for (int i = 0; i < numColumns; i++) {
       CssFloatLayoutContainer con = getWidget(i);
-      con.getElement().getStyle().setProperty("padding", spacing + "px 0 0 " + spacing + "px");
+      Style columnStyle = con.getElement().getStyle();
+      columnStyle.setPaddingTop(spacing, Unit.PX);
+      columnStyle.setPaddingRight((i < numColumns - 1) ? (spacing / 2) : spacing, Unit.PX);
+      columnStyle.setPaddingBottom(0, Unit.PX);  // bottom is set on the portlet
+      columnStyle.setPaddingLeft((i > 0) ? (spacing / 2) : spacing, Unit.PX);
+      for (int j = 0; j < con.getWidgetCount(); j++) {
+        Style portletStyle = con.getWidget(j).getElement().getStyle();
+        portletStyle.setMarginBottom(spacing, Unit.PX);
+      }
     }
   }
 
@@ -429,12 +444,14 @@ public class PortalLayoutContainer extends Composite implements HasPortalValidat
       active.setVisible(true);
       active.removeFromParent();
             
-      //fix bug in 3.1.0 implementation, where one would drag and drop a panel outside of this container. Due to the already removed "active" from the panel
+      //Thomas: fix bug in 3.1.0 implementation, where one would drag and drop a panel outside of this container. Due to the already removed "active" from the panel
       //the size is smaller than calculated by insertRow. Can simply be reproduced with a single cell in a column and dragging and dropping it out of this container.
       if(insertRow < 0 || insertRow > getWidget(insertCol).getWidgetCount()) {
     	  insertRow = 0;
       }
       //end fix
+	  
+	  //new 4.0 code: active.getElement().getStyle().setMarginBottom(spacing, Unit.PX);
       
       getWidget(insertCol).insert(active, insertRow);
       getWidget(insertCol).forceLayout();
@@ -457,9 +474,9 @@ public class PortalLayoutContainer extends Composite implements HasPortalValidat
   }
 
   protected void onPortletDragMove(DragMoveEvent de) {
-    int col = getColumn(de.getNativeEvent().getClientX());
+    int col = getColumn(de.getX());
 
-    int row = getRowPosition(col, de.getNativeEvent().getClientY());
+    int row = getRowPosition(col, de.getY());
     int adjustRow = row;
     if (startCol == col && row > startRow) {
       adjustRow--;
@@ -483,7 +500,7 @@ public class PortalLayoutContainer extends Composite implements HasPortalValidat
       dummy = XDOM.create(sb.toSafeHtml()).cast();
     }
 
-    dummy.getStyle().setProperty("padding", active.getElement().getStyle().getPadding());
+    dummy.getStyle().setMarginBottom(spacing, Unit.PX);
 
     int h = active.getElement().getOffsetHeight() - active.getElement().getFrameWidth(Side.TOP, Side.BOTTOM);
     dummy.getFirstChildElement().<XElement> cast().setHeight(h);

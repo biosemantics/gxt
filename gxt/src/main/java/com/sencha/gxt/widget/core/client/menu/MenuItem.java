@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.menu;
 
@@ -15,6 +45,7 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.client.HasSafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.uibinder.client.UiChild;
 import com.google.gwt.user.client.ui.Accessibility;
 import com.google.gwt.user.client.ui.HasHTML;
@@ -25,6 +56,7 @@ import com.sencha.gxt.core.client.dom.Layer;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.resources.CommonStyles;
+import com.sencha.gxt.core.shared.ExpandedHtmlSanitizer;
 import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Rectangle;
 import com.sencha.gxt.widget.core.client.Component;
@@ -51,7 +83,7 @@ public class MenuItem extends Item implements HasSafeHtml, HasHTML, HasIcon {
 
     void setIcon(XElement parent, ImageResource icon);
 
-    void setText(XElement parent, String text, boolean asHtml);
+    void setHtml(XElement parent, SafeHtml html);
 
     void setWidget(XElement parent, Widget widget);
 
@@ -59,7 +91,7 @@ public class MenuItem extends Item implements HasSafeHtml, HasHTML, HasIcon {
 
   protected ImageResource icon;
   protected Menu subMenu;
-  protected String text;
+  protected SafeHtml html = SafeHtmlUtils.EMPTY_SAFE_HTML;
   protected Widget widget;
 
   /**
@@ -87,17 +119,38 @@ public class MenuItem extends Item implements HasSafeHtml, HasHTML, HasIcon {
   }
 
   /**
+   * Creates a new item with the given html.
+   *
+   * @param html the item's html
+   */
+  public MenuItem(SafeHtml html) {
+    this();
+    setHTML(html);
+  }
+
+  /**
    * Creates a new item with the given text.
    * 
    * @param text the item's text
    */
   public MenuItem(String text) {
     this();
-    setText((text != null && text.equals("&#160;")) ? "" : text);
+    setText(text);
   }
 
   /**
-   * Creates a new item.
+   * Creates a new item with the given html and icon.
+   *
+   * @param html the item's html
+   * @param icon the item's icon
+   */
+  public MenuItem(SafeHtml html, ImageResource icon) {
+    this(html);
+    setIcon(icon);
+  }
+
+  /**
+   * Creates a new item with the given text and icon.
    * 
    * @param text the item's text
    * @param icon the item's icon
@@ -108,7 +161,19 @@ public class MenuItem extends Item implements HasSafeHtml, HasHTML, HasIcon {
   }
 
   /**
-   * Creates a new item.
+   * Creates a new item with the given html and selection handler.
+   *
+   * @param html the item html
+   * @param handler the selection handler
+   */
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public MenuItem(SafeHtml html, SelectionHandler<MenuItem> handler) {
+    this(html);
+    addSelectionHandler((SelectionHandler) handler);
+  }
+
+  /**
+   * Creates a new item with the given text and selection handler.
    * 
    * @param text the item text
    * @param handler the selection handler
@@ -133,9 +198,72 @@ public class MenuItem extends Item implements HasSafeHtml, HasHTML, HasIcon {
     return (MenuItemAppearance) super.getAppearance();
   }
 
+  /**
+   * Returns the item's text.
+   *
+   * If text was set that contained reserved html characters, the return value will be html escaped.
+   * If html was set instead, the return value will be html.
+   *
+   * @return the text or html, depending on what was set
+   * @see #getHTML()
+   */
+  @Override
+  public String getText() {
+    return getHTML();
+  }
+
+  /**
+   * Sets the item's text.
+   *
+   * Text that contains reserved html characters will be escaped.
+   * 
+   * @param text the text
+   */
+  @Override
+  public void setText(String text) {
+    setHTML(SafeHtmlUtils.fromString(text));
+  }
+
+  /**
+   * Returns the item's html.
+   *
+   * @return the html
+   */
+  public SafeHtml getSafeHtml() {
+    return html;
+  }
+
+  /**
+   * Returns the item's html.
+   *
+   * @return the html
+   */
   @Override
   public String getHTML() {
-    return text;
+    return html.asString();
+  }
+
+  /**
+   * Sets the item's html.
+   *
+   * @param html the html
+   */
+  @Override
+  public void setHTML(SafeHtml html) {
+    this.html = html;
+    getAppearance().setHtml(getElement(), html);
+  }
+
+  /**
+   * Sets the item's html.
+   *
+   * Untrusted html will be sanitized before use to protect against XSS.
+   *
+   * @param html the html
+   */
+  @Override
+  public void setHTML(String html) {
+    setHTML(ExpandedHtmlSanitizer.sanitizeHtml(html));
   }
 
   /**
@@ -143,8 +271,15 @@ public class MenuItem extends Item implements HasSafeHtml, HasHTML, HasIcon {
    * 
    * @return the icon style
    */
+  @Override
   public ImageResource getIcon() {
     return icon;
+  }
+
+  @Override
+  public void setIcon(ImageResource icon) {
+    this.icon = icon;
+    getAppearance().setIcon(getElement(), icon);
   }
 
   /**
@@ -157,30 +292,14 @@ public class MenuItem extends Item implements HasSafeHtml, HasHTML, HasIcon {
   }
 
   /**
-   * Returns the item's text.
-   * 
-   * @return the text
+   * Returns true if this has a sub menu.
+   *
+   * @return true if there is a sub menu
    */
-  public String getText() {
-    return text;
+  public boolean hasSubMenu() {
+    return subMenu != null;
   }
 
-  @Override
-  public void setHTML(SafeHtml html) {
-    setHTML(html.asString());
-  }
-
-  @Override
-  public void setHTML(String html) {
-    this.text = html;
-    getAppearance().setText(getElement(), html, true);
-  }
-
-  @Override
-  public void setIcon(ImageResource icon) {
-    getAppearance().setIcon(getElement(), icon);
-    this.icon = icon;
-  }
 
   /**
    * Sets the item's sub menu.
@@ -199,16 +318,6 @@ public class MenuItem extends Item implements HasSafeHtml, HasHTML, HasIcon {
       getAppearance().onAddSubMenu(getElement());
       Accessibility.setState(getElement(), "aria-haspopup", "true");
     }
-  }
-
-  /**
-   * Sets the item's text.
-   * 
-   * @param text the text
-   */
-  public void setText(String text) {
-    this.text = text;
-    getAppearance().setText(getElement(), text, false);
   }
 
   public void setWidget(Widget widget) {
@@ -254,6 +363,14 @@ public class MenuItem extends Item implements HasSafeHtml, HasHTML, HasIcon {
         expandMenu();
         subMenu.tryActivate(0, 1);
       }
+    }
+  }
+
+  @Override
+  protected void handleClick(NativeEvent be) {
+    // if a submenu is present, the selection event should fire but the parent menu shouldn't close on click
+    if (subMenu == null) {
+      super.handleClick(be);
     }
   }
 

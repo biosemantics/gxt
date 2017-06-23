@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.cell.core.client;
 
@@ -13,17 +43,46 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Event.NativePreviewEvent;
 import com.sencha.gxt.cell.core.client.form.FieldCell;
 import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.CellGestureAdapter;
+import com.sencha.gxt.core.client.gestures.DragGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.DragGestureRecognizer.CellDragGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.PointerEventsSupport;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer.CellTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.util.BaseEventPreview;
 import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Util;
+import com.sencha.gxt.widget.core.client.event.XEvent;
 import com.sencha.gxt.widget.core.client.tips.ToolTip;
 import com.sencha.gxt.widget.core.client.tips.ToolTipConfig;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.google.gwt.dom.client.BrowserEvents.KEYDOWN;
+import static com.google.gwt.dom.client.BrowserEvents.MOUSEDOWN;
+import static com.google.gwt.dom.client.BrowserEvents.MOUSEOUT;
+import static com.google.gwt.dom.client.BrowserEvents.MOUSEOVER;
+import static com.google.gwt.dom.client.BrowserEvents.TOUCHCANCEL;
+import static com.google.gwt.dom.client.BrowserEvents.TOUCHEND;
+import static com.google.gwt.dom.client.BrowserEvents.TOUCHMOVE;
+import static com.google.gwt.dom.client.BrowserEvents.TOUCHSTART;
+import static com.sencha.gxt.core.client.gestures.PointerEvents.POINTERCANCEL;
+import static com.sencha.gxt.core.client.gestures.PointerEvents.POINTERDOWN;
+import static com.sencha.gxt.core.client.gestures.PointerEvents.POINTERMOVE;
+import static com.sencha.gxt.core.client.gestures.PointerEvents.POINTERUP;
+
+
 
 public class SliderCell extends FieldCell<Integer> {
 
@@ -57,7 +116,7 @@ public class SliderCell extends FieldCell<Integer> {
   public interface VerticalSliderAppearance extends SliderAppearance {
   }
 
-  protected class DragPreview extends BaseEventPreview {
+  protected class MouseDragPreview extends BaseEventPreview {
 
     private final Context context;
     private final Element parent;
@@ -66,7 +125,7 @@ public class SliderCell extends FieldCell<Integer> {
 
     private final ValueUpdater<Integer> valueUpdater;
 
-    public DragPreview(Context context, Element parent, ValueUpdater<Integer> valueUpdater, NativeEvent e) {
+    public MouseDragPreview(Context context, Element parent, ValueUpdater<Integer> valueUpdater, NativeEvent e) {
       super();
       this.context = context;
       this.parent = parent;
@@ -90,7 +149,8 @@ public class SliderCell extends FieldCell<Integer> {
         case Event.ONMOUSEUP:
           this.remove();
           XElement p = XElement.as(parent);
-          int v = setValue(p, reverseValue(p, getAppearance().getClickedValue(context, p, new Point(event.getNativeEvent().getClientX(), event.getNativeEvent().getClientY()))));
+          Point location = event.getNativeEvent().<XEvent>cast().getXY();
+          int v = setValue(p, reverseValue(p, getAppearance().getClickedValue(context, p, location)));
           valueUpdater.update(v);
           getAppearance().onMouseUp(context, parent);
           getAppearance().onMouseOut(context, parent);
@@ -107,10 +167,11 @@ public class SliderCell extends FieldCell<Integer> {
       }
 
       XElement p = XElement.as(parent);
-      int v = setValue(p, reverseValue(p, getAppearance().getClickedValue(context, p, new Point(event.getClientX(), event.getClientY()))));
+      Point location = event.<XEvent> cast().getXY();
+      int v = setValue(p, reverseValue(p, getAppearance().getClickedValue(context, p, location)));
       Element thumb = getAppearance().getThumb(parent);
 
-      tip.setText(onFormatValue(v));
+      tip.setBody(onFormatValue(v));
 
       tip.onMouseMove(thumbWidth, thumbHeight, thumb);
     }
@@ -122,8 +183,8 @@ public class SliderCell extends FieldCell<Integer> {
       super(config);
     }
 
-    public void setText(String text) {
-      bodyHtml = text;
+    public void setBody(String text) {
+      body = SafeHtmlUtils.fromString(text);
     }
 
     public void onMouseMove(int thumbWidth, int thumbHeight, Element target) {
@@ -135,6 +196,43 @@ public class SliderCell extends FieldCell<Integer> {
       super.showAt(p.getX(), p.getY());
       toolTipConfig.setAnchor(origAnchor);
     }
+  }
+
+  //TODO consider concrete subclasses of these cell adapters for each gesture class, possibly as an inner class?
+  private CellGestureAdapter<TapGestureRecognizer, Integer> tapRecognizer = new CellTapGestureRecognizer<Integer>() {
+    @Override
+    protected void onTap(TouchData tap, Context context, Element parent, Integer value, ValueUpdater<Integer> valueUpdater) {
+      SliderCell.this.onTap(tap, context, parent, value, valueUpdater);
+    }
+  };
+
+  private CellGestureAdapter<DragGestureRecognizer, Integer> dragGestureRecognizer = new CellDragGestureRecognizer<Integer>() {
+    @Override
+    protected void onTouchMove(TouchData touch, Context context, Element parent, Integer value, ValueUpdater<Integer> valueUpdater) {
+      SliderCell.this.onTouchMove(touch, context, parent, value, valueUpdater);
+    }
+
+    @Override
+    protected void onTouchMoveEnd(TouchData touch, Context context, Element parent, Integer value, ValueUpdater<Integer> valueUpdater) {
+      SliderCell.this.onTouchMoveEnd(touch, context, parent, value, valueUpdater);
+    }
+
+    @Override
+    protected boolean handleMousePointers() {
+      return true;
+    }
+  };
+
+  private static final PointerEventsSupport POINTER_EVENTS_SUPPORT = PointerEventsSupport.impl;
+  private static final Set<String> CONSUMED_EVENTS;
+  static {
+    Set<String> consumedEvents = new HashSet<String>(Arrays.asList(MOUSEDOWN, MOUSEOVER, MOUSEOUT, KEYDOWN,
+            TOUCHSTART, TOUCHMOVE, TOUCHEND, TOUCHCANCEL));
+    if (POINTER_EVENTS_SUPPORT.isSupported()) {
+      consumedEvents.addAll(Arrays.asList(POINTERDOWN.getEventName(), POINTERMOVE.getEventName(),
+              POINTERUP.getEventName(), POINTERCANCEL.getEventName()));
+    }
+    CONSUMED_EVENTS = Collections.unmodifiableSet(consumedEvents);
   }
 
   private String message = "{0}";
@@ -151,7 +249,9 @@ public class SliderCell extends FieldCell<Integer> {
   }
 
   public SliderCell(SliderAppearance appearance) {
-    super(appearance, "mousedown", "mouseover", "mouseout", "keydown");
+    super(appearance, CONSUMED_EVENTS);
+    addCellGestureAdapter(tapRecognizer);
+    addCellGestureAdapter(dragGestureRecognizer);
 
     vertical = appearance.isVertical();
 
@@ -180,7 +280,7 @@ public class SliderCell extends FieldCell<Integer> {
 
   /**
    * Returns the increment.
-   * 
+   *
    * @return the increment
    */
   public int getIncrement() {
@@ -189,7 +289,7 @@ public class SliderCell extends FieldCell<Integer> {
 
   /**
    * Returns the max value (defaults to 100).
-   * 
+   *
    * @return the max value
    */
   public int getMaxValue() {
@@ -198,7 +298,7 @@ public class SliderCell extends FieldCell<Integer> {
 
   /**
    * Returns the tool tip message.
-   * 
+   *
    * @return the tool tip message
    */
   public String getMessage() {
@@ -207,7 +307,7 @@ public class SliderCell extends FieldCell<Integer> {
 
   /**
    * Returns the minimum value (defaults to 0).
-   * 
+   *
    * @return the minimum value
    */
   public int getMinValue() {
@@ -216,7 +316,7 @@ public class SliderCell extends FieldCell<Integer> {
 
   /**
    * Returns true if the tool tip message is shown
-   * 
+   *
    * @return the showMessage state
    */
   public boolean isShowMessage() {
@@ -225,12 +325,21 @@ public class SliderCell extends FieldCell<Integer> {
 
   @Override
   public void onBrowserEvent(Context context, Element parent, Integer value, NativeEvent event,
-      ValueUpdater<Integer> valueUpdater) {
+                             ValueUpdater<Integer> valueUpdater) {
     Element target = event.getEventTarget().cast();
     if (!parent.isOrHasChild(target) || isDisabled()) {
       return;
     }
     super.onBrowserEvent(context, parent, value, event, valueUpdater);
+
+    // too late in the game to handle pointers in the super call, do the onTouch for pointers right here
+    if (POINTER_EVENTS_SUPPORT.isSupported()) {
+      if (POINTER_EVENTS_SUPPORT.isPointerEvent(event)) {
+        onTouch(context, parent, value, event, valueUpdater);
+      }
+      // since we've delegated pointer events to the appropriate GRs, return immediately so mouse events don't interfere
+      return;
+    }
 
     String eventType = event.getType();
 
@@ -282,7 +391,7 @@ public class SliderCell extends FieldCell<Integer> {
     int thumbWidth = t.getOffsetWidth();
     int thumbHeight = t.getOffsetHeight();
 
-    tip.setText(onFormatValue(v));
+    tip.setBody(onFormatValue(v));
 
     tip.onMouseMove(thumbWidth, thumbHeight, thumb);
   }
@@ -311,7 +420,7 @@ public class SliderCell extends FieldCell<Integer> {
   /**
    * How many units to change the slider when adjusting by drag and drop. Use this option to enable 'snapping' (default
    * to 10).
-   * 
+   *
    * @param increment the increment
    */
   public void setIncrement(int increment) {
@@ -320,7 +429,7 @@ public class SliderCell extends FieldCell<Integer> {
 
   /**
    * Sets the max value (defaults to 100).
-   * 
+   *
    * @param maxValue the max value
    */
   public void setMaxValue(int maxValue) {
@@ -329,7 +438,7 @@ public class SliderCell extends FieldCell<Integer> {
 
   /**
    * Sets the tool tip message (defaults to '{0}'). "{0} will be substituted with the current slider value.
-   * 
+   *
    * @param message the tool tip message
    */
   public void setMessage(String message) {
@@ -338,7 +447,7 @@ public class SliderCell extends FieldCell<Integer> {
 
   /**
    * Sets the minimum value (defaults to 0).
-   * 
+   *
    * @param minValue the minimum value
    */
   public void setMinValue(int minValue) {
@@ -347,7 +456,7 @@ public class SliderCell extends FieldCell<Integer> {
 
   /**
    * Sets if the tool tip message should be displayed (defaults to true, pre-render).
-   * 
+   *
    * @param showMessage true to show tool tip message
    */
   public void setShowMessage(boolean showMessage) {
@@ -359,13 +468,13 @@ public class SliderCell extends FieldCell<Integer> {
    * true to use this feature.
    * <p/>
    * {@link ToolTipConfig#setAnchor(com.sencha.gxt.core.client.Style.Side)} is a required setting for toolTipConfig.
-   * 
+   *
    * @param toolTipConfig is the tooltip configuration.
    */
   public void setToolTipConfig(ToolTipConfig toolTipConfig) {
     assert toolTipConfig != null : "The toolTipConfig parameter is null and it is required.";
     assert toolTipConfig.getAnchor() != null : "The toolTipConfig must have an anchor Side set. "
-        + "Like toolTipConfig.setAnchor(Side.RIGHT);";
+      + "Like toolTipConfig.setAnchor(Side.RIGHT);";
     this.toolTipConfig = toolTipConfig;
   }
 
@@ -406,19 +515,59 @@ public class SliderCell extends FieldCell<Integer> {
   }
 
   protected void onMouseDown(final Context context, final Element parent, NativeEvent event,
-      final ValueUpdater<Integer> valueUpdater) {
+                             final ValueUpdater<Integer> valueUpdater) {
     Element target = Element.as(event.getEventTarget());
     if (!getAppearance().getThumb(parent).isOrHasChild(target)) {
-      int value = getAppearance().getClickedValue(context, parent, new Point(event.getClientX(), event.getClientY()));
-      value = reverseValue(parent.<XElement> cast(), value);
+      Point location = event.<XEvent> cast().getXY();
+      int value = getAppearance().getClickedValue(context, parent, location);
+      value = reverseValue(parent.<XElement>cast(), value);
       value = normalizeValue(value);
       valueUpdater.update(value);
+      int position = translateValue(parent.<XElement> cast(), value);
+      getAppearance().setThumbPosition(parent, position);
       return;
     }
 
-    BaseEventPreview preview = new DragPreview(context, parent, valueUpdater, event);
+    BaseEventPreview preview = new MouseDragPreview(context, parent, valueUpdater, event);
     getAppearance().onMouseDown(context, parent);
     preview.add();
+  }
+
+  protected void onTap(TouchData t, Context context, Element parent, Integer value, ValueUpdater<Integer> valueUpdater) {
+    int v = getAppearance().getClickedValue(context, parent, t.getLastPosition());
+    v = reverseValue(parent.<XElement>cast(), v);
+    v = normalizeValue(v);
+    valueUpdater.update(v);
+
+    // move thumb
+    int pos = translateValue(parent.<XElement> cast(), v);
+    getAppearance().setThumbPosition(parent, pos);
+  }
+
+  protected void onTouchMove(TouchData t, Context context, Element parent, Integer value, ValueUpdater<Integer> valueUpdater) {
+    int v = getAppearance().getClickedValue(context, parent, t.getLastPosition());
+    v = reverseValue(parent.<XElement>cast(), v);
+    v = normalizeValue(v);
+
+    // move thumb
+    int pos = translateValue(parent.<XElement> cast(), v);
+    getAppearance().setThumbPosition(parent, pos);
+
+
+    tip.setBody(onFormatValue(v));
+
+
+    XElement thumb = getAppearance().getThumb(parent).cast();
+    int thumbWidth = thumb.getOffsetWidth();
+    int thumbHeight = thumb.getOffsetHeight();
+
+    tip.onMouseMove(thumbWidth, thumbHeight, thumb);
+  }
+  protected void onTouchMoveEnd(TouchData t, Context context, Element parent, Integer value, ValueUpdater<Integer> valueUpdater) {
+    int v = getAppearance().getClickedValue(context, parent, t.getLastPosition());
+    v = reverseValue(parent.<XElement>cast(), v);
+    v = normalizeValue(v);
+    valueUpdater.update(v);
   }
 
   protected int reverseValue(XElement parent, int pos) {

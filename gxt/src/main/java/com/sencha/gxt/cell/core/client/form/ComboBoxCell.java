@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.cell.core.client.form;
 
@@ -44,6 +74,9 @@ import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.PointerEventsSupport;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.resources.ThemeStyles;
 import com.sencha.gxt.core.client.util.BaseEventPreview;
 import com.sencha.gxt.core.client.util.DelayedTask;
@@ -76,6 +109,7 @@ import com.sencha.gxt.widget.core.client.event.CellBeforeSelectionEvent;
 import com.sencha.gxt.widget.core.client.event.CellSelectionEvent;
 import com.sencha.gxt.widget.core.client.event.CollapseEvent;
 import com.sencha.gxt.widget.core.client.event.ExpandEvent;
+import com.sencha.gxt.widget.core.client.event.RefreshEvent;
 import com.sencha.gxt.widget.core.client.event.XEvent;
 import com.sencha.gxt.widget.core.client.form.PropertyEditor;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
@@ -164,6 +198,7 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
   private Handler storeHandler = new Handler();
   private boolean ignoreNextEnter;
 
+  private static boolean isMSEdge = GXT.isMSEdge();
   protected static Logger logger = Logger.getLogger(ComboBoxCell.class.getName());
 
   /**
@@ -343,7 +378,7 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
           onResultsLoad(context, parent, updater, value);
         } else {
           // expand right away with loading text, otherwise wait until the loader has loaded before expanding.
-          if (listView.getLoadingHtml() != null) {
+          if (listView.getLoadingIndicator() != null) {
             expand(context, parent, updater, value);
           }
 
@@ -351,7 +386,7 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
           ListLoader<ListLoadConfig, ListLoadResult<?>> l = (ListLoader<ListLoadConfig, ListLoadResult<?>>) loader;
 
           // delay expanding - hide the empty list with shadow until something is loaded.
-          if (listView.getLoadingHtml() == null) {
+          if (listView.getLoadingIndicator() == null) {
             final GroupingHandlerRegistration tmpHandler = new GroupingHandlerRegistration();
             LoadHandler<ListLoadConfig, ListLoadResult<?>> loadHandler = new LoadHandler<ListLoadConfig, ListLoadResult<?>>() {
               @Override
@@ -685,8 +720,8 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
    * 
    * @param loadingHtml the loading html
    */
-  public void setLoadingHtml(SafeHtml loadingHtml) {
-    getListView().setLoadingHtml(loadingHtml);
+  public void setLoadingIndicator(SafeHtml html) {
+    getListView().setLoadingIndicator(html);
   }
 
   /**
@@ -699,8 +734,8 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
    * 
    * @param loadingText the loading text
    */
-  public void setLoadingText(String loadingText) {
-    getListView().setLoadingText(loadingText);
+  public void setLoadingIndicator(String text) {
+    getListView().setLoadingIndicator(text);
   }
   
   /**
@@ -836,7 +871,15 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
   }
 
   protected void collapseIf(NativePreviewEvent pe) {
-    Element target = pe.getNativeEvent().getEventTarget().cast();
+    collapseIf(pe.getNativeEvent());
+  }
+
+  protected void collapseIf(NativeEvent event) {
+    XElement target = event.getEventTarget().cast();
+    collapseIf(target);
+  }
+
+  protected void collapseIf(XElement target) {
     if (!listContainer.getElement().isOrHasChild(target) && !lastParent.isOrHasChild(target)) {
       collapse(lastContext, lastParent);
     }
@@ -919,6 +962,19 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
     }
   }
 
+  /*
+   * I believe a mouse event is triggering the focus manager to blur.  On touch devices we don't want this to happen
+   * since it collapses the combo box options menu immediately.
+   *
+   * This is nearly identical to the change made in DateCell - both of which may go away if we preventDefault.
+   */
+  @Override
+  protected void handleFocusManagerExecute(Context context, XElement parent, T value, ValueUpdater<T> updater) {
+    if (!GXT.isTouch()) {
+      super.handleFocusManagerExecute(context, parent, value, updater);
+    }
+  }
+
   protected void init(ListStore<T> store) {
     listContainer = new VerticalLayoutContainer();
     listContainer.getElement().makePositionable(true);
@@ -928,9 +984,33 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
 
     bindStore(store);
 
+    final TapGestureRecognizer previewTapGestureRecognizer = new TapGestureRecognizer() {
+
+      @Override
+      protected void onTap(TouchData touchData) {
+        NativeEvent event = touchData.getLastNativeEvent();
+        Element target = touchData.getStartElement().asElement();
+        if (listContainer.getElement().isOrHasChild(target)) {
+          if (pagingToolBar == null || (!pagingToolBar.getElement().isOrHasChild(target))) {
+            onViewClick(lastParent, event, true, false);
+            event.preventDefault();
+          }
+        } else {
+          collapseIf(target.<XElement>cast());
+        }
+        super.onTap(touchData);
+      }
+    };
+
     eventPreview = new BaseEventPreview() {
       protected boolean onPreview(NativePreviewEvent pe) {
         Element target = pe.getNativeEvent().getEventTarget().cast();
+
+        // pointer event MOUSEDOWN conflicts with scrolling
+        if (PointerEventsSupport.impl.isSupported()) {
+          previewTapGestureRecognizer.handle(pe.getNativeEvent());
+          return true;
+        }
 
         switch (pe.getTypeInt()) {
           case Event.ONSCROLL:
@@ -938,7 +1018,7 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
             collapseIf(pe);
             break;
           case Event.ONMOUSEDOWN:
-            if (listView.getElement().isOrHasChild(target)) {
+            if (listContainer.getElement().isOrHasChild(target)) {
               if (pagingToolBar == null || (!pagingToolBar.getElement().isOrHasChild(target))) {
                 onViewClick(lastParent, pe.getNativeEvent(), true, false);
                 pe.getNativeEvent().preventDefault();
@@ -946,6 +1026,12 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
             } else {
               collapseIf(pe);
             }
+            break;
+          case Event.ONTOUCHSTART:
+          case Event.ONTOUCHMOVE:
+          case Event.ONTOUCHEND:
+          case Event.ONTOUCHCANCEL:
+            previewTapGestureRecognizer.handle(pe.getNativeEvent());
             break;
         }
 
@@ -983,6 +1069,20 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
 
   protected void initView(ListView<T, ?> listView) {
     this.listView = listView;
+
+    //EXTGWT-3744 workaround for IE where list view is collapsing when paging controls clicked
+    //the correct fix is for the clicked button to NOT lose focus when clicked as it does now
+    listView.addRefreshHandler(new RefreshEvent.RefreshHandler() {
+      @Override
+      public void onRefresh(RefreshEvent event) {
+        if (lastParent != null && (GXT.isIE() || isMSEdge)) {
+          Element input = getInputElement(lastParent);
+          if (input != null) {
+            input.focus();
+          }
+        }
+      }
+    });
 
     // we add x-ignore to handle use case where combo is in a menu and auto hide
     // of the menu
@@ -1207,7 +1307,9 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
         doQuery(context, parent, updater, value, getText(parent.<XElement> cast()), true);
       }
     }
-    getInputElement(parent).focus();
+    if (!GXT.isTouch()) { // EXTGWT-4146: don't focus on touch
+      getInputElement(parent).focus();
+    }
   }
 
   protected void onTypeAhead(XElement parent) {
@@ -1262,10 +1364,27 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
           }
         });
       } else {
-        getInputElement(parent).focus();
+        /*
+         * EXTGWT-4146: For touch devices, it doesn't make sense to focus the input element after a value has been
+         * selected:
+         *
+         *   1. If the user believes they can edit the value, it may seem like the widget is buggy when they're
+         *      presented with a keyboard but the value keeps disappearing when they type anything.
+         *
+         *   2. If the user doesn't intend to edit the value, but unintentionally modifies it (let's say by accidentally
+         *      clicking the virtual keyboard when it pops up), it may be frustrating when the value just disappears.
+         *
+         * Note: this doesn't apply to desktop - we always want to focus on deskop.
+         */
+        if (!GXT.isTouch()) {
+          getInputElement(parent).focus();
+        } else {
+          doTriggerBlur();
+          // even though the value changes, the empty class is still left on the element (text stays gray) - remove this
+          getAppearance().onEmpty(parent, false);
+        }
       }
     }
-
   }
 
   protected void restrict(XElement parent) {

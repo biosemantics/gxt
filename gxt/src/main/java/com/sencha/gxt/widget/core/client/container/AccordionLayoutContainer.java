@@ -1,18 +1,48 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.container;
-
-import java.util.logging.Logger;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.GXTLogConfiguration;
+import com.sencha.gxt.core.client.Style.Side;
+import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.util.Size;
 import com.sencha.gxt.widget.core.client.ComponentHelper;
 import com.sencha.gxt.widget.core.client.ContentPanel;
@@ -21,6 +51,8 @@ import com.sencha.gxt.widget.core.client.event.BeforeExpandEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeExpandEvent.BeforeExpandHandler;
 import com.sencha.gxt.widget.core.client.event.ExpandEvent;
 import com.sencha.gxt.widget.core.client.event.ExpandEvent.ExpandHandler;
+
+import java.util.logging.Logger;
 
 /**
  * A layout container that manages multiple content panels in an expandable
@@ -41,18 +73,18 @@ import com.sencha.gxt.widget.core.client.event.ExpandEvent.ExpandHandler;
     AccordionLayoutAppearance appearance = GWT.<AccordionLayoutAppearance> create(AccordionLayoutAppearance.class);
 
     ContentPanel cp = new ContentPanel(appearance);
-    cp.setHeadingText("Accordion Item 1");
+    cp.setHeading("Accordion Item 1");
     cp.add(new Label("Accordion Content 1"));
     con.add(cp);
     con.setActiveWidget(cp);
 
     cp = new ContentPanel(appearance);
-    cp.setHeadingText("Accordion Item 2");
+    cp.setHeading("Accordion Item 2");
     cp.add(new Label("Accordion Content 2"));
     con.add(cp);
   
     cp = new ContentPanel(appearance);
-    cp.setHeadingText("Accordion Item 3");
+    cp.setHeading("Accordion Item 3");
     cp.add(new Label("Accordion Content 3"));
     con.add(cp);
     
@@ -240,7 +272,8 @@ public class AccordionLayoutContainer extends InsertResizeContainer implements H
             if (expandMode == ExpandMode.SINGLE && c != activeWidget) {
               c.collapse();
             }
-            applyLayout(c, size.getWidth(), -1);
+            int horizontalPadding = getContainerTarget().getPadding(Side.LEFT, Side.RIGHT);
+            applyLayout(c, size.getWidth() - horizontalPadding, -1);
           }
           break;
         case SINGLE_FILL:
@@ -254,8 +287,14 @@ public class AccordionLayoutContainer extends InsertResizeContainer implements H
                 hh += c.getAppearance().getHeaderSize(c.getElement()).getHeight();
                 applyLayout(c, size.getWidth(), -1);
               }
+              // take vertical padding into account as well
+              hh += c.getElement() != null ? c.getElement().getPadding(Side.TOP, Side.BOTTOM) : 0;
             }
+            XElement activeElement = activeWidget.getElement();
+            int horizontalPadding = activeElement != null ? activeElement.getPadding(Side.LEFT, Side.RIGHT) : 0;
             activeWidget.setPixelSize(size.getWidth(), size.getHeight() - hh);
+            // need to set body size as well, otherwise it will extend past the parents width
+            activeWidget.getBody().setWidth(size.getWidth() - horizontalPadding);
           } else {
             for (int i = 0, len = getWidgetCount(); i < len; i++) {
               ContentPanel c = (ContentPanel) getWidget(i);

@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.dnd.core.client;
 
@@ -11,13 +41,16 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.NativeEvent;
+import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.GXTLogConfiguration;
+import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Rectangle;
 import com.sencha.gxt.dnd.core.client.DND.Feedback;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.widget.core.client.ListView;
+import com.sencha.gxt.widget.core.client.event.XEvent;
 
 /**
  * Enables a {@link ListView} to act as the target of a drag and drop operation.
@@ -112,7 +145,8 @@ public class ListViewDropTarget<M> extends DropTarget {
 
   @Override
   protected void onDragMove(DndDragMoveEvent event) {
-    XElement target = event.getDragMoveEvent().getNativeEvent().getEventTarget().cast();
+    XElement target = getElementFromEvent(event.getDragMoveEvent().getNativeEvent());
+
     if (!listView.getElement().isOrHasChild(target)) {
       event.setCancelled(true);
       event.getStatusProxy().setStatus(false);
@@ -126,10 +160,10 @@ public class ListViewDropTarget<M> extends DropTarget {
   protected void showFeedback(DndDragMoveEvent event) {
     event.getStatusProxy().setStatus(true);
 
-    NativeEvent e = event.getDragMoveEvent().getNativeEvent().cast();
+    Element target = getElementFromEvent(event.getDragMoveEvent().getNativeEvent());
 
     if (feedback == Feedback.INSERT) {
-      Element row = listView.findElement((Element) e.getEventTarget().cast());
+      Element row = target != null ? listView.findElement(target) : null;
 
       if (row == null && listView.getStore().size() > 0) {
         row = listView.getElement(listView.getStore().size() - 1).cast();
@@ -139,7 +173,7 @@ public class ListViewDropTarget<M> extends DropTarget {
         int height = row.getOffsetHeight();
         int mid = height / 2;
         mid += row.getAbsoluteTop();
-        int y = e.getClientY();
+        int y = event.getDragMoveEvent().getNativeEvent().<XEvent>cast().getXY().getY();
         before = y < mid;
         int idx = listView.findElementIndex(row);
 

@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.tree;
 
@@ -29,11 +59,14 @@ import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.impl.FocusImpl;
-import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.dom.DomHelper;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer.ScrollDirection;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.resources.CommonStyles;
 import com.sencha.gxt.core.client.util.DelayedTask;
 import com.sencha.gxt.core.client.util.Util;
@@ -305,7 +338,7 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
 
     void renderContainer(SafeHtmlBuilder sb);
 
-    void renderNode(SafeHtmlBuilder sb, String id, SafeHtml text, TreeStyle style, ImageResource icon,
+    void renderNode(SafeHtmlBuilder sb, String id, SafeHtml html, TreeStyle style, ImageResource icon,
         boolean checkable, CheckState checked, Joint joint, int level, TreeViewRenderMode renderMode);
 
     String textSelector();
@@ -582,14 +615,23 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
 
     ensureFocusElement();
 
-    if ((GXT.isIE6() || GXT.isIE7())) {
-      getElement().makePositionable();
-    }
-
     setStore(store);
 
     setSelectionModel(new TreeSelectionModel<M>());
     view.bind(this);
+
+    addGestureRecognizer(new TapGestureRecognizer() {
+
+      @Override
+      protected void onTap(TouchData touchData) {
+        Event event = touchData.getLastNativeEvent().cast();
+        onClick(event);
+        getSelectionModel().onMouseDown(event);
+        getSelectionModel().onMouseClick(event);
+        super.onTap(touchData);
+      }
+    });
+    addGestureRecognizer(new ScrollGestureRecognizer(getElement(), ScrollDirection.BOTH));
   }
 
   @Override
@@ -1371,20 +1413,7 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
 
   protected void moveFocus(Element selectedElem) {
     if (selectedElem == null) return;
-    int containerLeft = getAbsoluteLeft();
-    int containerTop = getAbsoluteTop();
-
-    int left = selectedElem.getAbsoluteLeft() - containerLeft;
-    int top = selectedElem.getAbsoluteTop() - containerTop;
-
-    int width = selectedElem.getOffsetWidth();
-    int height = selectedElem.getOffsetHeight();
-
-    if (width == 0 || height == 0) {
-      focusEl.setLeftTop(0, 0);
-      return;
-    }
-    focusEl.setLeftTop(left, top);
+    constrainFocusElement();
   }
 
   protected void constrainFocusElement() {
@@ -1421,7 +1450,7 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
       }
       for (int len = rows.size(); i < len; i++) {
         // if current row is outside of first and last and
-        // has content, update the innerHTML to nothing
+        // has content, clean the node
         if (i < vr[0] || i > vr[1]) {
           cleanNode(findNode(rows.get(i)));
         }
@@ -1441,7 +1470,7 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
         if (!isRowRendered(i, visible)) {
           M parent = store.getParent(visible.get(i));
           SafeHtml html = renderChild(parent, visible.get(i), store.getDepth(parent), TreeViewRenderMode.BUFFER_BODY);
-          view.getElement(findNode(visible.get(i))).getFirstChildElement().setInnerHTML(html.asString());
+          view.getElement(findNode(visible.get(i))).getFirstChildElement().setInnerSafeHtml(html);
         }
       }
       clean();
@@ -1482,7 +1511,7 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
       if (value != null) {
         text = value.toString();
       }
-      sb.append(Util.isEmptyString(text) ? SafeHtmlUtils.fromTrustedString("&#160;") : SafeHtmlUtils.fromString(text));
+      sb.append(Util.isEmptyString(text) ? Util.NBSP_SAFE_HTML : SafeHtmlUtils.fromString(text));
     } else {
       Context context = new Context(store.indexOf(model), 0, store.getKeyProvider().getKey(model));
       cell.render(context, value, sb);
@@ -1628,11 +1657,11 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
         int index = event.getIndex();
         int parentChildCount = parent == null ? store.getRootCount() : store.getChildCount(parent);
         if (index == 0) {
-          DomHelper.insertFirst(getContainer(parent), sb.toSafeHtml().asString());
+          DomHelper.insertFirst(getContainer(parent), sb.toSafeHtml());
         } else if (index == parentChildCount - event.getItems().size()) {
-          DomHelper.insertHtml("beforeEnd", getContainer(parent), sb.toSafeHtml().asString());
+          DomHelper.insertHtml("beforeEnd", getContainer(parent), sb.toSafeHtml());
         } else {
-          DomHelper.insertBefore((Element) getContainer(parent).getChild(index).cast(), sb.toSafeHtml().asString());
+          DomHelper.insertBefore((Element) getContainer(parent).getChild(index).cast(), sb.toSafeHtml());
         }
 
       }
@@ -1649,7 +1678,7 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
     // than assuming its the last child.
     rootContainer = getRootContainer();
 
-    rootContainer.setInnerHTML(builder.toSafeHtml().asString());
+    rootContainer.setInnerSafeHtml(builder.toSafeHtml());
 
     getElement().show();
     getElement().getStyle().setProperty("overflow", "auto");
@@ -1726,6 +1755,9 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
       Element jointEl = view.getJointElement(node);
       if (jointEl != null && e.within(jointEl)) {
         toggle((M) node.getModel());
+        // necessary to prevent synthetic mouse events in case of touch
+        event.preventDefault();
+        event.stopPropagation();
       }
       Element checkEl = view.getCheckElement(node);
       if (checkable && checkEl != null && isEnabled() && e.within(checkEl)) {
@@ -1967,7 +1999,7 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
       n.setLoaded(true);
       n.setLoading(false);
       if (n.isChildrenRendered()) {
-        getContainer(parent).setInnerHTML("");
+        getContainer(parent).setInnerSafeHtml(SafeHtmlUtils.EMPTY_SAFE_HTML);
       }
 
       renderChildren(parent);
@@ -2022,7 +2054,7 @@ public class Tree<M, C> extends Component implements HasBeforeExpandItemHandlers
       markup.append(renderChild(parent, children.get(i), depth, mode));
     }
     Element container = getContainer(parent);
-    container.setInnerHTML(markup.toSafeHtml().asString());
+    container.setInnerSafeHtml(markup.toSafeHtml());
 
     for (int i = 0; i < children.size(); i++) {
       M child = children.get(i);

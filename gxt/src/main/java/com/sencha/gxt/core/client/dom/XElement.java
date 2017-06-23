@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.core.client.dom;
 
@@ -13,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JavaScriptException;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Document;
@@ -29,6 +60,8 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.regexp.shared.RegExp;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.DOM;
 import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.Style;
@@ -242,13 +275,90 @@ public class XElement extends com.google.gwt.user.client.Element {
   }
 
   /**
-   * Ensures the element is within the browser viewport.
+   * Ensures the entire element fits within the browser viewport.
+   * The target point (x, y) will be adjusted inward until it fits.
+   * This may result in a different position, but the size will
+   * stay the same.
    * 
-   * @param p the target destination
-   * @return the new location
+   * @param point the target point
+   * @return the adjusted point
    */
-  public final Point adjustForConstraints(Point p) {
-    return getConstrainToXY(Document.get().getBody(), p);
+  public final Point adjustForConstraints(Point point) {
+    return adjustForConstraints(Document.get().getBody(), point);
+  }
+
+  /**
+   * Ensures the entire element fits within the constraining element.
+   * This may result in a different position, but the size will
+   * stay the same.
+   *
+   * @param constraint the element to constrain within
+   * @param point the target point
+   * @return the adjusted point
+   */
+  public final Point adjustForConstraints(Element constraint, Point point) {
+    // possibly move logic here and deprecate protected method
+    return getConstrainToXY(constraint, point);
+  }
+
+  /**
+   * Ensures the entire element fits within the browser viewport.
+   * The target bounds (x, y, width, height) will be adjusted inward
+   * until it fits. This may result in a both a different position
+   * and a different size.
+   *
+   * @param bounds the target bounds
+   * @return the adjusted bounds
+   */
+  public final Rectangle adjustForConstraints(Rectangle bounds) {
+    return adjustForConstraints(Document.get().getBody(), bounds);
+  }
+
+  /**
+   * Ensures the entire element fits within the constraining element.
+   * The target bounds (x, y, width, height) will be adjusted inward
+   * until it fits. This may result in a both a different position
+   * and a different size.
+   *
+   * @param constraint the element to constrain within
+   * @param bounds the target bounds
+   * @return the adjusted bounds
+   */
+  public final Rectangle adjustForConstraints(Element constraint, Rectangle bounds) {
+    int constraintTop = 0;
+    int constraintRight = 0;
+    int constraintBottom = 0;
+    int constraintLeft = 0;
+    if (constraint == Document.get().getBody()) {
+      constraintRight = XDOM.getViewportSize().getWidth();
+      constraintBottom = XDOM.getViewportSize().getHeight();
+    } else {
+      constraintTop = constraint.getAbsoluteTop();
+      constraintRight = constraint.getAbsoluteLeft() + constraint.getOffsetWidth();
+      constraintBottom = constraint.getAbsoluteTop() + constraint.getOffsetHeight();
+      constraintLeft = constraint.getAbsoluteLeft();
+    }
+
+    int boundsTop = bounds.getY();
+    int boundsRight = bounds.getX() + bounds.getWidth();
+    int boundsBottom = bounds.getY() + bounds.getHeight();
+    int boundsLeft = bounds.getX();
+
+
+    if (boundsTop < constraintTop) {
+      boundsTop = constraintTop;
+    }
+    if (boundsRight > constraintRight) {
+      boundsRight = constraintRight;
+    }
+    if (boundsBottom > constraintBottom) {
+      boundsBottom = constraintBottom;
+    }
+    if (boundsLeft < constraintLeft) {
+      boundsLeft = constraintLeft;
+    }
+
+    return new Rectangle(boundsLeft, boundsTop, (boundsRight - boundsLeft), (boundsBottom - boundsTop));
   }
 
   /**
@@ -344,11 +454,11 @@ public class XElement extends com.google.gwt.user.client.Element {
 
   /**
    * Creates and adds a child using the HTML fragment.
-   * 
+   *
    * @param html the html fragment
    * @return the new child
    */
-  public final XElement createChild(String html) {
+  public final XElement createChild(SafeHtml html) {
     return appendChild(XDOM.create(html)).<XElement> cast();
   }
 
@@ -360,7 +470,7 @@ public class XElement extends com.google.gwt.user.client.Element {
   }
 
   /**
-   * Enables or disables text selection for the element. A circular reference will be created when disabling text
+   * Enables or disables text selection for the element and all children. A circular reference will be created when disabling text
    * selection. Disabling should be cleared when the element is detached. See the <code>Component</code> source for an
    * example.
    * 
@@ -368,6 +478,19 @@ public class XElement extends com.google.gwt.user.client.Element {
    */
   public final void disableTextSelection(boolean disable) {
     setClassName(CommonStyles.get().unselectable(), disable);
+    setPropertyString("unselectable", disable ? "on" : "");
+    disableTextSelectInternal(this, disable);
+  }
+
+  /**
+   * Enables or disables text selection for the element. A circular reference will be created when disabling text
+   * selection. Disabling should be cleared when the element is detached. See the <code>Component</code> source for an
+   * example.
+   *
+   * @param disable true to disable, false to enable
+   */
+  public final void disableTextSelectionSingle(boolean disable) {
+    setClassName(CommonStyles.get().unselectableSingle(), disable);
     setPropertyString("unselectable", disable ? "on" : "");
     disableTextSelectInternal(this, disable);
   }
@@ -493,9 +616,8 @@ public class XElement extends com.google.gwt.user.client.Element {
       int w = getOffsetWidth();
       int h = getOffsetHeight();
       Region r = el.getRegion();
-      // 5px of margin for ie
-      int dw = XDOM.getViewWidth(false) - 10;
-      int dh = XDOM.getViewHeight(false) - 10;
+      int dw = XDOM.getViewWidth(false);
+      int dh = XDOM.getViewHeight(false);
 
       // If we are at a viewport boundary and the aligned el is anchored on a
       // target border that is
@@ -1209,10 +1331,10 @@ public class XElement extends com.google.gwt.user.client.Element {
    * @return the width
    */
   public final int getTextWidth() {
-    String html = getInnerHTML();
+    String text = getInnerText();
     TextMetrics metrics = TextMetrics.get();
     metrics.bind(this);
-    return metrics.getWidth(html);
+    return metrics.getWidth(text);
   }
 
   /**
@@ -1294,7 +1416,6 @@ public class XElement extends com.google.gwt.user.client.Element {
    * @return the z-index
    */
   public final int getZIndex() {
-    // TODO IE6 is throwing exception
     try {
       return Util.parseInt(getStyle().getZIndex(), 0);
     } catch (Exception e) {
@@ -1363,7 +1484,7 @@ public class XElement extends com.google.gwt.user.client.Element {
    * @param html the HTML fragment
    * @return the new child
    */
-  public final XElement insertFirst(String html) {
+  public final XElement insertFirst(SafeHtml html) {
     return XElement.as(DomHelper.insertFirst(this, html));
   }
 
@@ -1374,7 +1495,7 @@ public class XElement extends com.google.gwt.user.client.Element {
    * @param html the HTML fragment
    * @return the inserted node (or nearest related if more than 1 inserted)
    */
-  public final XElement insertHtml(String where, String html) {
+  public final XElement insertHtml(String where, SafeHtml html) {
     return XElement.as(DomHelper.insertHtml(where, this, html));
   }
 
@@ -1406,6 +1527,33 @@ public class XElement extends com.google.gwt.user.client.Element {
    */
   public final boolean isConnected() {
     return Document.get().getBody().isOrHasChild(this);
+  }
+
+  /**
+   * Determine whether an element is equal to, or the child of, this element.<br/>
+   * <br/>
+   * This implementation delegates to <code>Node.isOrHasChildImpl(Node)</code>, but catches a scenario
+   * in IE9 & IE10 where not all elements support the contains() method used by the deferred binding to
+   * <code>DOMImplTrident.isOrHasChildImpl(Node, Node)</code>.
+   *
+   * @param child the potential child element
+   * @return <code>true</code> if the relationship holds
+   * @see com.google.gwt.dom.client.Node#isOrHasChild(Node)
+   * @see com.google.gwt.dom.client.DOMImplTrident#isOrHasChildImpl(Node, Node)
+   */
+  public final boolean isOrHasChild(XElement child) {
+    try {
+      return super.isOrHasChild(child);
+    } catch (JavaScriptException e) {
+      // swallow the exception if it is a manifestation of the IE9 & IE10 bug
+      if ((GXT.isIE9() || GXT.isIE10())
+          && e.getName().equals("TypeError")
+          && e.getMessage().contains("'contains'")) {
+        return false;
+      } else {
+        throw e;
+      }
+    }
   }
 
   /**
@@ -1512,7 +1660,10 @@ public class XElement extends com.google.gwt.user.client.Element {
 
   /**
    * Retrieves the data using the request builder and updates the element's contents.
-   * <p>
+   * <p/>
+   * Please note that the <code>Response</code> from the <code>RequestBuilder</code> is treated as raw html
+   * without any sanitizing. If is up to the caller to ensure that the call does not return unsafe html.
+   * <p/>
    * This method is subject to change.
    * 
    * @param builder the request builder
@@ -1522,17 +1673,20 @@ public class XElement extends com.google.gwt.user.client.Element {
       builder.setCallback(new RequestCallback() {
 
         public void onError(Request request, Throwable exception) {
-          setInnerHTML(exception.getMessage());
+          setInnerSafeHtml(exception != null && exception.getMessage() != null
+              ? SafeHtmlUtils.fromString(exception.getMessage()) : SafeHtmlUtils.EMPTY_SAFE_HTML);
         }
 
         public void onResponseReceived(Request request, Response response) {
-          setInnerHTML(response.getText());
+          setInnerSafeHtml(response != null && response.getText() != null
+              ? SafeHtmlUtils.fromString(response.getText()) : SafeHtmlUtils.EMPTY_SAFE_HTML);
         }
 
       });
       return builder.send();
     } catch (Exception e) {
-      setInnerHTML(e.getMessage());
+      setInnerSafeHtml(e != null && e.getMessage() != null
+          ? SafeHtmlUtils.fromString(e.getMessage()) : SafeHtmlUtils.EMPTY_SAFE_HTML);
       return null;
     }
   }
@@ -1579,7 +1733,7 @@ public class XElement extends com.google.gwt.user.client.Element {
     }
     String tag = getTagName().toLowerCase();
     if (!tag.equals("table") && !tag.equals("tbody") && !tag.equals("tr") && !tag.equals("td")) {
-      setInnerHTML("");
+      setInnerSafeHtml(SafeHtmlUtils.EMPTY_SAFE_HTML);
     }
   }
 
@@ -2255,6 +2409,8 @@ public class XElement extends com.google.gwt.user.client.Element {
     } else {
       vw = elem.getOffsetWidth();
       vh = elem.getOffsetHeight();
+      vx = elem.getAbsoluteLeft();
+      vy = elem.getAbsoluteTop();
     }
 
     Point xy = proposedXY;

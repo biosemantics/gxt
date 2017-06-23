@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.cell.core.client.form;
 
@@ -16,13 +46,16 @@ import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Event.NativePreviewEvent;
 import com.google.gwt.user.client.Event.NativePreviewHandler;
 import com.sencha.gxt.core.client.GXT;
-import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer.CellTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 
 /**
@@ -41,6 +74,7 @@ import com.sencha.gxt.widget.core.client.grid.Grid;
  * </pre>
  */
 public class CheckBoxCell extends ValueBaseInputCell<Boolean> {
+
 
   private class MouseUpHandler implements NativePreviewHandler {
 
@@ -70,24 +104,24 @@ public class CheckBoxCell extends ValueBaseInputCell<Boolean> {
   public interface CheckBoxAppearance extends ValueBaseFieldAppearance {
     void render(SafeHtmlBuilder sb, Boolean value, CheckBoxCellOptions opts);
 
-    void setBoxLabel(String boxLabel, XElement parent);
+    void setBoxLabel(SafeHtml boxLabel, XElement parent);
   }
 
   public static class CheckBoxCellOptions extends FieldAppearanceOptions {
 
-    private String boxLabel;
+    private SafeHtml boxLabel = SafeHtmlUtils.EMPTY_SAFE_HTML;
 
-    public String getBoxLabel() {
+    public SafeHtml getBoxLabel() {
       return boxLabel;
     }
 
-    public void setBoxLabel(String boxLabel) {
+    public void setBoxLabel(SafeHtml boxLabel) {
       this.boxLabel = boxLabel;
     }
 
   }
 
-  private String boxLabel;
+  private SafeHtml boxLabel = SafeHtmlUtils.EMPTY_SAFE_HTML;
   private boolean ignoreNextBlur;
 
   public CheckBoxCell() {
@@ -96,6 +130,13 @@ public class CheckBoxCell extends ValueBaseInputCell<Boolean> {
 
   public CheckBoxCell(CheckBoxAppearance appearance) {
     super(appearance);
+    addCellGestureAdapter(new CellTapGestureRecognizer<Boolean>() {
+      @Override
+      protected void onTap(TouchData tap, Context context, Element parent, Boolean value, ValueUpdater<Boolean> valueUpdater) {
+        Event event = tap.getLastNativeEvent().cast();
+        updateCheckBoxValue(parent, event, value, valueUpdater);
+      }
+    });
   }
 
   @Override
@@ -103,7 +144,7 @@ public class CheckBoxCell extends ValueBaseInputCell<Boolean> {
     return (CheckBoxAppearance) super.getAppearance();
   }
 
-  public String getBoxLabel() {
+  public SafeHtml getBoxLabel() {
     return boxLabel;
   }
 
@@ -123,58 +164,69 @@ public class CheckBoxCell extends ValueBaseInputCell<Boolean> {
     }
     super.onBrowserEvent(context, parent, value, event, valueUpdater);
 
-    String type = event.getType();
+    boolean enterPressed = "keydown".equals(event.getType()) && event.getKeyCode() == KeyCodes.KEY_ENTER;
 
+    if ("click".equals(event.getType()) || enterPressed) {
+      event.stopPropagation();
+
+      if (enterPressed) {
+        event.preventDefault();
+      }
+
+      updateCheckBoxValue(parent, event, value, valueUpdater);
+    }
+  }
+
+  private void updateCheckBoxValue(Element parent, NativeEvent event, Boolean value, ValueUpdater<Boolean> valueUpdater) {
+    // if disabled, return immediately
     if (isDisabled()) {
       event.preventDefault();
       event.stopPropagation();
       return;
     }
 
-    boolean enterPressed = "keydown".equals(type) && event.getKeyCode() == KeyCodes.KEY_ENTER;
+    String eventType = event.getType();
 
     // on macs and chrome windows, the checkboxes blur on click which causes issues with inline editing as edit
     // is cancelled
-    if ((GXT.isChrome() || GXT.isMac()) && "mousedown".equals(type)) {
+    if ((GXT.isChrome() || GXT.isMac()) && "mousedown".equals(eventType)) {
       ignoreNextBlur = true;
     }
 
-    if ("click".equals(type) || enterPressed) {
-      event.stopPropagation();
+    final Element target = event.getEventTarget().cast();
+    final InputElement input = getInputElement(parent);
+    Boolean checked = input.isChecked();
 
-      final InputElement input = getInputElement(parent);
-      Boolean checked = input.isChecked();
+    boolean label = "LABEL".equals(target.getTagName());
+    boolean enterPressed = "keydown".equals(eventType) && event.getKeyCode() == KeyCodes.KEY_ENTER;
 
-      boolean label = "LABEL".equals(target.getTagName());
 
-      // TODO this should be changed to remove reference to known subclass
-      boolean radio = this instanceof RadioCell;
+    // TODO this should be changed to remove reference to known subclass
+    boolean radio = this instanceof RadioCell;
 
-      if (label || enterPressed) {
-        event.preventDefault();
+    if (label || enterPressed) {
+      event.preventDefault();
 
-        if (checked & radio) {
-          return;
-        }
-
-        // input will NOT have been updated for label clicks
-        checked = !checked;
-        input.setChecked(checked);
-
-      } else if (radio && value) {
-
-        // no action required if value is already true and this is a radio
+      if (checked && radio) {
         return;
       }
 
-      if (valueUpdater != null && checked != value) {
-        valueUpdater.update(checked);
-      }
+      // input will NOT have been updated for label clicks
+      checked = !checked;
+      input.setChecked(checked);
 
-      if (ignoreNextBlur) {
-        ignoreNextBlur = false;
-        input.focus();
-      }
+    } else if (radio && value) {
+      // no action required if value is already true and this is a radio
+      return;
+    }
+
+    if (valueUpdater != null && checked != value) {
+      valueUpdater.update(checked);
+    }
+
+    if (ignoreNextBlur) {
+      ignoreNextBlur = false;
+      input.focus();
     }
   }
 
@@ -190,11 +242,6 @@ public class CheckBoxCell extends ValueBaseInputCell<Boolean> {
   public void render(com.google.gwt.cell.client.Cell.Context context, Boolean value, SafeHtmlBuilder sb) {
     CheckBoxCellOptions opts = new CheckBoxCellOptions();
 
-    // radios must have a name for ie6 and ie7
-    if (name == null && (GXT.isIE6() || GXT.isIE7())) {
-      name = XDOM.getUniqueId();
-    }
-
     opts.setName(name);
 
     opts.setReadonly(isReadOnly());
@@ -206,12 +253,23 @@ public class CheckBoxCell extends ValueBaseInputCell<Boolean> {
 
   /**
    * The text that appears beside the checkbox (defaults to null).
-   * 
-   * @param boxLabel the box label
+   *
+   * Text that contains reserved html characters will be escaped.
+   *
+   * @param text the box label text
    */
-  public void setBoxLabel(XElement parent, String boxLabel) {
-    this.boxLabel = boxLabel;
-    getAppearance().setBoxLabel(boxLabel, parent);
+  public void setBoxLabel(XElement parent, String text) {
+    setBoxLabel(parent, SafeHtmlUtils.fromString(text));
+  }
+
+  /**
+   * The html that appears beside the checkbox (defaults to null).
+   * 
+   * @param html the box label html
+   */
+  public void setBoxLabel(XElement parent, SafeHtml html) {
+    this.boxLabel = html;
+    getAppearance().setBoxLabel(html, parent);
   }
 
   @Override

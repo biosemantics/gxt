@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.menu;
 
@@ -13,6 +43,7 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.util.Util;
 import com.sencha.gxt.widget.core.client.event.BeforeCheckChangeEvent;
@@ -36,6 +67,8 @@ public class CheckMenuItem extends MenuItem implements HasBeforeCheckChangeHandl
      * @param state Whether to apply or remove the style
      */
     void applyChecked(XElement parent, boolean state);
+
+    XElement getCheckIcon(XElement parent);
 
     ImageResource checked();
 
@@ -182,7 +215,22 @@ public class CheckMenuItem extends MenuItem implements HasBeforeCheckChangeHandl
 
   protected void onClick(NativeEvent ce) {
     if (!disabled) {
-      setChecked(!checked);
+      /* On touch devices, if a submenu is present on a checkbox menuItem, we want to make sure the user tapped the
+       * checkbox icon (if one exists) before calling setChecked.
+       *
+       * On desktop, if a submenu is present, hovering the menuItem will open the submenu and clicking anywhere in the
+       * menuItem will call setChecked.  Unfortunately, since touch uses click to both select an item and display the
+       * submenu, opening the submenu will also call setChecked, which is not what we want to happen.
+       */
+      if (GXT.isTouch() && subMenu != null) {
+        XElement target = ce.getEventTarget().cast();
+        XElement checkIcon = appearance.getCheckIcon(getElement());
+        if (checkIcon == null || checkIcon.isOrHasChild(target)) {
+          setChecked(!checked);
+        }
+      } else {
+        setChecked(!checked);
+      }
     }
     super.onClick(ce);
   }

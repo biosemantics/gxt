@@ -17,6 +17,7 @@ import com.google.gwt.dom.client.AnchorElement;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.ImageElement;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.dom.client.Style.Cursor;
@@ -46,6 +47,9 @@ import com.sencha.gxt.core.client.dom.DomHelper;
 import com.sencha.gxt.core.client.dom.DomQuery;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.LongPressOrTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
+import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Region;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.SortInfo;
@@ -65,6 +69,7 @@ import com.sencha.gxt.widget.core.client.event.HeaderDoubleClickEvent;
 import com.sencha.gxt.widget.core.client.event.HeaderMouseDownEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
+import com.sencha.gxt.widget.core.client.event.XEvent;
 import com.sencha.gxt.widget.core.client.grid.GridView.GridTemplates;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
@@ -181,11 +186,7 @@ public class ColumnHeader<M> extends Component {
 
     public GridSplitBar() {
       setElement(Document.get().createDivElement());
-      if (GXT.isOpera()) {
-        getElement().getStyle().setProperty("cursor", "w-resize");
-      } else {
         getElement().getStyle().setProperty("cursor", "col-resize");
-      }
       getElement().makePositionable(true);
       setWidth(5);
 
@@ -248,7 +249,7 @@ public class ColumnHeader<M> extends Component {
         int x = startX;
         int minx = x - XElement.as(c).getX() - minColumnWidth;
         int maxx = (XElement.as(container.getElement()).getX() + XElement.as(container.getElement()).getWidth(false))
-            - e.getNativeEvent().getClientX();
+            - e.getNativeEvent().<XEvent>cast().getXY().getX();
         d.setXConstraint(minx, maxx);
       }
     }
@@ -268,7 +269,7 @@ public class ColumnHeader<M> extends Component {
           break;
         }
       }
-      int x = event.getClientX();
+      int x = event.<XEvent>cast().getXY().getX();
       Region r = header.getElement().getRegion();
       int hw = splitterWidth;
 
@@ -306,13 +307,12 @@ public class ColumnHeader<M> extends Component {
       if (config.getWidget() != null) {
         getElement().appendChild(config.getWidget().getElement());
       } else {
-        getElement().setInnerHTML(
-            config.getHtml() != null ? config.getHtml().asString() : SafeHtmlUtils.fromString("").asString());
+        getElement().setInnerSafeHtml(config.getHtml());
       }
     }
 
-    public void setText(String text) {
-      getElement().setInnerHTML(text);
+    public void setHtml(SafeHtml html) {
+      getElement().setInnerSafeHtml(html);
     }
 
     @Override
@@ -365,7 +365,7 @@ public class ColumnHeader<M> extends Component {
         span.appendChild(widget.getElement());
         getElement().appendChild(span);
       } else {
-        text = new InlineHTML(config.getHeader() != null ? config.getHeader() : SafeHtmlUtils.fromString(""));
+        text = new InlineHTML(config.getHeader());
         getElement().appendChild(text.getElement());
       }
 
@@ -384,6 +384,28 @@ public class ColumnHeader<M> extends Component {
       }
       heads.add(this);
 
+      addGestureRecognizer(new LongPressOrTapGestureRecognizer() {
+        @Override
+        public boolean handleStart(NativeEvent startEvent) {
+          // TODO- this preventDefault here is to deal with synthesized mouse events
+          // causing the column header menu to close immediately.  This does, however,
+          // cause issues with scrolling in surrounding containers, so touch scroll must
+          // be addressed.
+          startEvent.preventDefault();
+          return super.handleStart(startEvent);
+        }
+        @Override
+        protected void onLongPress(TouchData touchData) {
+          onDropDownClick(touchData.getLastNativeEvent().<Event>cast(), Head.this.column);
+          super.onLongPress(touchData);
+        }
+        @Override
+        protected void onEnd(List<TouchData> touches) {
+          Event endEvent = touches.get(0).getLastNativeEvent().cast();
+          onHeaderClick(endEvent, Head.this.column);
+          super.onEnd(touches);
+        }
+      });
     }
 
     public void activateTrigger(boolean activate) {
@@ -551,19 +573,32 @@ public class ColumnHeader<M> extends Component {
 
     @Override
     public void onDragMove(DragMoveEvent event) {
-      event.setX(event.getNativeEvent().getClientX() + 12 + XDOM.getBodyScrollLeft());
-      event.setY(event.getNativeEvent().getClientY() + 12 + XDOM.getBodyScrollTop());
+      Point eventXY = event.getNativeEvent().<XEvent>cast().getXY();
+      event.setX(eventXY.getX() + 12 + XDOM.getBodyScrollLeft());
+      event.setY(eventXY.getY() + 12 + XDOM.getBodyScrollTop());
 
       Element target = event.getNativeEvent().getEventTarget().cast();
+      Head h = null;
 
-      Head h = getHeadFromElement(adjustTargetElement(target));
+      if (GXT.isTouch()) {
+		// for touch events, getEventTarget will always return the element you started the gesture on
+  
+        for (Head head : heads) {
+          if (head.getElement().getBounds().contains(eventXY.getX(), eventXY.getY())) {
+            h = head;
+            break;
+          }
+        }
+      } else {
+        h = getHeadFromElement(adjustTargetElement(target));
+      }
 
       if (h != null && !h.equals(start)) {
         HeaderGroupConfig g = cm.getGroup(h.row - 1, h.column);
         HeaderGroupConfig s = cm.getGroup(start.row - 1, start.column);
         if ((g == null && s == null) || (g != null && g.equals(s))) {
           active = h;
-          boolean before = event.getNativeEvent().getClientX() < active.getAbsoluteLeft() + active.getOffsetWidth() / 2;
+          boolean before = eventXY.getX() < active.getAbsoluteLeft() + active.getOffsetWidth() / 2;
           showStatusIndicator(true);
 
           if (before) {
@@ -703,7 +738,7 @@ public class ColumnHeader<M> extends Component {
    * Maps actual column indexes to the TABLE TH and TD index.
    */
   protected int[] columnToHead;
-
+  protected boolean disableSortIcon;
   protected HeaderContextMenuFactory menu;
   protected int minColumnWidth = 25;
   protected Draggable reorderer;
@@ -832,6 +867,12 @@ public class ColumnHeader<M> extends Component {
   }
 
   /**
+   * Returns the state of the sort icon.
+   */
+  public boolean isDisableSortIcon() {
+    return disableSortIcon;
+  }
+   /**
    * Returns true if column reordering is enabled.
    * 
    * @return the column reorder state
@@ -864,7 +905,7 @@ public class ColumnHeader<M> extends Component {
 
     table.getElement().insertBefore(tbody, body);
     tbody.<XElement> cast().removeChildren();
-    DomHelper.insertHtml("afterBegin", tbody, renderHiddenHeaders(getColumnWidths()).asString());
+    DomHelper.insertHtml("afterBegin", tbody, renderHiddenHeaders(getColumnWidths()));
 
     List<HeaderGroupConfig> configs = cm.getHeaderGroups();
 
@@ -975,6 +1016,10 @@ public class ColumnHeader<M> extends Component {
       cf.getElement(row, i).setPropertyInt("gridColumnIndex", i);
 
       HorizontalAlignmentConstant align = cm.getColumnHorizontalAlignment(i);
+      if (cm.getColumnHorizontalHeaderAlignment(i) != null) {
+        align = cm.getColumnHorizontalHeaderAlignment(i);
+      }
+		// override the header alignment
       if (align != null) {
         table.getCellFormatter().setHorizontalAlignment(row, i, align);
         if (align == HasHorizontalAlignment.ALIGN_RIGHT) {
@@ -1040,6 +1085,12 @@ public class ColumnHeader<M> extends Component {
   }
 
   /**
+   * True to disable the column sort icon (defaults to false).
+   */
+  public void setDisableSortIcon(boolean disableSortIcon) {
+    this.disableSortIcon = disableSortIcon;
+  }
+	/**
    * True to enable column reordering.
    * 
    * @param enable true to enable
@@ -1195,7 +1246,7 @@ public class ColumnHeader<M> extends Component {
     String asc = styles.sortAsc();
     for (int i = 0; i < heads.size(); i++) {
       Head h = heads.get(i);
-      if (i == colIndex) {
+      if (!disableSortIcon && i == colIndex) {
         h.addStyleName(dir == SortDir.DESC ? desc : asc);
         h.removeStyleName(dir != SortDir.DESC ? desc : asc);
       } else {

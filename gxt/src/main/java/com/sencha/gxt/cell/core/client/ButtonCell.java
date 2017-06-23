@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.cell.core.client;
 
@@ -26,6 +56,13 @@ import com.google.gwt.user.client.ui.HasHTML;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.CellGestureAdapter;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer.TapGestureEvent;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer.TapGestureEvent.HasTapGestureHandlers;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer.TapGestureEvent.TapGestureHandler;
+import com.sencha.gxt.core.client.gestures.TouchData;
+import com.sencha.gxt.core.shared.ExpandedHtmlSanitizer;
 import com.sencha.gxt.core.client.util.KeyNav;
 import com.sencha.gxt.widget.core.client.HasIcon;
 import com.sencha.gxt.widget.core.client.event.ArrowSelectEvent;
@@ -42,7 +79,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 
 public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandlers, HasSelectHandlers,
-    HasArrowSelectHandlers, HasHTML, HasIcon, HasSafeHtml, FocusableCell, DisableCell {
+    HasArrowSelectHandlers, HasHTML, HasIcon, HasSafeHtml, FocusableCell, DisableCell, HasTapGestureHandlers {
 
   /**
    * Button arrow alignment enum.
@@ -127,9 +164,22 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
     }
   }
 
+  //TODO consider concrete subclasses of these cell adapters for each gesture class, possibly as an inner class?
+  private CellGestureAdapter<TapGestureRecognizer, C> tapRecognizer = new TapGestureRecognizer.CellTapGestureRecognizer<C>() {
+    @Override
+    protected void onTap(TouchData tap, Context context, Element parent, C value, ValueUpdater<C> valueUpdater) {
+      ButtonCell.this.onTap(tap, context, (XElement)parent.cast(), value, valueUpdater);
+    }
+
+    @Override
+    protected void onTapStart(TouchData tap, Context context, Element parent, C value, ValueUpdater<C> valueUpdater) {
+      ButtonCell.this.getFocusElement(parent.<XElement>cast()).focus();
+    }
+  };
+
   protected ImageResource icon;
   protected Menu menu;
-  protected SafeHtml text = SafeHtmlUtils.EMPTY_SAFE_HTML;
+  protected SafeHtml html = SafeHtmlUtils.EMPTY_SAFE_HTML;
   private final ButtonCellAppearance<C> appearance;
 
   private IconAlign iconAlign = IconAlign.LEFT;
@@ -143,11 +193,12 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
   private HandlerRegistration hideHandlerRegistration;
 
   public ButtonCell() {
-    this(GWT.<ButtonCellAppearance<C>> create(ButtonCellAppearance.class));
+    this(GWT.<ButtonCellAppearance<C>>create(ButtonCellAppearance.class));
   }
 
   public ButtonCell(ButtonCellAppearance<C> appearance) {
     super("click", "keydown", "mousedown", "mouseup", "mouseover", "mouseout", "focus", "blur");
+    addCellGestureAdapter(tapRecognizer);
     this.appearance = appearance;
   }
 
@@ -167,19 +218,91 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
   }
 
   @Override
+  public HandlerRegistration addTapGestureHandler(TapGestureHandler handler) {
+    return addHandler(handler, TapGestureEvent.getType());
+  }
+
+  @Override
   public void disable(com.google.gwt.cell.client.Cell.Context context, Element parent) {
-    appearance.onOver(parent.<XElement> cast(), false);
-    appearance.onFocus(parent.<XElement> cast(), false);
+    appearance.onOver(parent.<XElement>cast(), false);
+    appearance.onFocus(parent.<XElement>cast(), false);
   }
 
   @Override
   public void enable(com.google.gwt.cell.client.Cell.Context context, Element parent) {
-    appearance.onOver(parent.<XElement> cast(), false);
+    appearance.onOver(parent.<XElement>cast(), false);
+  }
+
+  /**
+   * Returns the item's text.
+   *
+   * If text was set that contained reserved html characters, the return value will be html escaped.
+   * If html was set instead, the return value will be html.
+   *
+   * @return the text or html, depending on what was set
+   * @see #getHTML()
+   */
+  @Override
+  public String getText() {
+    return getHTML();
+  }
+
+  /**
+   * Sets the item's text.
+   *
+   * Text that contains reserved html characters will be escaped.
+   *
+   * @param text the text
+   */
+  @Override
+  public void setText(String text) {
+    setHTML(SafeHtmlUtils.fromString(text));
+  }
+
+  /**
+   * Returns the item's html.
+   *
+   * @return the html
+   */
+  public SafeHtml getSafeHtml() {
+    return html;
+  }
+
+  /**
+   * Returns the item's html.
+   *
+   * @return the html
+   */
+  @Override
+  public String getHTML() {
+    return html.asString();
+  }
+
+  /**
+   * Sets the item's html.
+   *
+   * @param html the html
+   */
+  @Override
+  public void setHTML(SafeHtml html) {
+    this.html = html;
+  }
+
+  /**
+   * Sets the item's html.
+   *
+   * Untrusted html will be sanitized before use to protect against XSS.
+   *
+   * @param html the html
+   */
+  @Override
+  public void setHTML(String html) {
+    setHTML(ExpandedHtmlSanitizer.sanitizeHtml(html));
   }
 
   /**
    * Returns the button's appearance.
-   * 
+   *
    * @return the appearance
    */
   public ButtonCellAppearance<C> getAppearance() {
@@ -188,7 +311,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Returns the button's arrow alignment.
-   * 
+   *
    * @return the arrow alignment
    */
   public ButtonArrowAlign getArrowAlign() {
@@ -201,18 +324,13 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
   }
 
   @Override
-  public String getHTML() {
-    return text.asString();
-  }
-
-  @Override
   public ImageResource getIcon() {
     return icon;
   }
 
   /**
    * Returns the button's icon alignment.
-   * 
+   *
    * @return the icon alignment
    */
   public IconAlign getIconAlign() {
@@ -221,7 +339,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Returns the button's menu (if it has one).
-   * 
+   *
    * @return the menu
    */
   public Menu getMenu() {
@@ -230,7 +348,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Returns the button's menu alignment.
-   * 
+   *
    * @return the menu alignment
    */
   public AnchorAlignment getMenuAlign() {
@@ -239,7 +357,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Returns the button's minimum width.
-   * 
+   *
    * @return the minWidth the minimum width
    */
   public int getMinWidth() {
@@ -248,7 +366,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Returns false if mouse over effect is disabled.
-   * 
+   *
    * @return false if mouse effects disabled
    */
   public boolean getMouseEvents() {
@@ -257,16 +375,11 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Returns the button's scale.
-   * 
+   *
    * @return the button scale
    */
   public ButtonScale getScale() {
     return scale;
-  }
-
-  @Override
-  public String getText() {
-    return text.asString();
   }
 
   /**
@@ -330,21 +443,11 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Sets the arrow alignment (defaults to RIGHT).
-   * 
+   *
    * @param arrowAlign the arrow alignment
    */
   public void setArrowAlign(ButtonArrowAlign arrowAlign) {
     this.arrowAlign = arrowAlign;
-  }
-
-  @Override
-  public void setHTML(SafeHtml html) {
-    this.text = html;
-  }
-
-  @Override
-  public void setHTML(String html) {
-    setHTML(SafeHtmlUtils.fromTrustedString(html));
   }
 
   @Override
@@ -354,7 +457,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Sets the icon alignment (defaults to LEFT).
-   * 
+   *
    * @param iconAlign the icon alignment
    */
   public void setIconAlign(IconAlign iconAlign) {
@@ -363,7 +466,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Sets the button's menu.
-   * 
+   *
    * @param menu the menu
    */
   public void setMenu(Menu menu) {
@@ -390,7 +493,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
   /**
    * Sets the position to align the menu to, see {@link XElement#alignTo} for
    * more details (defaults to 'tl-bl?', pre-render).
-   * 
+   *
    * @param menuAlign the menu alignment
    */
   public void setMenuAlign(AnchorAlignment menuAlign) {
@@ -400,7 +503,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
   /**
    * Sets he minimum width for this button (used to give a set of buttons a
    * common width)
-   * 
+   *
    * @param minWidth the minimum width
    */
   public void setMinWidth(int minWidth) {
@@ -410,7 +513,7 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
   /**
    * False to disable visual cues on mouseover, mouseout and mousedown (defaults
    * to true).
-   * 
+   *
    * @param handleMouseEvents false to disable mouse over changes
    */
   public void setMouseEvents(boolean handleMouseEvents) {
@@ -419,21 +522,16 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
 
   /**
    * Sets the button's scale.
-   * 
+   *
    * @param scale the button scale
    */
   public void setScale(ButtonScale scale) {
     this.scale = scale;
   }
 
-  @Override
-  public void setText(String text) {
-    setHTML(SafeHtmlUtils.fromString(text));
-  }
-
   /**
    * Show this button's menu (if it has one).
-   * 
+   *
    * @param target the element to align to
    */
   public void showMenu(Element target) {
@@ -488,15 +586,22 @@ public class ButtonCell<C> extends ResizeCell<C> implements HasBeforeSelectHandl
   }
 
   protected void onNavigationKey(com.google.gwt.cell.client.Cell.Context context, Element parent, C value,
-      NativeEvent event, ValueUpdater<C> valueUpdater) {
+                                 NativeEvent event, ValueUpdater<C> valueUpdater) {
     int key = event.getKeyCode();
 
     if (key == KeyCodes.KEY_DOWN && menu != null) {
-      onClick(context, parent.<XElement> cast(), value, event, valueUpdater);
+      onClick(context, parent.<XElement>cast(), value, event, valueUpdater);
     }
 
     if (key == KeyCodes.KEY_ENTER || key == 32) {
-      onClick(context, parent.<XElement> cast(), value, event, valueUpdater);
+      onClick(context, parent.<XElement>cast(), value, event, valueUpdater);
+    }
+  }
+
+  protected void onTap(TouchData touch, Context context, XElement parent, C value, ValueUpdater<C> valueUpdater) {
+    Element target = touch.getLastNativeEvent().getEventTarget().cast();
+    if (parent.getFirstChildElement().isOrHasChild(target)) {
+      onClick(context, parent, value, touch.getLastNativeEvent(), valueUpdater);
     }
   }
 }

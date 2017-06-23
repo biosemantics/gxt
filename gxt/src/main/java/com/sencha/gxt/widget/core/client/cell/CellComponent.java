@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.cell;
 
@@ -12,7 +42,6 @@ import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.Style.Position;
 import com.google.gwt.editor.client.LeafValueEditor;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
@@ -27,7 +56,6 @@ import com.sencha.gxt.cell.core.client.AbstractEventCell;
 import com.sencha.gxt.cell.core.client.DisableCell;
 import com.sencha.gxt.cell.core.client.FocusableCell;
 import com.sencha.gxt.cell.core.client.ResizableCell;
-import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.resources.CommonStyles;
 import com.sencha.gxt.widget.core.client.Component;
@@ -239,7 +267,7 @@ public class CellComponent<C> extends Component implements HasKeyProvider<C>, Ha
     }
     SafeHtmlBuilder sb = new SafeHtmlBuilder();
     cell.render(createContext(), value, sb);
-    getElement().setInnerHTML(sb.toSafeHtml().asString());
+    getElement().setInnerSafeHtml(sb.toSafeHtml());
     onRedraw();
     return true;
   }
@@ -323,18 +351,6 @@ public class CellComponent<C> extends Component implements HasKeyProvider<C>, Ha
     // does not handle null keys
     Object key = (keyProvider == null) ? "component" : keyProvider.getKey(value);
     return key;
-  }
-
-  @Override
-  protected void onAfterFirstAttach() {
-    super.onAfterFirstAttach();
-    if (inlineBlock && (GXT.isIE6() || GXT.isIE7())) {
-      // widgets not scrolling when in tables
-      Element p = getElement().getParentElement();
-      if (p != null && p.getTagName().equals("TD")) {
-        getElement().getStyle().setPosition(Position.STATIC);
-      }
-    }
   }
 
   @Override

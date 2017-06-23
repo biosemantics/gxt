@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.dnd.core.client;
 
@@ -12,6 +42,7 @@ import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.dom.XDOM;
+import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.shared.event.CancellableEvent;
 import com.sencha.gxt.dnd.core.client.DndDragCancelEvent.DndDragCancelHandler;
 import com.sencha.gxt.dnd.core.client.DndDragCancelEvent.HasDndDragCancelHandlers;
@@ -25,6 +56,7 @@ import com.sencha.gxt.fx.client.DragHandler;
 import com.sencha.gxt.fx.client.DragMoveEvent;
 import com.sencha.gxt.fx.client.DragStartEvent;
 import com.sencha.gxt.fx.client.Draggable;
+import com.sencha.gxt.widget.core.client.event.XEvent;
 
 /**
  * Enables a component to act as the source of a drag and drop operation (i.e. a
@@ -62,7 +94,6 @@ public class DragSource implements HasDndDragStartHandlers, HasDndDragCancelHand
     this.widget = widget;
 
     handler = new DragHandler() {
-
       public void onDragCancel(DragCancelEvent event) {
         onDraggableDragCancel(event);
       }
@@ -80,7 +111,6 @@ public class DragSource implements HasDndDragStartHandlers, HasDndDragCancelHand
       public void onDragStart(DragStartEvent event) {
         onDraggableDragStart(event);
       }
-
     };
 
     draggable = new Draggable(widget);
@@ -218,15 +248,12 @@ public class DragSource implements HasDndDragStartHandlers, HasDndDragCancelHand
    * @param event the dnd cancel event
    */
   protected void onDragCancelled(DndDragCancelEvent event) {
-
   }
 
   protected void onDragDrop(DndDropEvent event) {
-
   }
 
   protected void onDragFail(DndDropEvent event) {
-
   }
 
   /**
@@ -237,7 +264,6 @@ public class DragSource implements HasDndDragStartHandlers, HasDndDragCancelHand
    * @param event the dnd event
    */
   protected void onDragStart(DndDragStartEvent event) {
-
   }
 
   SimpleEventBus ensureHandlers() {
@@ -256,12 +282,16 @@ public class DragSource implements HasDndDragStartHandlers, HasDndDragCancelHand
     }
   }
 
-  private void onDraggableDragMove(DragMoveEvent de) {
-    Event e = de.getNativeEvent().cast();
-    de.setX(e.getClientX() + 12 + XDOM.getBodyScrollLeft());
-    de.setY(e.getClientY() + 12 + XDOM.getBodyScrollTop());
+  private void onDraggableDragMove(DragMoveEvent dragMoveEvent) {
+    // Mouse has an offset but touch doesn't
+    if (dragMoveEvent.getNativeEvent() != null) {
+      XEvent e = dragMoveEvent.getNativeEvent().cast();
+      Point eventXY = e.getXY();
+      dragMoveEvent.setX(eventXY.getX() + 12 + XDOM.getBodyScrollLeft());
+      dragMoveEvent.setY(eventXY.getY() + 12 + XDOM.getBodyScrollTop());
+    }
 
-    DndDragMoveEvent me = new DndDragMoveEvent(widget, this, de, statusProxy, data);
+    DndDragMoveEvent me = new DndDragMoveEvent(widget, this, dragMoveEvent, statusProxy, data);
     DNDManager.get().handleDragMove(this, me);
   }
 

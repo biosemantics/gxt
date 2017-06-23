@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.menu;
 
@@ -25,11 +55,13 @@ import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Event.NativePreviewEvent;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.impl.FocusImpl;
+import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.Style;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
@@ -37,6 +69,11 @@ import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.dom.XWindow;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer.ScrollDirection;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.resources.CommonStyles;
 import com.sencha.gxt.core.client.util.BaseEventPreview;
 import com.sencha.gxt.core.client.util.ClickRepeater;
@@ -89,7 +126,6 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
     String plainClass();
 
     void render(SafeHtmlBuilder builder);
-
   }
 
   private final MenuAppearance appearance;
@@ -98,6 +134,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
   protected Item parentItem;
   protected boolean plain;
   protected boolean showSeparator = true;
+  protected Item activeItem; 
 
   private int activeMax;
   private boolean constrainViewport = true;
@@ -112,10 +149,9 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
   private boolean showing;
   private String subMenuAlign = "tl-tr?";
   private XElement ul;
-  protected Item activeItem;
 
   public Menu() {
-    this(GWT.<MenuAppearance> create(MenuAppearance.class));
+    this(GWT.<MenuAppearance>create(MenuAppearance.class));
   }
 
   public Menu(MenuAppearance appearance) {
@@ -135,7 +171,6 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
     setDeferHeight(true);
 
     eventPreview = new BaseEventPreview() {
-
       @Override
       protected boolean onPreview(NativePreviewEvent pe) {
         Menu.this.onPreviewEvent(pe);
@@ -178,9 +213,32 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
         onKeyUp(evt);
       }
 
+      @Override
+      public void onTab(NativeEvent evt) {
+        if (evt.getShiftKey()) {
+          onKeyUp(evt);
+        } else {
+          onKeyDown(evt);
+        }
+      }
     };
 
     sinkEvents(Event.MOUSEEVENTS | Event.ONCLICK | Event.ONMOUSEWHEEL);
+
+    // observe tap clicks on sub menu items in particular
+    addGestureRecognizer(new TapGestureRecognizer() {
+
+      @Override
+      protected void onTap(TouchData touchData) {
+        super.onTap(touchData);
+        Menu.this.onTap(touchData);
+      }
+
+      @Override
+      protected void handlePreventDefault(NativeEvent event) {
+        // allow events to flow for menu items to use (such as ComboBox, Filters, etc)
+      }
+    });
   }
 
   @Override
@@ -190,7 +248,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Fires when the {@link Menu} is maximized.
-   * 
+   *
    * @param handler sets the {@link MaximizeHandler}
    * @return the {@link HandlerRegistration}.
    */
@@ -200,7 +258,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Fires when the {@link Menu} is minimized.
-   * 
+   *
    * @param handler sets the {@link MinimizeHandler}.
    * @return the {@link HandlerRegistration}.
    */
@@ -212,9 +270,10 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
   public HandlerRegistration addSelectionHandler(SelectionHandler<Item> handler) {
     return addHandler(handler, SelectionEvent.getType());
   }
-  
+
   /**
    * Returns the appearance object for this instance
+   *
    * @return the appearance impl used by this component
    */
   public MenuAppearance getAppearance() {
@@ -223,7 +282,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Returns the default alignment.
-   * 
+   *
    * @return the default align
    */
   public String getDefaultAlign() {
@@ -232,7 +291,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Returns the max height of the menu or -1 if not set.
-   * 
+   *
    * @return the max height in pixels
    */
   public int getMaxHeight() {
@@ -241,7 +300,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Returns the menu's minimum width.
-   * 
+   *
    * @return the width
    */
   public int getMinWidth() {
@@ -250,7 +309,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Returns the menu's parent item.
-   * 
+   *
    * @return the parent item
    */
   public Item getParentItem() {
@@ -259,7 +318,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Returns the sub menu alignment.
-   * 
+   *
    * @return the alignment
    */
   public String getSubMenuAlign() {
@@ -275,7 +334,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Hides this menu and optionally all parent menus
-   * 
+   *
    * @param deep true to close all parent menus
    */
   public void hide(final boolean deep) {
@@ -295,10 +354,13 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
             RootPanel.get().remove(Menu.this);
             // if document.activeElement is null or the body element, focus on onHideFocusElement
             if (onHideFocusElement != null &&
-                (XDOM.getActiveElement() == null
-                    || XDOM.getActiveElement().isOrHasChild(XElement.as(Document.get().getBody())) // IE8 sets activeElement to HTML
-                )) {
-              FocusImpl.getFocusImplForPanel().focus(onHideFocusElement);
+              (XDOM.getActiveElement() == null
+                || XElement.as(XDOM.getActiveElement()).isOrHasChild(XElement.as(Document.get().getBody())) // IE8 sets activeElement to HTML
+              )) {
+              // EXTGWT-4175: for touch we don't want to focus on the input every time we hide - keyboard will pop up
+              if (!GXT.isTouch()) {
+                FocusImpl.getFocusImplForPanel().focus(onHideFocusElement);
+              }
             }
           }
         });
@@ -317,7 +379,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Returns true if constrain to viewport is enabled.
-   * 
+   *
    * @return the constrain to viewport state
    */
   public boolean isConstrainViewport() {
@@ -326,7 +388,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Returns true if vertical scrolling is enabled.
-   * 
+   *
    * @return true for scrolling
    */
   public boolean isEnableScrolling() {
@@ -335,7 +397,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Returns true if the menu will be focused when displayed.
-   * 
+   *
    * @return true if focused
    */
   public boolean isFocusOnShow() {
@@ -365,15 +427,20 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
         break;
       case Event.ONMOUSEWHEEL:
         if (enableScrolling) {
-          scrollMenu(event.getMouseWheelVelocityY() < 0);
+          // Windows and Chrome sensitivity isn't reflected through this call
+          boolean top = event.getMouseWheelVelocityY() < 0;
+          if (GXT.isIE() || GXT.isChrome()) {
+            top = getWheelDelta(event) > 0;
+          }
+          scrollMenu(top);
         }
     }
   }
 
   /**
    * Sets the active item. The widget must be of type <code>Item</code> to be activated. All other types are ignored.
-   * 
-   * @param widget the widget to set active
+   *
+   * @param widget     the widget to set active
    * @param autoExpand true to auto expand the item
    */
   public void setActiveItem(Widget widget, boolean autoExpand) {
@@ -400,7 +467,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
   /**
    * Sets whether the menu should be constrained to the viewport when shown. Only applies when using
    * {@link #showAt(int, int)}.
-   * 
+   *
    * @param constrainViewport true to constrain
    */
   public void setConstrainViewport(boolean constrainViewport) {
@@ -410,7 +477,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
   /**
    * Sets the default {@link XElement#alignTo} anchor position value for this menu relative to its element of origin
    * (defaults to "tl-bl?").
-   * 
+   *
    * @param defaultAlign the default align
    */
   public void setDefaultAlign(String defaultAlign) {
@@ -419,7 +486,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * True to enable vertical scrolling of the children in the menu (defaults to true).
-   * 
+   *
    * @param enableScrolling true to for scrolling
    */
   public void setEnableScrolling(boolean enableScrolling) {
@@ -428,7 +495,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * True to set the focus on the menu when it is displayed.
-   * 
+   *
    * @param focusOnShow true to focus
    */
   public void setFocusOnShow(boolean focusOnShow) {
@@ -438,7 +505,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
   /**
    * Sets the max height of the menu (defaults to -1). Only applies when {@link #setEnableScrolling(boolean)} is set to
    * true.
-   * 
+   *
    * @param maxHeight the max height
    */
   public void setMaxHeight(int maxHeight) {
@@ -447,7 +514,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Sets he minimum width of the menu in pixels (defaults to 120).
-   * 
+   *
    * @param minWidth the minimum width
    */
   public void setMinWidth(int minWidth) {
@@ -467,7 +534,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * The {@link XElement#alignTo} anchor position value to use for submenus of this menu (defaults to "tl-tr-?").
-   * 
+   *
    * @param subMenuAlign the sub alignment
    */
   public void setSubMenuAlign(String subMenuAlign) {
@@ -476,10 +543,10 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Displays this menu relative to another element.
-   * 
-   * @param elem the element to align to
+   *
+   * @param elem      the element to align to
    * @param alignment the {@link XElement#alignTo} anchor position to use in aligning to the element (defaults to
-   *          defaultAlign)
+   *                  defaultAlign)
    */
   public void show(Element elem, AnchorAlignment alignment) {
     show(elem, alignment, 0, 0);
@@ -487,12 +554,12 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Displays this menu relative to another element.
-   * 
-   * @param elem the element to align to
+   *
+   * @param elem      the element to align to
    * @param alignment the {@link XElement#alignTo} anchor position to use in aligning to the element (defaults to
-   *          defaultAlign)
-   * @param offsetX X offset
-   * @param offsetY Y offset
+   *                  defaultAlign)
+   * @param offsetX   X offset
+   * @param offsetY   Y offset
    */
   public void show(Element elem, AnchorAlignment alignment, int offsetX, int offsetY) {
     if (!fireCancellableEvent(new BeforeShowEvent())) {
@@ -542,7 +609,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Displays this menu relative to the widget using the default alignment.
-   * 
+   *
    * @param widget the align widget
    */
   public void show(Widget widget) {
@@ -551,7 +618,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   /**
    * Displays this menu at a specific xy position.
-   * 
+   *
    * @param x the x coordinate
    * @param y the y coordinate
    */
@@ -615,21 +682,19 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
     }
 
     ClickRepeaterHandler handler = new ClickRepeaterHandler() {
-
       @Override
       public void onClick(ClickRepeaterEvent event) {
         onScroll(event);
       }
-
     };
 
     XElement topScroller = appearance.getTopScroller(getElement());
-    ClickRepeater cr = new ClickRepeater(this, topScroller);
-    cr.addClickHandler(handler);
+    new ClickRepeater(this, topScroller).addClickHandler(handler);
 
     XElement bottomScroller = appearance.getBottomScroller(getElement());
-    cr = new ClickRepeater(this, bottomScroller);
-    cr.addClickHandler(handler);
+    new ClickRepeater(this, bottomScroller).addClickHandler(handler);
+
+    addGestureRecognizer(new ScrollGestureRecognizer(ul, ScrollDirection.VERTICAL));
   }
 
   protected void deactivateActiveItem() {
@@ -651,7 +716,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
   @Override
   protected void doPhysicalAttach(Widget child, int beforeIndex) {
     boolean needsIndent = (child instanceof Field) || (child instanceof ContentPanel)
-        || (child instanceof AdapterMenuItem && ((AdapterMenuItem) child).isNeedsIndent());
+      || (child instanceof AdapterMenuItem && ((AdapterMenuItem) child).isNeedsIndent());
     XElement div = appearance.createItem(getElement(), child.getElement().getId(), needsIndent);
 
     div.appendChild(child.getElement());
@@ -700,6 +765,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
       case Event.ONMOUSEWHEEL:
       case Event.ONSCROLL:
       case Event.ONKEYPRESS:
+      case Event.ONTOUCHSTART:
         XElement target = pe.getNativeEvent().getEventTarget().cast();
 
         // ignore targets within a parent with x-ignore, such as the listview in
@@ -724,19 +790,55 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
             } else {
               active = null;
             }
-
           } else {
             active = null;
           }
-
         }
 
         if (!getElement().isOrHasChild(target)) {
           hide(true);
           return;
         }
+        break;
     }
-    return;
+  }
+
+  /**
+   * On a tap, either open a submenu or select and hide the menu.
+   */
+  protected void onTap(TouchData touchData) {
+    Event event = touchData.getLastNativeEvent().cast();
+
+    Widget itemWidget = findWidget((Element) event.getEventTarget().cast());
+
+    if (itemWidget instanceof MenuItem) {
+      final MenuItem menuItem = (MenuItem) itemWidget;
+
+      // Has a submenu, so don't hide menu on tap
+      if (menuItem.hasSubMenu() && menuItem.isCanActivate() && menuItem.isEnabled()) {
+        final boolean hideOnClick = menuItem.isHideOnClick();
+        menuItem.setHideOnClick(false);
+        setActiveItem(menuItem, true);
+        onClick(event); // still want to call click even if menuItem has a submenu
+
+        // wait a moment after submenu renders
+        Scheduler.get().scheduleFinally(new Command() {
+          @Override
+          public void execute() {
+            menuItem.setHideOnClick(hideOnClick);
+          }
+        });
+      } else {
+        // Is an item, so close on tap, this is going to be a selection
+        if (activeItem != menuItem && menuItem.isCanActivate() && menuItem.isEnabled()) {
+          final boolean hideOnClick = menuItem.isHideOnClick();
+          menuItem.setHideOnClick(true);
+          // process the tap as a click
+          onClick(event);
+          menuItem.setHideOnClick(hideOnClick);
+        }
+      }
+    }
   }
 
   protected void onClick(Event ce) {
@@ -829,7 +931,7 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
   protected void onMouseOut(Event ce) {
     EventTarget to = ce.getRelatedEventTarget();
     if (activeItem != null && (to == null || (Element.is(to) && !activeItem.getElement().isOrHasChild(Element.as(to))))
-        && activeItem.shouldDeactivate(ce)) {
+      && activeItem.shouldDeactivate(ce)) {
       if (to != null && Element.is(to)) {
         XElement xto = to.cast();
         if (xto.findParent("." + CommonStyles.get().ignore(), 3) != null) {
@@ -887,8 +989,29 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
 
   @Override
   protected void onWindowResize(int width, int height) {
+    boolean doHide = true;
+    if (GXT.isTouch()) {
+      // should we prevent hide?
+      // If resize occurs due to focusing an input and bringing up
+      // virtual Keyboard, let's not hide
+      Element activeElement = XDOM.getActiveElement();
+      if (activeElement.hasTagName("INPUT")) {
+        doHide = false;
+      }
+
+      /* on touch devices, a window resize can mean only one of two things: either there was a change in orientation or
+       * the virtual keyboard was displayed/hidden.  If we determine that the last resize was not an orientation change,
+       * we can assume it was the virtual keyboard - in which case, we do not want to  hide the menu.
+       */
+      if (!XWindow.isLastResizeOrientationChange()) {
+        doHide = false;
+      }
+    }
+
     super.onWindowResize(width, height);
-    hide(true);
+    if (doHide) {
+      hide(true);
+    }
   }
 
   protected void scrollMenu(boolean top) {
@@ -908,5 +1031,12 @@ public class Menu extends InsertContainer implements HasBeforeSelectionHandlers<
     }
     return null;
   }
+
+  /**
+   * Returns the IE wheelDelta on mouse scrolling.
+   */
+  private native int getWheelDelta(Event event) /*-{
+    return event.wheelDelta;
+  }-*/;
 
 }

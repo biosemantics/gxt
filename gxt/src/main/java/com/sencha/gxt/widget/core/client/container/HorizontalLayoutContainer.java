@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.container;
 
@@ -32,6 +62,7 @@ import com.sencha.gxt.core.client.dom.HasScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.dom.XDOM;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer;
 import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.core.client.util.Rectangle;
 import com.sencha.gxt.core.client.util.Size;
@@ -118,6 +149,7 @@ public class HorizontalLayoutContainer extends InsertResizeContainer implements 
   private boolean adjustForScroll;
   private boolean secondPassRequired;
   private ScrollSupport scrollSupport;
+  private ScrollGestureRecognizer scrollGestureRecognizer;
 
   private static Logger logger = Logger.getLogger(HorizontalLayoutContainer.class.getName());
 
@@ -126,7 +158,7 @@ public class HorizontalLayoutContainer extends InsertResizeContainer implements 
    */
   public HorizontalLayoutContainer() {
     setElement(Document.get().createDivElement());
-    getContainerTarget().makePositionable(true);
+    getContainerTarget().makePositionable(false);
   }
 
   /**
@@ -165,6 +197,7 @@ public class HorizontalLayoutContainer extends InsertResizeContainer implements 
     if (scrollSupport == null) {
       scrollSupport = new DefaultScrollSupport(getContainerTarget());
     }
+    initScrollGestureRecognizer();
     return scrollSupport;
   }
 
@@ -217,6 +250,7 @@ public class HorizontalLayoutContainer extends InsertResizeContainer implements 
   @Override
   public void setScrollSupport(ScrollSupport support) {
     this.scrollSupport = support;
+    initScrollGestureRecognizer();
   }
 
   @Override
@@ -237,6 +271,9 @@ public class HorizontalLayoutContainer extends InsertResizeContainer implements 
     // so we need to make 2 passes
     for (int i = 0; i < count; i++) {
       Widget c = getWidget(i);
+      if (!c.isVisible()) {
+        continue;
+      }
       c.getElement().getStyle().setPosition(Position.ABSOLUTE);
 
       double width = -1;
@@ -273,6 +310,9 @@ public class HorizontalLayoutContainer extends InsertResizeContainer implements 
 
     for (int i = 0; i < count; i++) {
       Widget c = getWidget(i);
+      if (!c.isVisible()) {
+        continue;
+      }
       c.getElement().getStyle().setMargin(0, Unit.PX);
 
       double width = -1;
@@ -333,4 +373,22 @@ public class HorizontalLayoutContainer extends InsertResizeContainer implements 
     // no op, super applies margins
   }
 
+  private void initScrollGestureRecognizer() {
+    if (scrollGestureRecognizer == null) {
+      scrollGestureRecognizer = new ScrollGestureRecognizer(getContainerTarget()) {
+        @Override
+        protected ScrollDirection getDirection() {
+          ScrollMode scrollMode = getScrollMode();
+          switch (scrollMode) {
+            case AUTOX:
+              return ScrollDirection.HORIZONTAL;
+            case AUTOY:
+              return ScrollDirection.VERTICAL;
+          }
+          return ScrollDirection.BOTH;
+        }
+      };
+      addGestureRecognizer(scrollGestureRecognizer);
+    }
+  }
 }

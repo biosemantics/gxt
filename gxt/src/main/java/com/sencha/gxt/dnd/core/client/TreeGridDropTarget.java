@@ -11,18 +11,23 @@ import java.util.List;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.EventTarget;
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Timer;
+import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport;
+import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Rectangle;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent.StoreRemoveHandler;
 import com.sencha.gxt.dnd.core.client.DND.Feedback;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
+import com.sencha.gxt.widget.core.client.event.XEvent;
 import com.sencha.gxt.widget.core.client.tree.Tree.TreeNode;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 
@@ -276,7 +281,7 @@ public class TreeGridDropTarget<M> extends DropTarget {
     int mid = height / 2;
     int top = getWidget().getView().getRow(item.getModel()).getAbsoluteTop();
     mid += top;
-    int y = event.getDragMoveEvent().getNativeEvent().getClientY();
+    int y = event.getDragMoveEvent().getNativeEvent().<XEvent>cast().getXY().getY();
     boolean before = y < mid;
 
     if ((!getWidget().isLeaf(item.getModel()) || allowDropOnLeaf)
@@ -420,10 +425,14 @@ public class TreeGridDropTarget<M> extends DropTarget {
 
   @Override
   protected void showFeedback(DndDragMoveEvent event) {
+    Element target = getElementFromEvent(event.getDragMoveEvent().getNativeEvent());
     // TODO this might not get the right element
-    final TreeNode<M> item = getWidget().findNode(
+    //3.1.1
+	final TreeNode<M> item = getWidget().findNode(
         event.getDragMoveEvent().getNativeEvent().getEventTarget().<Element> cast());
-    if (item == null) {
+    //4.0.0
+	//  final TreeNode<M> item = getWidget().findNode(Element.as(target));
+	if (item == null) {
       if (activeItem != null) {
         clearStyle(activeItem);
       }

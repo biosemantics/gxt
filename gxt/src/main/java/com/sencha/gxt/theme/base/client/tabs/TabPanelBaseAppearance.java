@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.theme.base.client.tabs;
 
@@ -13,6 +43,7 @@ import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
@@ -144,11 +175,13 @@ public abstract class TabPanelBaseAppearance implements TabPanelAppearance {
   @Override
   public void createScrollers(XElement parent) {
     int h = getStripWrap(parent).getOffsetHeight();
-    XElement scrollLeft = getBar(parent).insertFirst("<div class='" + style.tabScrollerLeft() + "'></div>");
+    SafeHtml html = SafeHtmlUtils.fromTrustedString("<div class='" + style.tabScrollerLeft() + "'></div>");
+    XElement scrollLeft = getBar(parent).insertFirst(html);
     scrollLeft.setId(XDOM.getUniqueId());
     scrollLeft.setHeight(h);
 
-    XElement scrollRight = getBar(parent).insertFirst("<div class='" + style.tabScrollerRight() + "'></div>");
+    html = SafeHtmlUtils.fromTrustedString("<div class='" + style.tabScrollerRight() + "'></div>");
+    XElement scrollRight = getBar(parent).insertFirst(html);
     scrollRight.setId(XDOM.getUniqueId());
     scrollRight.setHeight(h);
   }
@@ -160,7 +193,7 @@ public abstract class TabPanelBaseAppearance implements TabPanelAppearance {
 
   @Override
   public XElement getBody(XElement parent) {
-    return parent.selectNode("." + style.tabBody());
+    return parent.getLastChild().cast();
   }
 
   @Override
@@ -179,28 +212,23 @@ public abstract class TabPanelBaseAppearance implements TabPanelAppearance {
   }
 
   public XElement getStrip(XElement parent) {
-    return parent.selectNode("." + style.tabStrip());
+    return getBar(parent).selectNode("." + style.tabStrip());
   }
 
   @Override
   public XElement getStripEdge(XElement parent) {
-    return parent.selectNode("." + style.tabEdge());
+    return getBar(parent).selectNode("." + style.tabEdge());
   }
 
   @Override
   public XElement getStripWrap(XElement parent) {
-    return parent.selectNode("." + style.tabStripWrap());
+    return getBar(parent).selectNode("." + style.tabStripWrap());
   }
 
   @Override
   public void insert(XElement parent, TabItemConfig config, int index) {
-    XElement item = XDOM.create(itemTemplate.render(style, config).asString());
+    XElement item = XDOM.create(itemTemplate.render(style, config));
     item.setClassName(ThemeStyles.get().style().disabled(), !config.isEnabled());
-    
-    if (config.isHTML()) {
-      XElement textEl = item.selectNode("." + style.tabStripText());
-      textEl.setInnerHTML(config.getHTML());
-    }
     
     getStrip(parent).insertChild(item, index);
 
@@ -273,13 +301,8 @@ public abstract class TabPanelBaseAppearance implements TabPanelAppearance {
 
   @Override
   public void updateItem(XElement item, TabItemConfig config) {
-    XElement textEl = item.selectNode("." + style.tabStripText());
-    
-    if (config.isHTML()) {
-      textEl.setInnerHTML(config.getHTML());
-    } else {
-      textEl.setInnerText(config.getText());
-    }
+    XElement contentEl = item.selectNode("." + style.tabStripText());
+    contentEl.setInnerSafeHtml(config.getContent());
 
     setItemIcon(item, config.getIcon());
 

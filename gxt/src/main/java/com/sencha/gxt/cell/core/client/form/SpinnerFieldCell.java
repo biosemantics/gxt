@@ -1,11 +1,43 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.cell.core.client.form;
+
+import java.text.ParseException;
 
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.ValueUpdater;
@@ -34,7 +66,7 @@ import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
  * 
  * @param <N>
  */
-public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> implements HasBeforeSelectionHandlers<N>,
+public class SpinnerFieldCell<N extends Number & Comparable<N>> extends NumberInputCell<N> implements HasBeforeSelectionHandlers<N>,
     HasSelectionHandlers<N> {
 
   public interface SpinnerFieldAppearance extends TwinTriggerFieldAppearance {
@@ -45,7 +77,6 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
   private Number minValue = Double.MAX_VALUE  * -1d;
   private Number maxValue = Double.MAX_VALUE;
   private int cursorPosition;
-
   public SpinnerFieldCell(NumberPropertyEditor<N> propertyEditor) {
     this(propertyEditor, GWT.<SpinnerFieldAppearance> create(SpinnerFieldAppearance.class));
   }
@@ -57,7 +88,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
   /**
    * Adds a {@link BeforeSelectionEvent} handler. The handler will be passed an instance of
    * {@link BeforeSelectionEvent} which can in this case be cast to {@link CellBeforeSelectionEvent}.
-   * 
+   *
    * @param handler the handler
    * @return the registration for the event
    */
@@ -69,7 +100,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
   /**
    * Adds a {@link SelectionEvent} handler. The handler will be passed an instance of {@link SelectionEvent} which
    * can in this case be cast to {@link CellSelectionEvent}.
-   * 
+   *
    * @param handler the handler
    * @return the registration for the event
    */
@@ -80,7 +111,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
 
   /**
    * Sets the increment value.
-   * 
+   *
    * @param context the context
    * @return the increment
    */
@@ -90,7 +121,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
 
   /**
    * Returns the fields max value.
-   * 
+   *
    * @param context the context
    * @return the max value
    */
@@ -100,7 +131,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
 
   /**
    * Returns the field's minimum value.
-   * 
+   *
    * @param context the context
    * @return the min value
    */
@@ -110,7 +141,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
 
   /**
    * Sets the increment that should be used (defaults to 1d).
-   * 
+   *
    * @param increment the increment to set.
    */
   public void setIncrement(N increment) {
@@ -119,7 +150,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
 
   /**
    * Sets the field's max allowable value.
-   * 
+   *
    * @param maxValue the max value
    */
   public void setMaxValue(Number maxValue) {
@@ -128,7 +159,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
 
   /**
    * Sets the field's minimum allowed value.
-   * 
+   *
    * @param minValue the minimum value
    */
   public void setMinValue(Number minValue) {
@@ -166,13 +197,33 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
       if (!cancelled) {
         N newVal = null;
         if (up) {
-          newVal = getPropertyEditor().incr(value);
+          // if the user clicks up with no value and a min value > 0 we "jump" to the min value
+          // otherwise, default behavior calling increment
+          if (value == null && minValue.doubleValue() > 0) {
+            try {
+              newVal = getPropertyEditor().parse("" + minValue);
+            } catch (ParseException e) {
+            }
+          } else {
+            newVal = getPropertyEditor().incr(value);
+          }
+
           if (newVal.doubleValue() > maxValue.doubleValue() || newVal.doubleValue() < minValue.doubleValue()) {
             return;
           }
           input.setValue(getPropertyEditor().render(newVal));
         } else {
-          newVal = getPropertyEditor().decr(value);
+          // if the user clicks down no no value a min value < 0 we "jump" to the min value
+          // otherwise, default behavior calling descrement
+          if (value == null && maxValue.doubleValue() < 0) {
+            try {
+              newVal = getPropertyEditor().parse("" + maxValue);
+            } catch (ParseException e) {
+            }
+          } else {
+            newVal = getPropertyEditor().decr(value);
+          }
+
           if (newVal.doubleValue() > maxValue.doubleValue() || newVal.doubleValue() < minValue.doubleValue()) {
             return;
           }
@@ -227,7 +278,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
     if (!isReadOnly() && !isDisabled()) {
       doSpin(context, parent, value, updater, true);
     }
-    if (!GXT.isIE9() && !GXT.isGecko()) {
+    if (!GXT.isIE9() && !GXT.isGecko() && !GXT.isTouch()) {
       getInputElement(parent).focus();
     }
 
@@ -259,7 +310,7 @@ public class SpinnerFieldCell<N extends Number> extends NumberInputCell<N> imple
     if (!isReadOnly() && !isDisabled()) {
       doSpin(context, parent, value, updater, false);
     }
-    if (!GXT.isIE9() && !GXT.isGecko()) {
+    if (!GXT.isIE9() && !GXT.isGecko() && !GXT.isTouch()) {
       getInputElement(parent).focus();
     }
 

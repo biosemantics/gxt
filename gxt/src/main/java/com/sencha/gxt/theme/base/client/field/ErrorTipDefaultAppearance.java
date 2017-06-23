@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.theme.base.client.field;
 
@@ -24,7 +54,6 @@ import com.sencha.gxt.widget.core.client.form.error.SideErrorHandler.SideErrorTo
 public class ErrorTipDefaultAppearance extends TipDefaultAppearance implements SideErrorTooltipAppearance {
 
   public interface ErrorTipFrameResources extends ClientBundle, TipDivFrameResources {
-
     @Source("com/sencha/gxt/core/public/clear.gif")
     @ImageOptions(repeatStyle = RepeatStyle.Both)
     ImageResource background();
@@ -54,7 +83,7 @@ public class ErrorTipDefaultAppearance extends TipDefaultAppearance implements S
     @Override
     ImageResource rightBorder();
 
-    @Source({"com/sencha/gxt/theme/base/client/frame/NestedDivFrame.css", "ErrorTipFrame.css"})
+    @Source({"com/sencha/gxt/theme/base/client/frame/NestedDivFrame.gss", "ErrorTipFrame.gss"})
     @Override
     ErrorTipNestedDivFrameStyle style();
 
@@ -71,11 +100,9 @@ public class ErrorTipDefaultAppearance extends TipDefaultAppearance implements S
     @ImageOptions(repeatStyle = RepeatStyle.Both)
     @Source("errorTipTopRightBorder.gif")
     ImageResource topRightBorder();
-
   }
 
   public interface ErrorTipNestedDivFrameStyle extends TipNestedDivFrameStyle {
-
   }
 
   public interface ErrorTipResources extends TipResources {
@@ -83,7 +110,7 @@ public class ErrorTipDefaultAppearance extends TipDefaultAppearance implements S
     @ImageOptions(preventInlining = true)
     ImageResource errorIcon();
 
-    @Source({"com/sencha/gxt/theme/base/client/tips/TipDefault.css", "ErrorTip.css"})
+    @Source({"com/sencha/gxt/theme/base/client/tips/TipDefault.gss", "ErrorTip.gss"})
     ErrorTipStyle style();
   }
 
@@ -110,14 +137,8 @@ public class ErrorTipDefaultAppearance extends TipDefaultAppearance implements S
   }
 
   @Override
-  public int autoWidth(XElement parent, int minWidth, int maxWidth) {
-    // add icon space
-    return super.autoWidth(parent, minWidth, maxWidth) + 25;
-  }
-
-  
-  @Override
   public void render(SafeHtmlBuilder sb) {
     frame.render(sb, Frame.EMPTY_FRAME, template.render((ErrorTipStyle) style));
   }
+
 }

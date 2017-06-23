@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.form;
 
@@ -14,22 +44,24 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.dom.client.Style.Overflow;
 import com.google.gwt.event.dom.client.FocusEvent;
 import com.google.gwt.event.dom.client.FocusHandler;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FocusWidget;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RichTextArea;
 import com.google.gwt.user.client.ui.RichTextArea.FontSize;
 import com.google.gwt.user.client.ui.RichTextArea.Justification;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.data.shared.StringLabelProvider;
 import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.button.CellButtonBase;
@@ -307,6 +339,45 @@ public class HtmlEditor extends AdapterField<String> {
 
   }
 
+  /**
+   * Extension of VerticalLayoutContainer to handle misc issues with
+   * scrolling, etc of mobile/touch devices
+   */
+  private static class HtmlEditorContainer extends VerticalLayoutContainer {
+
+    private HtmlEditor editor;
+
+    public void setHtmlEditor(HtmlEditor editor) {
+      this.editor = editor;
+    }
+
+    @Override
+    protected void doLayout() {
+      super.doLayout();
+
+      if (GXT.isSafari() && GXT.isTouch()) {
+        /* EXTGWT-4532
+           Scrolling is messed up with iOS safari and iframes.  Copying width/height and
+           adding extra style attributes allows mobile safari to work
+        */
+        XElement textAreaElement;
+        if (editor.sourceEditMode) {
+          textAreaElement = editor.sourceTextArea.getElement();
+        } else {
+          textAreaElement = editor.getTextArea().getElement().cast();
+        }
+        XElement parent = textAreaElement.getParentElement().cast();
+        parent.getStyle().setOverflow(Overflow.AUTO);
+        parent.getStyle().setProperty("webkitOverflowScrolling", "touch");
+        int textAreaWidth = textAreaElement.getWidth(true);
+        // text area height is total height minus toolbar
+        int textAreaHeight = editor.getOffsetHeight() - (editor.isShowToolBar() ? editor.toolBar.getOffsetHeight() : 0);
+        parent.setHeight(textAreaHeight);
+        parent.setWidth(textAreaWidth);
+      }
+    }
+  }
+
   protected VerticalLayoutContainer container;
   protected ToolBar toolBar;
   private final HtmlEditorAppearance appearance;
@@ -355,14 +426,16 @@ public class HtmlEditor extends AdapterField<String> {
    * color.
    */
   public HtmlEditor(HtmlEditorAppearance appearance) {
-    super(new VerticalLayoutContainer());
+    super(new HtmlEditorContainer());
     this.container = (VerticalLayoutContainer) getWidget();
+    ((HtmlEditorContainer)container).setHtmlEditor(this);
     this.appearance = appearance;
 
     addStyleName(appearance.editor());
     setBorders(true);
 
     toolBar = new ToolBar();
+    toolBar.addStyleName("x-html-editor-toolbar-mark");
 
     textArea = new RichTextArea();
     textArea.addStyleName(appearance.frame());
@@ -370,7 +443,6 @@ public class HtmlEditor extends AdapterField<String> {
 
       @Override
       public void onFocus(FocusEvent event) {
-        ensureTriggerFieldBlur();
 
         //EXTGWT-2916 - Firefox is re-enabled whenever it is re-attached to the dom
         //and focused.
@@ -765,20 +837,20 @@ public class HtmlEditor extends AdapterField<String> {
     HtmlEditorMessages m = getMessages();
 
     if (enableFont) {
-      final ListBox fonts = new ListBox();
-      fonts.addItem("Arial");
-      fonts.addItem("Courier New");
-      fonts.addItem("Times New Roman");
-      fonts.addItem("Verdana");
-      fonts.setItemSelected(0, true);
+      final SimpleComboBox<String> fonts = new SimpleComboBox<String>(new StringLabelProvider<String>());
+      fonts.setEditable(false);
+      fonts.setTriggerAction(TriggerAction.ALL);
+      fonts.setForceSelection(true);
+      fonts.add("Arial");
+      fonts.add("Courier New");
+      fonts.add("Times New Roman");
+      fonts.add("Verdana");
+      fonts.setValue(fonts.getStore().get(0));
 
-      fonts.addChangeHandler(new ChangeHandler() {
-
-        public void onChange(ChangeEvent event) {
-          int index = fonts.getSelectedIndex();
-          if (index != 0) {
-            textArea.getFormatter().setFontName(fonts.getItemText(index));
-          }
+      fonts.addSelectionHandler(new SelectionHandler<String>() {
+        @Override
+        public void onSelection(SelectionEvent<String> event) {
+          textArea.getFormatter().setFontName(event.getSelectedItem());
         }
       });
 
@@ -957,9 +1029,5 @@ public class HtmlEditor extends AdapterField<String> {
   private ToolTipConfig createTipConfig(String title, String text) {
     return new ToolTipConfig(title, text);
   }
-
-  private native void ensureTriggerFieldBlur() /*-{
-		@com.sencha.gxt.cell.core.client.form.TriggerFieldCell::ensureBlur()();
-  }-*/;
 
 }

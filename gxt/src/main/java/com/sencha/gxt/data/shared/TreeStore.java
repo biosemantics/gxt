@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.data.shared;
 
@@ -260,6 +290,18 @@ public class TreeStore<M> extends Store<M> {
       return children;
     }
 
+    /**
+     * Changes the isVisible flag to as well as
+     * recursively changing for all children
+     */
+    public void setVisibilityToChildren(boolean isVisible) {
+      for(int i = 0; i < children.size(); i++) {
+        TreeModel child = children.get(i);
+        child.setVisibilityToChildren(isVisible);
+      }
+      this.isVisible = isVisible;
+      this.visibleChildren = null;
+    }
     @Override
     public M getData() {
       return data;
@@ -841,6 +883,8 @@ public void applyFilters() {
     if (isFiltered()) {
       // Full recursive dfs, from the root nodes
       roots.applyFiltersToChildren();
+    } else {
+      roots.setVisibilityToChildren(true);
     }
     // TODO consider creating else block to clean up children sets. This causes
     // a perf hit, but saves some space

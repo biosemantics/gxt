@@ -24,6 +24,8 @@ import com.google.gwt.user.client.Event;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.LongPressOrTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.shared.FastMap;
 import com.sencha.gxt.data.shared.IconProvider;
 import com.sencha.gxt.data.shared.ListStore;
@@ -352,6 +354,23 @@ public class TreeGrid<M> extends Grid<M> implements HasBeforeCollapseItemHandler
     setAllowTextSelection(false);
 
     sinkCellEvents();
+ 	// use either long press or tap to select
+    addGestureRecognizer(new LongPressOrTapGestureRecognizer() {
+      @Override
+      protected void onLongPress(TouchData touchData) {
+        Event event = touchData.getLastNativeEvent().cast();
+        onMouseDown(event);
+        onClick(event);
+        super.onLongPress(touchData);
+      }
+      @Override
+      protected void onEnd(List<TouchData> touches) {
+        Event event = touches.get(0).getLastNativeEvent().cast();
+        onMouseDown(event);
+        onClick(event);
+        super.onEnd(touches);
+      }
+    });
   }
 
   @Override
@@ -896,6 +915,13 @@ public class TreeGrid<M> extends Grid<M> implements HasBeforeCollapseItemHandler
     }
     return false;
   }
+  protected boolean isEventTargetJoint(Event event) {
+    EventTarget eventTarget = event.getEventTarget();
+    if (Element.is(eventTarget)) {
+      return getTreeAppearance().isJointElement((XElement) Element.as(eventTarget).cast());
+    }
+    return false;
+  }
 
   protected void onAdd(StoreAddEvent<M> se) {
     if (viewReady) {
@@ -949,21 +975,23 @@ public class TreeGrid<M> extends Grid<M> implements HasBeforeCollapseItemHandler
   }
 
   @Override
+  public void onBrowserEvent(Event ce) {
+    if (ce.getTypeInt() == Event.ONCLICK) {
+      if (isEventTargetJoint(ce)) {
+        onClick(ce);
+        return;
+      }
+    }
+    super.onBrowserEvent(ce);
+  }
+  @Override
   protected void onClick(Event event) {
+    if (isEventTargetJoint(event)) {
     EventTarget eventTarget = event.getEventTarget();
-    if (Element.is(eventTarget)) {
 
       M m = store.get(getView().findRowIndex(Element.as(eventTarget)));
       if (m != null) {
-        TreeNode<M> node = findNode(m);
-        if (node != null) {
-          Element jointEl = treeGridView.getJointElement(node);
-          if (jointEl != null && jointEl.isOrHasChild((Element.as(eventTarget)))) {
             toggle(m);
-          } else {
-            super.onClick(event);
-          }
-        }
       }
     } else {
       super.onClick(event);
@@ -983,8 +1011,10 @@ public class TreeGrid<M> extends Grid<M> implements HasBeforeCollapseItemHandler
     } else {
       TreeNode<M> n = findNode(parent);
       if (n != null) {
+        if (n.isExpanded()) {
         treeGridView.collapse(n);
         n.setExpanded(false);
+        }
 
         n.setLoaded(true);
         n.setLoading(false);

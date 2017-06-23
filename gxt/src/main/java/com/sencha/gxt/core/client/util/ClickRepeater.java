@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.core.client.util;
 
@@ -15,6 +45,10 @@ import com.google.gwt.event.dom.client.MouseOutEvent;
 import com.google.gwt.event.dom.client.MouseOutHandler;
 import com.google.gwt.event.dom.client.MouseOverEvent;
 import com.google.gwt.event.dom.client.MouseOverHandler;
+import com.google.gwt.event.dom.client.TouchEndEvent;
+import com.google.gwt.event.dom.client.TouchEndHandler;
+import com.google.gwt.event.dom.client.TouchStartEvent;
+import com.google.gwt.event.dom.client.TouchStartHandler;
 import com.google.gwt.event.logical.shared.AttachEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.event.shared.SimpleEventBus;
@@ -22,6 +56,7 @@ import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Event.NativePreviewEvent;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.util.ClickRepeaterEvent.ClickRepeaterHandler;
 import com.sencha.gxt.core.client.util.ClickRepeaterEvent.HasClickRepeaterHandlers;
@@ -32,8 +67,8 @@ import com.sencha.gxt.core.client.util.ClickRepeaterEvent.HasClickRepeaterHandle
  */
 public class ClickRepeater implements HasClickRepeaterHandlers {
 
-  private class Handler implements MouseDownHandler, MouseOverHandler, MouseOutHandler,
-      com.google.gwt.event.logical.shared.AttachEvent.Handler {
+  private class Handler implements MouseDownHandler, MouseOverHandler, MouseOutHandler, TouchStartHandler,
+          TouchEndHandler, com.google.gwt.event.logical.shared.AttachEvent.Handler {
 
     @Override
     public void onAttachOrDetach(AttachEvent event) {
@@ -73,6 +108,24 @@ public class ClickRepeater implements HasClickRepeaterHandlers {
       }
     }
 
+    @Override
+    public void onTouchStart(TouchStartEvent event) {
+      XElement target = event.getNativeEvent().getEventTarget().cast();
+      if (el == target) {
+        event.stopPropagation();
+        event.preventDefault();
+        preview.add();
+        handleMouseDown();
+      }
+    }
+
+    @Override
+    public void onTouchEnd(TouchEndEvent event) {
+      XElement target = event.getNativeEvent().getEventTarget().cast();
+      if (el == target) {
+        handleMouseOut();
+      }
+    }
   }
 
   private XElement el;
@@ -115,6 +168,10 @@ public class ClickRepeater implements HasClickRepeaterHandlers {
     target.addDomHandler(handler, MouseDownEvent.getType());
     target.addDomHandler(handler, MouseOutEvent.getType());
     target.addDomHandler(handler, MouseOverEvent.getType());
+    if (GXT.isTouch()) {
+      target.addDomHandler(handler, TouchStartEvent.getType());
+      target.addDomHandler(handler, TouchEndEvent.getType());
+    }
     target.addAttachHandler(handler);
 
     if (target.isAttached()) {

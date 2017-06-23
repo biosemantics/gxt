@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client;
 
@@ -23,6 +53,7 @@ import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.EventTarget;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -38,6 +69,11 @@ import com.sencha.gxt.core.client.dom.CompositeElement;
 import com.sencha.gxt.core.client.dom.DomHelper;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.LongPressOrTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.PointerEventsSupport;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer.ScrollDirection;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.resources.CommonStyles;
 import com.sencha.gxt.core.client.util.Util;
 import com.sencha.gxt.core.shared.event.GroupingHandlerRegistration;
@@ -253,14 +289,16 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
   private boolean enableQuickTip = true;
   private HandlerRegistration storeHandlersRegistration;
   private GroupingHandlerRegistration loadHandlerRegistration;
-  private SafeHtml loadingHtml;
+  private SafeHtml loadingIndicator = SafeHtmlUtils.EMPTY_SAFE_HTML;
 
   private XElement overElement;
   private QuickTip quickTip;
   private boolean selectOnHover;
   private ListViewSelectionModel<M> sm;
   private StoreHandlers<M> storeHandlers;
-  private boolean trackMouseOver = true;
+  // by default, disable row highlighting on touch devices - there's some difficulties with touch events between taps
+  // since we lumped MSEdge into touch devices, we need to make sure to leave row highlighting for MSEdge
+  private boolean trackMouseOver = GXT.isMSEdge() || !GXT.isTouch();
 
   /**
    * Creates a new list view.
@@ -358,6 +396,29 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
     ensureFocusElement();
 
     sinkEvents(Event.ONCLICK | Event.ONDBLCLICK | Event.MOUSEEVENTS | Event.ONKEYDOWN);
+    addGestureRecognizer(new LongPressOrTapGestureRecognizer() {
+      @Override
+      protected void onLongPress(TouchData touch) {
+        ListView.this.onLongPress(touch);
+        super.onLongPress(touch);
+      }
+
+      @Override
+      protected void onTap(TouchData touch) {
+        ListView.this.onTap(touch);
+        super.onTap(touch);
+      }
+
+      @Override
+      protected void handlePreventDefault(NativeEvent event) {
+        // preventDefault on everything except input elements
+        if (sm != null && sm.isInput(event.getEventTarget().<Element>cast())) {
+          return;
+        }
+        event.preventDefault();
+      }
+    });
+    addGestureRecognizer(new ScrollGestureRecognizer(getElement(), ScrollDirection.BOTH));
   }
 
   @Override
@@ -447,12 +508,12 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
   }
 
   /**
-   * Returns the view's loading HTML.
+   * Returns the view's loading indicator as html.
    *
-   * @return the loading text
+   * @return the loading indicator html
    */
-  public SafeHtml getLoadingHtml() {
-    return loadingHtml;
+  public SafeHtml getLoadingIndicator() {
+    return loadingIndicator;
   }
 
   /**
@@ -590,7 +651,11 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
         onMouseOut(event);
         break;
       case Event.ONMOUSEDOWN:
-        onMouseDown(event);
+        // we don't want mousedown happening while scrolling - super.onBrowserEvent pipes the events through the gesture
+        // recognizers, all we need to do is return.
+        if (!PointerEventsSupport.impl.isSupported()) {
+          onMouseDown(event);
+        }
         break;
     }
   }
@@ -603,7 +668,7 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
     if (!isOrWasAttached()) {
       return;
     }
-    getElement().setInnerHTML("");
+    getElement().setInnerSafeHtml(SafeHtmlUtils.EMPTY_SAFE_HTML);
     getElement().repaint();
 
     List<M> models = store == null ? new ArrayList<M>() : store.getAll();
@@ -613,11 +678,11 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
     bufferRender(models, sb);
 
     SafeHtml markup = sb.toSafeHtml();
-    getElement().setInnerHTML(markup.asString());
+    getElement().setInnerSafeHtml(markup);
 
     SafeHtmlBuilder esb = new SafeHtmlBuilder();
     appearance.renderEnd(esb);
-    DomHelper.insertHtml("beforeend", getElement(), esb.toSafeHtml().asString());
+    DomHelper.insertHtml("beforeend", getElement(), esb.toSafeHtml());
 
     List<Element> elems = appearance.findElements(getElement());
 
@@ -673,7 +738,7 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
    * Sets the loader. Used for interacting with before load and load exception events.
    * <p/>
    * <ul>
-   * <li>Used with {@link #setLoadingHtml(SafeHtml)} or {@link #setLoadingText(String)}.</li>
+   * <li>Used with {@link #setLoadingIndicator(SafeHtml)} or {@link #setLoadingIndicator(String)}.</li>
    * <li>{@link #onBeforeLoad()} is called before a load and sets the loading HTML.</li>
    * <li>{@link #onLoadError(com.sencha.gxt.data.shared.loader.LoadExceptionEvent)} is called on load exception.</li>
    * </ul>
@@ -707,35 +772,31 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
   }
 
   /**
-   * Sets the html loading text to be displayed during a load request.
+   * Sets the loading indicator html to be displayed during a load request.
    * <p/>
    * <ul>
    * <li>The {@link #setLoader(Loader)} has to be set for this use.
-   * <li>The css class name 'loading-indicator' can style the loading HTML.
+   * <li>The css class name 'loading-indicator' can style the loading indicator html.
    * </ul>
    *
-   * @param loadingHtml the loading html
+   * @param html the loading html
    */
-  public void setLoadingHtml(SafeHtml loadingHtml) {
-    this.loadingHtml = loadingHtml;
+  public void setLoadingIndicator(SafeHtml html) {
+    this.loadingIndicator = html;
   }
 
   /**
-   * Sets the text loading text to be displayed during a load request.
+   * Sets the loading indicator as text to be displayed during a load request.
    * <p/>
    * <ul>
    * <li>The {@link #setLoader(Loader)} has to be set for this use.
-   * <li>The css class name 'loading-indicator' can style the loading text.
+   * <li>The css class name 'loading-indicator' can style the loading indicator text.
    * </ul>
    *
-   * @param loadingText the loading text
+   * @param text the loading text
    */
-  public void setLoadingText(String loadingText) {
-    if (loadingText != null) {
-      this.loadingHtml = SafeHtmlUtils.fromString(loadingText);
-    } else {
-      this.loadingHtml = null;
-    }
+  public void setLoadingIndicator(String text) {
+    this.loadingIndicator = SafeHtmlUtils.fromString(text);
   }
 
   /**
@@ -801,8 +862,7 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
         if (v != null) {
           text = v.toString();
         }
-        cellBuilder.append(Util.isEmptyString(text) ? SafeHtmlUtils.fromTrustedString("&#160;")
-            : SafeHtmlUtils.fromString(text));
+        cellBuilder.append(Util.isEmptyString(text) ? Util.NBSP_SAFE_HTML : SafeHtmlUtils.fromString(text));
       } else {
         Context context = new Context(i, 0, store.getKeyProvider().getKey(m));
         cell.render(context, v, cellBuilder);
@@ -881,7 +941,7 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
     bufferRender(models, sb);
 
     Element d = Document.get().createDivElement();
-    d.setInnerHTML(sb.toSafeHtml().asString());
+    d.setInnerSafeHtml(sb.toSafeHtml());
     List<Element> list = appearance.findElements(d.<XElement>cast());
 
     final Element ref = index == 0 ? null : all.getElement(index - 1);
@@ -915,8 +975,8 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
   }
 
   /**
-   * Is called before a load when a {@link #setLoader(Loader) and {@link #setLoadingHtml(SafeHtml) or
-   * {@link #setLoadingText(String)} are used the list will display the loading HTML.
+   * Is called before a load when a {@link #setLoader(Loader) and {@link #setLoadingIndicator(SafeHtml) or
+   * {@link #setLoadingIndicator(String)} are used the list will display the loading HTML.
    * <p/>
    * <ul>
    * <li>The {@link #setLoader(Loader)} has to be set for this to be called.
@@ -924,8 +984,12 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
    * </ul>
    */
   protected void onBeforeLoad() {
-    if (loadingHtml != null) {
-      getElement().setInnerHTML("<div class='loading-indicator'>" + loadingHtml.asString() + "</div>");
+    if (loadingIndicator != SafeHtmlUtils.EMPTY_SAFE_HTML) {
+      SafeHtmlBuilder sb = new SafeHtmlBuilder();
+      sb.appendHtmlConstant("<div class='loading-indicator'>");
+      sb.append(loadingIndicator);
+      sb.appendHtmlConstant("</div>");
+      getElement().setInnerSafeHtml(sb.toSafeHtml());
       all.removeAll();
     }
   }
@@ -955,6 +1019,11 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
     if (e != null) {
       e.setClassName("x-view-highlightrow", highLight);
     }
+  }
+
+  protected void onLongPress(TouchData touchData) {
+    // delegate to onTap
+    onTap(touchData);
   }
 
   protected void onMouseDown(Event e) {
@@ -1030,6 +1099,21 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
     }
   }
 
+  protected void onTap(TouchData touch) {
+    Event event = touch.getLastNativeEvent().cast();
+    onMouseOut(event); // reset last selection
+
+    // don't handle this touch if we don't have a selection model (because no selection needed)
+    // or if the selection is locked or if the event is on an input
+    if (sm == null || sm.isLocked() || sm.isInput(event.getEventTarget().<Element>cast())) {
+      return;
+    }
+    getSelectionModel().onMouseDown(event);
+    getSelectionModel().onMouseClick(event);
+    onMouseOver(event);
+    onMouseDown(event);
+  }
+
   protected void onUpdate(M model, int index) {
     Element original = all.getElement(index);
     if (original != null) {
@@ -1037,7 +1121,7 @@ public class ListView<M, N> extends Component implements HasRefreshHandlers {
       SafeHtmlBuilder sb = new SafeHtmlBuilder();
       bufferRender(list, sb);
 
-      DomHelper.insertBefore(original, sb.toSafeHtml().asString());
+      DomHelper.insertBefore(original, sb.toSafeHtml());
 
       all.replaceElement(original, Element.as(original.getPreviousSibling()));
       original.removeFromParent();

@@ -32,6 +32,13 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Timer;
+import com.sencha.gxt.core.client.GXT;
+import com.sencha.gxt.core.client.gestures.DoubleTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.DoubleTapGestureRecognizer.DoubleTapGestureEvent;
+import com.sencha.gxt.core.client.gestures.DoubleTapGestureRecognizer.DoubleTapGestureEvent.DoubleTapGestureEventHandler;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer.TapGestureEvent;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer.TapGestureEvent.TapGestureHandler;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.util.KeyNav;
 import com.sencha.gxt.core.shared.event.GroupingHandlerRegistration;
 import com.sencha.gxt.data.shared.Converter;
@@ -81,8 +88,8 @@ public abstract class AbstractGridEditing<M> implements GridEditing<M> {
   }
 
   protected class Handler implements AttachEvent.Handler, ScrollHandler, ClickHandler, DoubleClickHandler,
-      MouseDownHandler, MouseUpHandler, BeforeExpandItemHandler<M>, BeforeCollapseItemHandler<M>,
-      HeaderMouseDownHandler, ReconfigureHandler, ColumnWidthChangeHandler {
+      MouseDownHandler, MouseUpHandler, TapGestureHandler, DoubleTapGestureEventHandler, BeforeExpandItemHandler<M>,
+          BeforeCollapseItemHandler<M>, HeaderMouseDownHandler, ReconfigureHandler, ColumnWidthChangeHandler {
 
     @Override
     public void onAttachOrDetach(AttachEvent event) {
@@ -114,7 +121,19 @@ public abstract class AbstractGridEditing<M> implements GridEditing<M> {
     @Override
     public void onDoubleClick(DoubleClickEvent event) {
       AbstractGridEditing.this.onDoubleClick(event);
+    }
 
+    @Override
+    public void onTapGesture(TapGestureEvent event) {
+      if (clicksToEdit == ClicksToEdit.ONE) {
+        handleSingleEdit(event.getTouchData().getLastNativeEvent());
+      }
+    }
+    @Override
+    public void onDoubleTapGesture(DoubleTapGestureEvent event) {
+      if (clicksToEdit == ClicksToEdit.TWO) {
+        handleDoubleEdit(event.getTouchData().getLastNativeEvent());
+      }
     }
 
     @Override
@@ -341,6 +360,8 @@ public abstract class AbstractGridEditing<M> implements GridEditing<M> {
 
       reg.add(editableGrid.addHandler(ensureInternHandler(), HeaderMouseDownEvent.getType()));
       reg.add(editableGrid.addHandler(ensureInternHandler(), ReconfigureEvent.getType()));
+      reg.add(editableGrid.addHandler(ensureInternHandler(), TapGestureEvent.getType()));
+      reg.add(editableGrid.addHandler(ensureInternHandler(), DoubleTapGestureEvent.getType()));
 
       reg.add(editableGrid.getColumnModel().addColumnWidthChangeHandler(ensureInternHandler()));
 
@@ -355,6 +376,27 @@ public abstract class AbstractGridEditing<M> implements GridEditing<M> {
         reg.add(hasHandlers.addBeforeCollapseHandler(ensureInternHandler()));
       }
       groupRegistration = reg;
+      if (GXT.isTouch()) {
+        boolean containsDoubleTapGestureRecognizer = false;
+        for (int i = 0; i < editableGrid.getGestureRecognizerCount(); i++) {
+          if (editableGrid.getGestureRecognizer(i) instanceof DoubleTapGestureRecognizer) {
+            containsDoubleTapGestureRecognizer = true;
+            break;
+          }
+        }
+        if (!containsDoubleTapGestureRecognizer) {
+          editableGrid.addGestureRecognizer(new DoubleTapGestureRecognizer() {
+            @Override
+            protected void onTap(TouchData touchData) {
+               // do nothing here - we want to rely on the long press or tap GR to fire the single tap
+            }
+            @Override
+            protected void handlePreventDefault(NativeEvent event) {
+               // don't prevent default here
+            }
+          });
+        }
+      }
     }
   }
 
@@ -470,13 +512,32 @@ public abstract class AbstractGridEditing<M> implements GridEditing<M> {
     }
   }
 
-  @Deprecated
-  protected void getErrorMessage(IsField<?> field, SafeHtmlBuilder sb, String title) {
-    getErrorMessage(field, sb, SafeHtmlUtils.fromString(title));
+  protected void handleDoubleEdit(final NativeEvent event) {
+    startEditing(event);
   }
 
   protected <N, O>void handleHeaderMouseDown(HeaderMouseDownEvent event) {
     completeEditing();
+  }
+  protected void handleSingleEdit(final NativeEvent event) {
+    final GridCell cell = findCell(event.getEventTarget().<Element> cast());
+    if (cell == null) {
+      return;
+    }
+  // EXTGWT-2019 when starting an edit on the same row of an active edit
+    // the active edit value
+    // is lost as the active cell does not complete the edit
+    // this only happens with TreeGrid, not Grid which could be looked into
+    if (activeCell != null && activeCell.getRow() == cell.getRow()) {
+      completeEditing();
+    }
+// EXTGWT-3334 Edit is starting and stopping immediately when leaving another active edit that completes
+    Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+      @Override
+      public void execute() {
+        startEditing(cell);
+      }
+    });
   }
 
   protected void hideTooltip() {
@@ -496,32 +557,14 @@ public abstract class AbstractGridEditing<M> implements GridEditing<M> {
 
   protected void onClick(final ClickEvent event) {
     if (clicksToEdit == ClicksToEdit.ONE) {
-      final GridCell cell = findCell(event.getNativeEvent().getEventTarget().<Element> cast());
-      if (cell == null) {
-        return;
-      }
-
-      // EXTGWT-2019 when starting an edit on the same row of an active edit
-      // the active edit value
-      // is lost as the active cell does not complete the edit
-      // this only happens with TreeGrid, not Grid which could be looked into
-      if (activeCell != null && activeCell.getRow() == cell.getRow()) {
-        completeEditing();
-      }
-
-      // EXTGWT-3334 Edit is starting and stopping immediately when leaving another active edit that completes
-      Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-        @Override
-        public void execute() {
-          startEditing(cell);
-        }
-      });
+      handleSingleEdit(event.getNativeEvent());
+ 
     }
   }
 
   protected void onDoubleClick(DoubleClickEvent event) {
     if (clicksToEdit == ClicksToEdit.TWO) {
-      startEditing(event.getNativeEvent());
+      handleDoubleEdit(event.getNativeEvent());
     }
   }
 

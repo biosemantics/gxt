@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.core.client.util;
 
@@ -15,6 +45,8 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.Visibility;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.core.client.dom.XElement;
 
 /**
@@ -27,7 +59,7 @@ public class TextMetrics {
 
   /**
    * Returns the singleton instance.
-   * 
+   *
    * @return the text metrics instance
    */
   public static TextMetrics get() {
@@ -57,7 +89,7 @@ public class TextMetrics {
   /**
    * Binds this TextMetrics instance to an element from which to copy existing CSS styles that can affect the size of
    * the rendered text.
-   * 
+   *
    * @param el the element
    */
   public void bind(Element el) {
@@ -66,7 +98,7 @@ public class TextMetrics {
 
   /**
    * Binds the TextMetrics instance using the styles from the given class name.
-   * 
+   *
    * @param className the class name
    */
   public void bind(String className) {
@@ -78,7 +110,7 @@ public class TextMetrics {
   /**
    * Binds this TextMetrics instance to an element from which to copy existing CSS styles that can affect the size of
    * the rendered text.
-   * 
+   *
    * @param el the element
    */
   public void bind(XElement el) {
@@ -97,7 +129,7 @@ public class TextMetrics {
   /**
    * Returns the measured height of the specified text. For multiline text, be sure to call {@link #setFixedWidth} if
    * necessary.
-   * 
+   *
    * @param text the text to be measured
    * @return the height in pixels
    */
@@ -106,21 +138,46 @@ public class TextMetrics {
   }
 
   /**
+   * Returns the measured height of the specified html. For multiline text, be sure to call {@link #setFixedWidth} if
+   * necessary.
+   *
+   * @param html the text to be measured
+   * @return the height in pixels
+   */
+  public int getHeight(SafeHtml html) {
+    return getSize(html).getHeight();
+  }
+
+  /**
    * Returns the size of the specified text based on the internal element's style and width properties.
-   * 
+   *
    * @param text the text to measure
    * @return the size
    */
   public Size getSize(String text) {
-    el.setInnerHTML(text);
+    el.setInnerText(text);
     Size size = el.getSize();
-    el.setInnerHTML("");
+    el.setInnerText("");
+    return size;
+  }
+
+  /**
+   * Returns the size of the specified text based on the internal element's style and width properties.
+   *
+   * @param html the html or text to measure
+   * @return the size
+   */
+  public Size getSize(SafeHtml html) {
+    Size size;
+    el.setInnerSafeHtml(html);
+      size = el.getSize();
+    el.setInnerSafeHtml(SafeHtmlUtils.EMPTY_SAFE_HTML);
     return size;
   }
 
   /**
    * Returns the measured width of the specified text.
-   * 
+   *
    * @param text the text to measure
    * @return the width in pixels
    */
@@ -130,9 +187,20 @@ public class TextMetrics {
   }
 
   /**
+   * Returns the measured width of the specified html.
+   *
+   * @param html the text to measure
+   * @return the width in pixels
+   */
+  public int getWidth(SafeHtml html) {
+    el.getStyle().setProperty("width", "auto");
+    return getSize(html).getWidth();
+  }
+
+  /**
    * Sets a fixed width on the internal measurement element. If the text will be multiline, you have to set a fixed
    * width in order to accurately measure the text height.
-   * 
+   *
    * @param width the width to set on the element
    */
   public void setFixedWidth(int width) {
@@ -149,7 +217,6 @@ public class TextMetrics {
 
     // needed sometimes to force a refresh
     el.repaint();
-
   }
 
 }

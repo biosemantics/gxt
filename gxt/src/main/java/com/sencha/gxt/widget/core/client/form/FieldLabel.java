@@ -1,13 +1,41 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.form;
-
-import java.util.logging.Logger;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
@@ -20,10 +48,10 @@ import com.google.gwt.user.client.ui.HasText;
 import com.google.gwt.user.client.ui.HasWordWrap;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.shared.ExpandedHtmlSanitizer;
 import com.sencha.gxt.core.client.util.Size;
 import com.sencha.gxt.widget.core.client.ComponentHelper;
 import com.sencha.gxt.widget.core.client.container.MarginData;
@@ -47,10 +75,6 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
     XElement getChildElementWrapper(XElement parent);
 
     XElement getLabelElement(XElement parent);
-
-    String getLabelHtml(XElement parent);
-
-    String getLabelText(XElement parent);
 
     void onUpdateOptions(XElement parent, FieldLabelOptions options);
 
@@ -83,18 +107,9 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
     private String labelSeparator = ":";
 
     /**
-     * The content of the label. This string represents the text content of the
-     * label or HTML to be rendered in the label space depending on the value of
-     * {@link #htmlContent}.
+     * The content of the label.
      */
-    private String content;
-
-    /**
-     * Whether the {@link #content} should be treated as HTML markup. This is
-     * set depending on whether {@link #setText(String)} or
-     * {@link #setHTML(String)} was last called.
-     */
-    private boolean htmlContent;
+    private SafeHtml content = SafeHtmlUtils.EMPTY_SAFE_HTML;
 
     /**
      * Whether the {@link #content} should word wrap as needed.
@@ -102,24 +117,90 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
     private boolean wordWrap = true;
 
     /**
-     * Returns the content of the label. This string represents the text content
-     * of the label or HTML to be rendered in the label space depending on the
-     * value of {@link #htmlContent}.
+     * Returns the content of the label.
      * 
      * @return the content of the label
      */
-    public String getContent() {
+    public SafeHtml getContent() {
       return content;
     }
 
+    /**
+     * Sets the content of the label as html.
+     *
+     * @param html the label content html
+     */
+    public void setContent(SafeHtml html) {
+      content = html;
+    }
+
+    /**
+     * Sets the content of the label as text.
+     *
+     * Text that contains reserved html characters will be escaped.
+     *
+     * @param text the label content text
+     */
+    public void setContent(String text) {
+      content = SafeHtmlUtils.fromString(text);
+    }
+
+    /**
+     * Returns the content of the label as text.
+     *
+     * If text was set that contained reserved html characters, the return value will be html escaped.
+     * If html was set instead, the return value will be html.
+     *
+     * @return the text or html, depending on what was set
+     * @see #getHTML()
+     */
+    @Override
+    public String getText() {
+      return getHTML();
+    }
+
+    /**
+     * Sets the content of the label as text.
+     *
+     * Text that contains reserved html characters will be escaped.
+     *
+     * @param text the text
+     */
+    @Override
+    public void setText(String text) {
+      setContent(text);
+    }
+
+    /**
+     * Returns the content of the label as html.
+     *
+     * @return the html
+     */
     @Override
     public String getHTML() {
-      /*
-       * Included to satisfy HasHTML contract. If content represents arbitrary
-       * text, we escape it to avoid a naive consumer using the text content
-       * directly as HTML when the text would represent unsafe HTML.
+      return content.asString();
+    }
+
+    /**
+     * Sets the content of the label as html.
+     *
+     * @param html the html
+     */
+    @Override
+    public void setHTML(SafeHtml html) {
+      setContent(html);
+    }
+
+    /**
+     * Sets the content of the label as html.
+     *
+     * Untrusted html will be sanitized before use to protect against XSS.
+     *
+     * @param html the html
        */
-      return htmlContent ? content : SafeHtmlUtils.htmlEscape(content);
+    @Override
+    public void setHTML(String html) {
+      setContent(ExpandedHtmlSanitizer.sanitizeHtml(html));
     }
 
     /**
@@ -162,15 +243,6 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
       return labelWidth;
     }
 
-    @Override
-    public String getText() {
-      /*
-       * Included to satisfy HasHTML contract. This method will return markup if
-       * content represents HTML content.
-       */
-      return content;
-    }
-
     /**
      * Returns true if the {@link #content} should word wrap.
      * 
@@ -178,27 +250,6 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
      */
     public boolean getWordWrap() {
       return wordWrap;
-    }
-
-    /**
-     * Returns true if the {@link #content} should be treated as HTML markup.
-     * This is set depending on whether {@link #setText(String)} or
-     * {@link #setHTML(String)} was last called.
-     * 
-     * @return true if content should be treated as HTML markup.
-     */
-    public boolean isHtmlContent() {
-      return htmlContent;
-    }
-
-    public void setHTML(SafeHtml html) {
-      content = html.asString();
-      htmlContent = true;
-    }
-
-    public void setHTML(String html) {
-      content = html;
-      htmlContent = true;
     }
 
     /**
@@ -240,11 +291,6 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
      */
     public void setLabelWidth(int labelWidth) {
       this.labelWidth = labelWidth;
-    }
-
-    public void setText(String text) {
-      content = text;
-      htmlContent = false;
     }
 
     /**
@@ -322,35 +368,146 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
 
   /**
    * Creates a field label with the default appearance and the specified widget
-   * and label.
-   * 
+   * and label html.
+   *
    * @param widget the widget to label
-   * @param label the text to use for the label
+   * @param html the html to use for the label
    */
-  public FieldLabel(IsWidget widget, String label) {
+  public FieldLabel(IsWidget widget, SafeHtml html) {
     this(widget);
-    setText(label);
+    setContent(html);
   }
 
   /**
-   * Creates a field label with the specified widget, label and appearance.
+   * Creates a field label with the default appearance and the specified widget
+   * and label text.
    * 
    * @param widget the widget to label
-   * @param label the text to use for the label
+   * @param text the text to use for the label
+   */
+  public FieldLabel(IsWidget widget, String text) {
+    this(widget);
+    setContent(text);
+  }
+
+  /**
+   * Creates a field label with the specified widget, label html and appearance.
+   *
+   * @param widget the widget to label
+   * @param html the html to use for the label
    * @param appearance the appearance of the field label
    */
-  public FieldLabel(IsWidget widget, String label, FieldLabelAppearance appearance) {
+  public FieldLabel(IsWidget widget, SafeHtml html, FieldLabelAppearance appearance) {
     this(widget, appearance);
-    setText(label);
+    setContent(html);
+  }
+
+  /**
+   * Creates a field label with the specified widget, label text and appearance.
+   * 
+   * @param widget the widget to label
+   * @param text the text to use for the label
+   * @param appearance the appearance of the field label
+   */
+  public FieldLabel(IsWidget widget, String text, FieldLabelAppearance appearance) {
+    this(widget, appearance);
+    setContent(text);
   }
 
   public FieldLabelAppearance getAppearance() {
     return appearance;
   }
 
+  /**
+   * Returns the content of the label.
+   *
+   * @return the content of the label
+   */
+  public SafeHtml getContent() {
+    return options.getContent();
+  }
+
+  /**
+   * Sets the content of the label as html.
+   *
+   * @param html the label content html
+   */
+  public void setContent(SafeHtml html) {
+    options.setContent(html);
+    appearance.onUpdateOptions(getElement(), options);
+  }
+
+  /**
+   * Sets the content of the label as text.
+   *
+   * Text that contains reserved html characters will be escaped.
+   *
+   * @param text the label content text
+   */
+  public void setContent(String text) {
+    options.setContent(text);
+    appearance.onUpdateOptions(getElement(), options);
+  }
+
+  /**
+   * Returns the content of the label as text.
+   *
+   * If text was set that contained reserved html characters, the return value will be html escaped.
+   * If html was set instead, the return value will be html.
+   *
+   * @return the text or html, depending on what was set
+   * @see #getHTML()
+   */
+  @Override
+  public String getText() {
+    return options.getText();
+  }
+
+  /**
+   * Sets the content of the label as text.
+   *
+   * Text that contains reserved html characters will be escaped.
+   *
+   * @param text the text
+   */
+  @Override
+  public void setText(String text) {
+    options.setText(text);
+    appearance.onUpdateOptions(getElement(), options);
+  }
+
+  /**
+   * Returns the content of the label as html.
+   *
+   * @return the html
+   */
   @Override
   public String getHTML() {
-    return appearance.getLabelElement(getElement()).getInnerHTML();
+    return options.getHTML();
+  }
+
+  /**
+   * Sets the content of the label as html.
+   *
+   * @param html the html
+   */
+  @Override
+  public void setHTML(SafeHtml html) {
+    options.setHTML(html);
+    appearance.onUpdateOptions(getElement(), options);
+  }
+
+  /**
+   * Sets the content of the label as html.
+   *
+   * Untrusted html will be sanitized before use to protect against XSS.
+   *
+   * @param html the html
+   */
+  @Override
+  public void setHTML(String html) {
+    options.setHTML(html);
+    appearance.onUpdateOptions(getElement(), options);
   }
 
   /**
@@ -398,23 +555,6 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
    */
   public boolean isLabelWordWrap() {
     return options.getWordWrap();
-  }
-
-  @Override
-  public String getText() {
-    return appearance.getLabelText(getElement());
-  }
-
-  @Override
-  public void setHTML(SafeHtml html) {
-    options.setHTML(html);
-    appearance.onUpdateOptions(getElement(), options);
-  }
-
-  @Override
-  public void setHTML(String html) {
-    options.setHTML(html);
-    appearance.onUpdateOptions(getElement(), options);
   }
 
   /**
@@ -472,12 +612,6 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
   }
 
   @Override
-  public void setText(String text) {
-    options.setText(text);
-    appearance.onUpdateOptions(getElement(), options);
-  }
-
-  @Override
   public void setWidget(Widget w) {
     super.setWidget(w);
     String id;
@@ -507,10 +641,6 @@ public class FieldLabel extends SimpleContainer implements HasText, HasHTML, Has
         } else {
           XElement wrapper = appearance.getChildElementWrapper(getElement());
           width = (wrapper != null ? wrapper.getWidth(true) : size.getWidth()) - getLeftRightMargins(widget);
-        }
-
-        if (GXT.isIE6()) {
-          width -= 5;
         }
       }
       int height = -1;

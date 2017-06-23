@@ -160,7 +160,7 @@ public class ListStore<M> extends Store<M> {
         if (isSorted()) {
           fireSortedAddEvents(inserted);
         } else {
-          fireEvent(new StoreAddEvent<M>(visibleItems.size(), inserted));
+          fireEvent(new StoreAddEvent<M>(index, inserted));
         }
       }
     } else {

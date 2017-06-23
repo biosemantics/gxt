@@ -1,14 +1,45 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Style.Display;
 import com.google.gwt.dom.client.Style.Visibility;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -24,6 +55,7 @@ import com.sencha.gxt.core.client.Style.LayoutRegion;
 import com.sencha.gxt.core.client.dom.CompositeElement;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer;
 import com.sencha.gxt.core.client.util.BaseEventPreview;
 import com.sencha.gxt.fx.client.FxElement;
 import com.sencha.gxt.fx.client.animation.AfterAnimateEvent;
@@ -51,11 +83,12 @@ public class CollapsePanel extends Component implements HasExpandHandlers {
     /**
      * Renders the {@link CollapsePanel} appearance for the given region into
      * safe HTML.
-     * 
+     *
      * @param sb receives the rendered appearance
      * @param region the region
+     * @param header true to include header text
      */
-    public void render(SafeHtmlBuilder sb, LayoutRegion region);
+    public void render(SafeHtmlBuilder sb, LayoutRegion region, boolean header);
 
     /**
      * Returns the element that wraps the icon for the {@link CollapsePanel}.
@@ -65,6 +98,15 @@ public class CollapsePanel extends Component implements HasExpandHandlers {
      * @return the icon wrapper
      */
     XElement iconWrap(XElement parent);
+
+    /**
+     * Returns the element that wraps the text for the {@link CollapsePanel}.
+     *
+     * @param parent the parent of the text wrapper (generally
+     *          {@link #getElement}).
+     * @return the text wrapper
+     */
+    XElement textWrap(XElement parent);
   }
 
   private ContentPanel panel;
@@ -75,6 +117,7 @@ public class CollapsePanel extends Component implements HasExpandHandlers {
   private boolean animate = false;
   private boolean disableAnimations;
   private BorderLayoutData panelData;
+  private BaseEventPreview preview;
 
   /**
    * Creates a {@link CollapsePanel} that acts as a stand-in for the given panel
@@ -102,9 +145,10 @@ public class CollapsePanel extends Component implements HasExpandHandlers {
     this.panelData = data;
     this.region = region;
     this.appearance = appearance;
+    monitorWindowResize = true;
 
     SafeHtmlBuilder builder = new SafeHtmlBuilder();
-    this.appearance.render(builder, region);
+    this.appearance.render(builder, region, data.isCollapseHeaderVisible());
 
     setElement((Element) XDOM.create(builder.toSafeHtml()));
     sinkEvents(Event.ONCLICK);
@@ -139,6 +183,7 @@ public class CollapsePanel extends Component implements HasExpandHandlers {
     });
 
     appearance.iconWrap(getElement()).appendChild(expandBtn.getElement());
+    appearance.textWrap(getElement()).setInnerSafeHtml(panel.getHeading());
   }
 
   @Override
@@ -330,7 +375,20 @@ public class CollapsePanel extends Component implements HasExpandHandlers {
         expanded = true;
       }
 
-      BaseEventPreview preview = new BaseEventPreview() {
+      final TapGestureRecognizer previewTapGestureRecognizer = new TapGestureRecognizer() {
+        @Override
+        public boolean handleEnd(NativeEvent endEvent) {
+          super.handleEnd(endEvent);
+          XElement target = endEvent.getEventTarget().cast();
+          if (!panel.getElement().isOrHasChild(target) && !(getElement().isOrHasChild(target))) {
+            collapse();
+            return false;
+          }
+          return true;
+        }
+      };
+
+      preview = new BaseEventPreview() {
         @Override
         protected boolean onPreview(NativePreviewEvent pe) {
           switch (pe.getTypeInt()) {
@@ -343,8 +401,17 @@ public class CollapsePanel extends Component implements HasExpandHandlers {
               }
 
               break;
+            case Event.ONTOUCHSTART:
+            case Event.ONTOUCHMOVE:
+            case Event.ONTOUCHCANCEL:
+              previewTapGestureRecognizer.handle(pe.getNativeEvent());
+              break;
+            case Event.ONTOUCHEND:
+              if (!previewTapGestureRecognizer.handle(pe.getNativeEvent())) {
+                remove();
+              }
           }
-          return false;
+          return true;
         }
       };
       CompositeElement comp = new CompositeElement();
@@ -396,7 +463,17 @@ public class CollapsePanel extends Component implements HasExpandHandlers {
     }
 
   }
-  
+
+  @Override
+  protected void onWindowResize(int width, int height) {
+    if (expanded) {
+      if (preview != null) {
+        preview.remove();
+      }
+      collapse();
+    }
+  }
+
   public void setIconConfig(IconConfig config) {
     expandBtn.changeStyle(config);
   }

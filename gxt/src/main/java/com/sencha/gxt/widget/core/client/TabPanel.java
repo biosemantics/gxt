@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client;
 
@@ -16,6 +46,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.event.logical.shared.BeforeSelectionEvent;
 import com.google.gwt.event.logical.shared.BeforeSelectionHandler;
@@ -31,12 +62,16 @@ import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.IndexedPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.Style.ScrollDirection;
 import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.GestureRecognizer;
+import com.sencha.gxt.core.client.gestures.LongPressOrTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.util.AccessStack;
+import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Size;
 import com.sencha.gxt.fx.client.FxElement;
 import com.sencha.gxt.fx.client.animation.AfterAnimateEvent;
@@ -54,6 +89,7 @@ import com.sencha.gxt.widget.core.client.event.CloseEvent.CloseHandler;
 import com.sencha.gxt.widget.core.client.event.CloseEvent.HasCloseHandlers;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
+import com.sencha.gxt.widget.core.client.event.XEvent;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
@@ -146,6 +182,7 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
   private final TabPanelAppearance appearance;
 
   protected Menu closeContextMenu;
+  private GestureRecognizer closeContextMenuGestureRecognizer;
   private boolean animScroll = true;
   private boolean autoSelect = true;
   private boolean bodyBorder = true;
@@ -201,6 +238,23 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
     appearance.getBody(getElement()).appendChild(container.getElement());
 
     setDeferHeight(true);
+
+    addGestureRecognizer(new TapGestureRecognizer() {
+
+      @Override
+      protected void onTap(TouchData touchData) {
+        TabPanel.this.onTap(touchData.getLastNativeEvent().<Event>cast());
+        super.onTap(touchData);
+      }
+
+      @Override
+      protected void handlePreventDefault(NativeEvent event) {
+        XElement target = event.getEventTarget().cast();
+        if (getAppearance().getBar(getElement()).isOrHasChild(target)) {
+          event.preventDefault();
+        }
+      }
+    });
   }
 
   /**
@@ -515,6 +569,10 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
     Element item = findItem(target);
     if (item != null) {
       int index = itemIndex(item);
+      if (index < 0) {
+        // tab may have already closed
+        return;
+      }
       TabItemConfig config = getConfig(getWidget(index));
       if (config != null && !config.isEnabled()) {
         return;
@@ -524,16 +582,6 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
     switch (event.getTypeInt()) {
       case Event.ONCLICK:
         onClick(event);
-        if (appearance.getScrollLeft(getElement()) != null
-            && target.isOrHasChild(appearance.getScrollLeft(getElement()))) {
-          event.stopPropagation();
-          onScrollLeft();
-        }
-        if (appearance.getScrollRight(getElement()) != null
-            && target.isOrHasChild(appearance.getScrollRight(getElement()))) {
-          event.stopPropagation();
-          onScrollRight();
-        }
         break;
       case Event.ONMOUSEOVER:
         appearance.onMouseOver(getElement(), event.getEventTarget().<XElement>cast());
@@ -693,6 +741,24 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
     if (closeMenu) {
       sinkEvents(Event.ONCONTEXTMENU);
     }
+
+    if (closeContextMenuGestureRecognizer == null) {
+      closeContextMenuGestureRecognizer = new LongPressOrTapGestureRecognizer() {
+        @Override
+        protected void onLongPress(TouchData touchData) {
+          super.onLongPress(touchData);
+          onRightClick((Event) touchData.getLastNativeEvent());
+        }
+
+        @Override
+        public boolean handleEnd(NativeEvent endEvent) {
+          // onRightClick does preventDefault and stopPropagation
+          cancel();
+          return super.handleEnd(endEvent);
+        }
+      };
+      addGestureRecognizer(closeContextMenuGestureRecognizer);
+    }
   }
 
   /**
@@ -811,7 +877,7 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
   }
 
   protected XElement findItem(int index) {
-    NodeList<Element> items = appearance.getBar(getElement()).select(appearance.getItemSelector());
+    NodeList<Element> items = appearance.getStripWrap(getElement()).select(appearance.getItemSelector());
     return items.getItem(index).cast();
   }
 
@@ -820,7 +886,7 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
   }
 
   protected int itemIndex(Element item) {
-    NodeList<Element> items = appearance.getBar(getElement()).select(appearance.getItemSelector());
+    NodeList<Element> items = appearance.getStripWrap(getElement()).select(appearance.getItemSelector());
     for (int i = 0; i < items.getLength(); i++) {
       if (items.getItem(i) == item) {
         return i;
@@ -873,6 +939,17 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
       } else if (w == getActiveWidget()) {
         focusTab(w, true);
       }
+    }
+
+    if (appearance.getScrollLeft(getElement()) != null
+            && target.isOrHasChild(appearance.getScrollLeft(getElement()))) {
+      event.stopPropagation();
+      onScrollLeft();
+    }
+    if (appearance.getScrollRight(getElement()) != null
+            && target.isOrHasChild(appearance.getScrollRight(getElement()))) {
+      event.stopPropagation();
+      onScrollRight();
     }
   }
 
@@ -986,12 +1063,42 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
       if (item != null) {
         int idx = itemIndex(item);
         if (idx != -1) {
-          onItemContextMenu(getWidget(idx), event.getClientX(), event.getClientY());
+          event.preventDefault();
+          event.stopPropagation();
+
+          Point point = event.<XEvent>cast().getXY();
+
+          final Widget w = getWidget(idx);
+          final int x = point.getX();
+          final int y = point.getY();
+          Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+
+            @Override
+            public void execute() {
+              onItemContextMenu(w, x, y);
+            }
+          });
         }
       }
     } else {
       super.onRightClick(event);
     }
+  }
+
+  protected void onTap(Event event) {
+    XElement target = event.getEventTarget().cast();
+    Element item = findItem(target);
+    if (item != null) {
+      int index = itemIndex(item);
+      if (index < 0) {
+        return;
+      }
+      TabItemConfig config = getConfig(getWidget(index));
+      if (config != null && !config.isEnabled()) {
+        return;
+      }
+    }
+    onClick(event);
   }
 
   @Override
@@ -1031,22 +1138,33 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
 
         scrollLeft.setVisible(false);
         scrollRight.setVisible(false);
+
+        // add a class that CSS can hook into to add/remove padding as necessary when scrollers change visibility
+        scrollLeft.addClassName("x-tabScrollerLeftHidden");
         appearance.onScrolling(getElement(), false);
       }
     } else {
       if (!scrolling) {
         appearance.onScrolling(getElement(), true);
       }
-      tw -= 36;
-      stripWrap.<XElement> cast().setWidth(tw > 20 ? tw : 20);
+
       if (!scrolling) {
         if (scrollLeft == null) {
           appearance.createScrollers(getElement());
+
+          // need to re-initialize scrollers as they will still be null
+          scrollLeft = appearance.getScrollLeft(getElement());
+          scrollRight = appearance.getScrollRight(getElement());
         } else {
           scrollLeft.setVisible(true);
           scrollRight.setVisible(true);
+          scrollLeft.removeClassName("x-tabScrollerLeftHidden");
         }
       }
+
+      // account for scrollers before setting width
+      tw -= scrollLeft.getComputedWidth() + scrollRight.getComputedWidth();
+      stripWrap.<XElement> cast().setWidth(tw > 20 ? tw : 20);
       scrolling = true;
       if (pos > (l - tw)) {
         stripWrap.setScrollLeft(l - tw);
@@ -1091,7 +1209,7 @@ public class TabPanel extends Component implements IndexedPanel.ForIsWidget, Has
   }
 
   private void focusTab(Widget item, boolean setFocus) {
-    if (setFocus && !GXT.isIE7()) {
+    if (setFocus) {
       // item.getHeader().getElement().focus();
     }
   }

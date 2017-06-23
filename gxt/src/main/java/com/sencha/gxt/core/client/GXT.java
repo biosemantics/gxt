@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.core.client;
 
@@ -15,6 +45,16 @@ import com.sencha.gxt.core.client.BindingPropertySet.PropertyName;
  * GXT core utilities and functions.
  */
 public class GXT {
+  @PropertyName("gxt.device")
+  interface Device extends BindingPropertySet {
+    @PropertyValue("desktop")
+    boolean isDesktop();
+
+    @PropertyValue("tablet")
+    boolean isTablet();
+
+
+  }
   
   @PropertyName("gxt.user.agent")
   interface UserAgent extends BindingPropertySet {
@@ -27,12 +67,6 @@ public class GXT {
     @PropertyValue("safari5")
     boolean isSafari5();
 
-    @PropertyValue(value="ie6", warn=false)
-    boolean isIE6();
-
-    @PropertyValue(value="ie7", warn=false)
-    boolean isIE7();
-
     @PropertyValue("ie8")
     boolean isIE8();
 
@@ -42,6 +76,12 @@ public class GXT {
     @PropertyValue("ie10")
     boolean isIE10();
 
+    @PropertyValue("ie11")
+    boolean isIE11();
+
+    @PropertyValue("edge")
+    boolean isMSEdge();
+
     @PropertyValue("gecko1_8")
     boolean isGecko1_8();
 
@@ -50,9 +90,6 @@ public class GXT {
 
     @PropertyValue("chrome")
     boolean isChrome();
-
-    @PropertyValue(value="opera", warn=false)
-    boolean isOpera();
 
     @PropertyValue("air")
     boolean isAir();
@@ -76,14 +113,16 @@ public class GXT {
   private static final String sslSecureUrl = GWT.getModuleBaseURL() + "blank.html";
   private static String blankImageUrl;
 
-  private static boolean isHighContrastMode = false;
-
   private static final OS platform() {
     return GWT.<OS> create(OS.class);
   }
 
   private static final UserAgent userAgent() {
     return GWT.<UserAgent> create(UserAgent.class);
+  }
+
+  private static final Device device() {
+    return GWT.<Device>create(Device.class);
   }
 
   /**
@@ -121,7 +160,7 @@ public class GXT {
   static {
     // don't override if set to true
     if (!useShims) {
-      useShims = isIE6() || (isMac() && isGecko1_8());
+      useShims = (isMac() && isGecko1_8());
     }
 
     isSecure = Window.Location.getProtocol().toLowerCase().startsWith("https");
@@ -132,10 +171,28 @@ public class GXT {
         blankImageUrl = GWT.getModuleBaseURL() + "clear.gif";
       }
     }
+  }
 
-    if (isIE6()) {
-      removeBackgroundFlicker();
-    }
+  public static boolean isTablet() {
+    return device().isTablet();
+  }
+
+  /**
+   * Returns true if device is touch enabled.
+   *
+   * @return true if touch-enabled
+   */
+  public static boolean isTouch() {
+    return isTablet() || isMSEdge();
+  }
+
+  /**
+   * Returns true if the device is a desktop
+   *
+   * @return true if desktop
+   */
+  public static boolean isDesktop() {
+    return device().isDesktop();
   }
 
   /**
@@ -189,25 +246,7 @@ public class GXT {
    * @return true if IE
    */
   public static boolean isIE() {
-    return isIE6() || isIE7() || isIE8() || isIE9() || isIE10();
-  }
-
-  /**
-   * Returns true if the browser is IE 6.
-   * 
-   * @return true if IE 6
-   */
-  public static boolean isIE6() {
-    return userAgent().isIE6();
-  }
-
-  /**
-   * Returns true if the browser is IE 7.
-   * 
-   * @return true if IE 7
-   */
-  public static boolean isIE7() {
-    return userAgent().isIE7();
+    return isIE8() || isIE9() || isIE10() || isIE11();
   }
 
   /**
@@ -238,6 +277,24 @@ public class GXT {
   }
 
   /**
+   * Returns true if the browser is IE 11.
+   *
+   * @return true if IE 11
+   */
+  public static boolean isIE11() {
+    return userAgent().isIE11();
+  }
+
+  /**
+   * Returns true if the browser is MS Edge.
+   *
+   * @return true if MS Edge
+   */
+  public static boolean isMSEdge() {
+    return userAgent().isMSEdge();
+  }
+
+  /**
    * Returns true if the OS is Linux.
    * 
    * @return true if windows
@@ -253,15 +310,6 @@ public class GXT {
    */
   public static boolean isMac() {
     return platform().isMac();
-  }
-
-  /**
-   * Returns true if the browser is Opera.
-   * 
-   * @return true if Opera
-   */
-  public static boolean isOpera() {
-    return userAgent().isOpera();
   }
 
   /**
@@ -346,12 +394,4 @@ public class GXT {
   public static void setUseShims(boolean useShims) {
     GXT.useShims = useShims;
   }
-
-  private native static void removeBackgroundFlicker() /*-{
-		try {
-			$doc.execCommand("BackgroundImageCache", false, true);
-		} catch (e) {
-		}
-  }-*/;
-
 }

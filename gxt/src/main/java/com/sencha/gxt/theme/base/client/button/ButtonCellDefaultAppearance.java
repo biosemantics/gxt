@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.theme.base.client.button;
 
@@ -26,7 +56,6 @@ import com.sencha.gxt.cell.core.client.ButtonCell.ButtonCellAppearance;
 import com.sencha.gxt.cell.core.client.ButtonCell.ButtonScale;
 import com.sencha.gxt.cell.core.client.ButtonCell.IconAlign;
 import com.sencha.gxt.cell.core.client.SplitButtonCell;
-import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.resources.CommonStyles;
@@ -59,7 +88,7 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
     @ImageOptions(repeatStyle = RepeatStyle.None)
     ImageResource splitBottom();
 
-    @Source("ButtonCell.css")
+    @Source("ButtonCell.gss")
     ButtonCellStyle style();
   }
 
@@ -201,8 +230,8 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
     boolean hasConstantHtml = constantHtml != null && constantHtml.length() != 0;
     boolean isBoolean = value != null && value instanceof Boolean;
     // is a boolean always a toggle button?
-    String text = hasConstantHtml ? cell.getText() : (value != null && !isBoolean)
-        ? SafeHtmlUtils.htmlEscape(value.toString()) : "";
+    SafeHtml valueHtml = SafeHtmlUtils.fromTrustedString(hasConstantHtml ? cell.getText() : (value != null && !isBoolean)
+        ? SafeHtmlUtils.htmlEscape(value.toString()) : "");
 
     ImageResource icon = cell.getIcon();
     IconAlign iconAlign = cell.getIconAlign();
@@ -268,7 +297,7 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
 
       if (cell.getMinWidth() != -1) {
         TextMetrics.get().bind(style.text());
-        int length = TextMetrics.get().getWidth(text);
+        int length = TextMetrics.get().getWidth(valueHtml);
         length += 6; // frames
 
         if (icon != null) {
@@ -325,14 +354,11 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
     SafeHtmlBuilder inside = new SafeHtmlBuilder();
 
     String innerWrap = arrowCls;
-    if (GXT.isIE6() || GXT.isIE7()) {
-      arrowCls += " " + CommonStyles.get().inlineBlock();
-    }
 
     inside.appendHtmlConstant("<div class='" + innerWrap + "'>");
     inside.appendHtmlConstant("<table cellpadding=0 cellspacing=0 class='" + style.mainTable() + "'>");
 
-    boolean hasText = text != null && !text.equals("");
+    boolean hasText = valueHtml != null && !valueHtml.equals("");
 
     if (icon != null) {
       switch (iconAlign) {
@@ -341,7 +367,7 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
           writeIcon(inside, icon, height);
           if (hasText) {
             int w = width - (icon != null ? icon.getWidth() : 0) - 4;
-            writeText(inside, text, w, height);
+            writeValue(inside, valueHtml, w, height);
           }
           inside.appendHtmlConstant("</tr>");
           break;
@@ -349,7 +375,7 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
           inside.appendHtmlConstant("<tr>");
           if (hasText) {
             int w = width - (icon != null ? icon.getWidth() : 0) - 4;
-            writeText(inside, text, w, height);
+            writeValue(inside, valueHtml, w, height);
           }
           writeIcon(inside, icon, height);
           inside.appendHtmlConstant("</tr>");
@@ -360,14 +386,14 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
           inside.appendHtmlConstant("</tr>");
           if (hasText) {
             inside.appendHtmlConstant("<tr>");
-            writeText(inside, text, width, height);
+            writeValue(inside, valueHtml, width, height);
             inside.appendHtmlConstant("</tr>");
           }
           break;
         case BOTTOM:
           if (hasText) {
             inside.appendHtmlConstant("<tr>");
-            writeText(inside, text, width, height);
+            writeValue(inside, valueHtml, width, height);
             inside.appendHtmlConstant("</tr>");
           }
           inside.appendHtmlConstant("<tr>");
@@ -378,8 +404,8 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
 
     } else {
       inside.appendHtmlConstant("<tr>");
-      if (text != null) {
-        writeText(inside, text, width, height);
+      if (valueHtml != null) {
+        writeValue(inside, valueHtml, width, height);
       }
       inside.appendHtmlConstant("</tr>");
     }
@@ -404,7 +430,7 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
     }
   }
 
-  protected void writeText(SafeHtmlBuilder builder, String text, int width, int height) {
+  protected void writeValue(SafeHtmlBuilder builder, SafeHtml value, int width, int height) {
     SafeStylesBuilder sb = new SafeStylesBuilder();
     if (height > 0) {
       int adjustedHeight = height - heightOffset;
@@ -413,7 +439,7 @@ public class ButtonCellDefaultAppearance<C> implements ButtonCellAppearance<C> {
     if (width > 0) {
       sb.append(SafeStylesUtils.fromTrustedString("width:" + width + "px;"));
     }
-    builder.append(templates.textWithStyles(style.text(), sb.toSafeStyles(), SafeHtmlUtils.fromTrustedString(text)));
+    builder.append(templates.textWithStyles(style.text(), sb.toSafeStyles(), value));
   }
 
 }

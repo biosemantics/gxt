@@ -186,10 +186,10 @@ public class TreeGridView<M> extends GridView<M> {
    * @param level the tree depth
    * @return the markup as safe html
    */
-  public SafeHtml getTemplate(M m, String id, SafeHtml text, ImageResource icon, boolean checkable, Joint joint,
+  public SafeHtml getTemplate(M m, String id, SafeHtml html, ImageResource icon, boolean checkable, Joint joint,
       int level) {
     SafeHtmlBuilder sb = new SafeHtmlBuilder();
-    tree.getTreeAppearance().renderNode(sb, id, text, tree.getStyle(), icon, checkable, CheckState.UNCHECKED, joint,
+    tree.getTreeAppearance().renderNode(sb, id, html, tree.getStyle(), icon, checkable, CheckState.UNCHECKED, joint,
         level - 1, TreeViewRenderMode.ALL);
     return sb.toSafeHtml();
   }

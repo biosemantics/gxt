@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.container;
 
@@ -77,7 +107,7 @@ import com.sencha.gxt.widget.core.client.event.SplitBarDragEvent.SplitBarDragHan
     BorderLayoutContainer con = new BorderLayoutContainer();
 
     ContentPanel cp = new ContentPanel();
-    cp.setHeadingText("North");
+    cp.setHeading("North");
     cp.add(new Label("North Content"));
     BorderLayoutData d = new BorderLayoutData(.20);
     d.setMargins(new Margins(5));
@@ -86,7 +116,7 @@ import com.sencha.gxt.widget.core.client.event.SplitBarDragEvent.SplitBarDragHan
     con.setNorthWidget(cp, d);
 
     cp = new ContentPanel();
-    cp.setHeadingText("West");
+    cp.setHeading("West");
     cp.add(new Label("West Content"));
     d = new BorderLayoutData(.20);
     d.setMargins(new Margins(0, 5, 5, 5));
@@ -96,7 +126,7 @@ import com.sencha.gxt.widget.core.client.event.SplitBarDragEvent.SplitBarDragHan
     con.setWestWidget(cp, d);
 
     cp = new ContentPanel();
-    cp.setHeadingText("Center");
+    cp.setHeading("Center");
     cp.add(new Label("Center Content"));
     d = new BorderLayoutData();
     d.setMargins(new Margins(0, 5, 5, 0));
@@ -136,6 +166,7 @@ public class BorderLayoutContainer extends SimpleContainer implements HasCenterW
     private int maxSize = 500;
     private boolean collapsible;
     private boolean collapseMini;
+    private boolean collapseHeaderVisible = false;
     private boolean collapseHidden;
     private boolean floatable = true;
     private boolean collapsed;
@@ -189,6 +220,15 @@ public class BorderLayoutContainer extends SimpleContainer implements HasCenterW
      */
     public boolean isCollapsed() {
       return collapsed;
+    }
+
+    /**
+     * Returns true if the collapse header is visible.
+     *
+     * @return true if the collapse header is visible
+     */
+    public boolean isCollapseHeaderVisible() {
+      return collapseHeaderVisible;
     }
 
     /**
@@ -252,6 +292,15 @@ public class BorderLayoutContainer extends SimpleContainer implements HasCenterW
      */
     public void setCollapsed(boolean collapsed) {
       this.collapsed = collapsed;
+    }
+
+    /**
+     * True to make the collapse panel header text visible when a region is collapsed (defaults to false).
+     *
+     * @param collapseHeaderVisible true to make the collapse panel header text visible
+     */
+    public void setCollapseHeaderVisible(boolean collapseHeaderVisible) {
+      this.collapseHeaderVisible = collapseHeaderVisible;
     }
 
     /**
@@ -450,6 +499,35 @@ public class BorderLayoutContainer extends SimpleContainer implements HasCenterW
   @Override
   public Widget getNorthWidget() {
     return north;
+  }
+
+  /**
+   * Returns the split bar, or null, for the given region.
+   *
+   * @return the split bar
+   */
+  public SplitBar getSplitBar(LayoutRegion region) {
+    Widget component = null;
+    switch (region) {
+      case NORTH:
+        component = north;
+        break;
+      case EAST:
+        component = east;
+        break;
+      case SOUTH:
+        component = south;
+        break;
+      case WEST:
+        component = west;
+        break;
+    }
+
+    SplitBar splitBar = null;
+    if (component != null && component instanceof Component) {
+      splitBar = ((Component) component).getData("splitBar");
+    }
+    return splitBar;
   }
 
   /**
@@ -1008,13 +1086,13 @@ public class BorderLayoutContainer extends SimpleContainer implements HasCenterW
           public void onDragEvent(SplitBarDragEvent event) {
             LayoutRegion region = getRegion(c);
             if (event.isStart()) {
+              fbar.setMinSize(data.getMinSize());
               boolean side = region == LayoutRegion.WEST || region == LayoutRegion.EAST;
               int size = side ? c.getOffsetWidth() : c.getOffsetHeight();
-              int centerSize = side ? lastCenter.getWidth() : lastCenter.getHeight();
-
-              fbar.setMinSize(data.getMinSize());
-              fbar.setMaxSize(Math.min(size + centerSize, data.getMaxSize()));
-
+              if (lastCenter != null) {
+                int centerSize = side ? lastCenter.getWidth() : lastCenter.getHeight();
+                fbar.setMaxSize(Math.min(size + centerSize, data.getMaxSize()));
+              }
             } else {
               if (event.getSize() < 1) {
                 return;
@@ -1064,8 +1142,9 @@ public class BorderLayoutContainer extends SimpleContainer implements HasCenterW
 
   private void switchPanels(ContentPanel panel) {
     LayoutRegion region = getRegion(panel);
-
     BorderLayoutData data = (BorderLayoutData) getLayoutData(panel);
+    int size = panel.getAppearance().getHeaderSize(panel.getElement()).getHeight();
+
     remove(panel);
 
     CollapsePanel cp = (CollapsePanel) panel.getData("collapse");
@@ -1073,7 +1152,7 @@ public class BorderLayoutContainer extends SimpleContainer implements HasCenterW
       cp = createCollapsePanel(panel, data, region);
 
       BorderLayoutData collapseData = new BorderLayoutData();
-      collapseData.setSize(data.isCollapseHidden() ? 0 : 24);
+      collapseData.setSize(data.isCollapseHidden() ? 0 : data.isCollapseHeaderVisible() ? size : 24);
 
       Margins m = data.getMargins();
       if (m == null) {

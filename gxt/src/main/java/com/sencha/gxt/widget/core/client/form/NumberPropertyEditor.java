@@ -1,15 +1,46 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.form;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
+import java.util.Comparator;
 
 import com.google.gwt.i18n.client.LocaleInfo;
 import com.google.gwt.i18n.client.NumberFormat;
@@ -21,7 +52,8 @@ import com.google.gwt.i18n.client.constants.NumberConstants;
  * 
  * @param <N> the number type
  */
-public abstract class NumberPropertyEditor<N extends Number> extends PropertyEditor<N> {
+public abstract class NumberPropertyEditor<N extends Number & Comparable<N>> extends PropertyEditor<N>
+    implements Comparator<N> {
 
   /**
    * A number property editor for use with {@link BigDecimal}.
@@ -387,6 +419,24 @@ public abstract class NumberPropertyEditor<N extends Number> extends PropertyEdi
   }
 
   /**
+   * Compares the first value with the second value using the objects natural compareTo.
+   * If the first is a null and the second isn't, it will be greater than.
+   *
+   * @param n1 first number
+   * @param n2 second number
+   * @return returns compares equality based on -1, 0 or 1
+   */
+  @Override
+  public int compare(N n1, N n2) {
+    if (n1 == null && n2 == null) {
+      return 0;
+    } else if (n1 == null) {
+      return 1;
+    }
+    return n1.compareTo(n2);
+  }
+
+  /**
    * Creates a new number property editor.
    * 
    * @param pattern the number format pattern
@@ -521,4 +571,5 @@ public abstract class NumberPropertyEditor<N extends Number> extends PropertyEdi
     }
     return value;
   }
+
 }

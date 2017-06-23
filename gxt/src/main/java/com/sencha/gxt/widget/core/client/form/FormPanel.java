@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.form;
 
@@ -16,6 +46,7 @@ import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.FormElement;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.safehtml.shared.SafeUri;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.NamedFrame;
@@ -72,7 +103,7 @@ import com.sencha.gxt.widget.core.client.event.SubmitEvent.SubmitHandler;
     });
 
     Window w = new Window();
-    w.setHeadingText("Upload File");
+    w.setHeading("Upload File");
     w.setPixelSize(300, 100);
     w.setWidget(fp);
     w.show();
@@ -422,12 +453,12 @@ public class FormPanel extends SimpleContainer implements FormPanelImplHost, Has
 
   private void createFrame() {
     // Attach a hidden IFrame to the form. This is the target iframe to which
-    // the form will be submitted. We have to create the iframe using innerHTML,
+    // the form will be submitted. We have to create the iframe using html,
     // because setting an iframe's 'name' property dynamically doesn't work on
     // most browsers.
     Element dummy = Document.get().createDivElement();
-    dummy.setInnerHTML("<iframe src=\"javascript:''\" name='" + frameName
-        + "' style='position:absolute;width:0;height:0;border:0'>");
+    dummy.setInnerSafeHtml(SafeHtmlUtils.fromTrustedString("<iframe src=\"javascript:''\" name='" + frameName
+        + "' style='position:absolute; width:0; height:0; border:0;'>"));
 
     synthesizedFrame = dummy.getFirstChildElement();
   }

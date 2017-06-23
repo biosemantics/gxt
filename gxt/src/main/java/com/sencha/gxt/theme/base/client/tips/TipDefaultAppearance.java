@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.theme.base.client.tips;
 
@@ -16,11 +46,11 @@ import com.google.gwt.resources.client.ImageResource.ImageOptions;
 import com.google.gwt.resources.client.ImageResource.RepeatStyle;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.resources.StyleInjectorHelper;
-import com.sencha.gxt.core.client.util.Util;
 import com.sencha.gxt.theme.base.client.frame.Frame;
 import com.sencha.gxt.theme.base.client.frame.NestedDivFrame;
 import com.sencha.gxt.theme.base.client.frame.NestedDivFrame.NestedDivFrameResources;
@@ -70,7 +100,7 @@ public class TipDefaultAppearance implements TipAppearance {
     @Override
     ImageResource rightBorder();
 
-    @Source({"com/sencha/gxt/theme/base/client/frame/NestedDivFrame.css", "TipDivFrame.css"})
+    @Source({"com/sencha/gxt/theme/base/client/frame/NestedDivFrame.gss", "TipDivFrame.gss"})
     @Override
     TipNestedDivFrameStyle style();
 
@@ -100,7 +130,7 @@ public class TipDefaultAppearance implements TipAppearance {
 
     ImageResource anchorTop();
 
-    @Source("TipDefault.css")
+    @Source("TipDefault.gss")
     TipStyle style();
 
   }
@@ -170,7 +200,7 @@ public class TipDefaultAppearance implements TipAppearance {
   }
 
   @Override
-  public XElement getTextElement(XElement parent) {
+  public XElement getBodyElement(XElement parent) {
     return parent.selectNode("." + style.text());
   }
 
@@ -194,30 +224,16 @@ public class TipDefaultAppearance implements TipAppearance {
   }
 
   @Override
-  public int autoWidth(XElement parent, int minWidth, int maxWidth) {
-    int tw = getTextElement(parent).getTextWidth();
-    int hw = getHeaderElement(parent).getTextWidth();
-
-    int w = Math.max(tw, hw);
-    // framing
-    w += 10;
-
-    w += getToolsElement(parent).getOffsetWidth();
-
-    return Util.constrain(w, minWidth, maxWidth);
-  }
-
-  @Override
-  public void updateContent(XElement parent, String heading, String text) {
+  public void updateContent(XElement parent, SafeHtml title, SafeHtml body) {
     XElement header = getHeaderElement(parent);
-    if (heading != null && !heading.equals("")) {
-      header.setInnerHTML(heading);
-      header.getParentElement().getStyle().setDisplay(Display.BLOCK);
-    } else {
+    if (title == SafeHtmlUtils.EMPTY_SAFE_HTML) {
       header.getParentElement().getStyle().setDisplay(Display.NONE);
+    } else {
+      header.setInnerSafeHtml(title);
+      header.getParentElement().getStyle().setDisplay(Display.BLOCK);
     }
 
-    getTextElement(parent).setInnerHTML(text);
+    getBodyElement(parent).setInnerSafeHtml(body);
   }
 
 }

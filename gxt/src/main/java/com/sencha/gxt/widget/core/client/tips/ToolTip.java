@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.tips;
 
@@ -13,6 +43,7 @@ import java.util.logging.Logger;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.EventTarget;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.BlurEvent;
 import com.google.gwt.event.dom.client.BlurHandler;
 import com.google.gwt.event.dom.client.FocusEvent;
@@ -25,8 +56,11 @@ import com.google.gwt.event.dom.client.MouseOutEvent;
 import com.google.gwt.event.dom.client.MouseOutHandler;
 import com.google.gwt.event.dom.client.MouseOverEvent;
 import com.google.gwt.event.dom.client.MouseOverHandler;
+import com.google.gwt.event.dom.client.TouchMoveEvent;
+import com.google.gwt.event.dom.client.TouchMoveHandler;
 import com.google.gwt.event.logical.shared.AttachEvent;
 import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Widget;
@@ -36,6 +70,9 @@ import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.LongPressOrTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
+import com.sencha.gxt.core.client.gestures.TouchEventToGestureAdapter;
 import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Region;
 import com.sencha.gxt.core.client.util.Size;
@@ -54,7 +91,7 @@ public class ToolTip extends Tip {
   private static Logger logger = Logger.getLogger(ToolTip.class.getName());
 
   private class Handler implements MouseOverHandler, MouseOutHandler, MouseMoveHandler, HideHandler,
-      AttachEvent.Handler, FocusHandler, BlurHandler, KeyDownHandler {
+      AttachEvent.Handler, FocusHandler, BlurHandler, KeyDownHandler, TouchMoveHandler {
 
     @Override
     public void onAttachOrDetach(AttachEvent event) {
@@ -94,6 +131,11 @@ public class ToolTip extends Tip {
     public void onMouseOver(MouseOverEvent event) {
       onTargetMouseOver(event);
     }
+
+    @Override
+    public void onTouchMove(TouchMoveEvent event) {
+      onTargetTouchMove(event);
+    }
   }
 
   protected XElement anchorEl;
@@ -102,7 +144,10 @@ public class ToolTip extends Tip {
   protected Timer showTimer;
   protected Element target;
   protected Point targetXY = new Point(0, 0);
-  protected String titleHtml, bodyHtml;
+  protected SafeHtml title = SafeHtmlUtils.EMPTY_SAFE_HTML;
+  protected SafeHtml body = SafeHtmlUtils.EMPTY_SAFE_HTML;
+
+  private LongPressOrTapGestureRecognizer longPressOrTapGestureRecognizer;
   private GroupingHandlerRegistration handlerRegistration;
   private Date lastActive;
 
@@ -189,7 +234,7 @@ public class ToolTip extends Tip {
 
   /**
    * Binds the tool tip to the target widget. Allows a tool tip to switch the target widget.
-   * 
+   *
    * @param widget the target widget
    */
   public void initTarget(final Widget widget) {
@@ -205,8 +250,30 @@ public class ToolTip extends Tip {
       handlerRegistration.add(widget.addDomHandler(handler, MouseOverEvent.getType()));
       handlerRegistration.add(widget.addDomHandler(handler, MouseOutEvent.getType()));
       handlerRegistration.add(widget.addDomHandler(handler, MouseMoveEvent.getType()));
+      handlerRegistration.add(widget.addDomHandler(handler, TouchMoveEvent.getType()));
       handlerRegistration.add(widget.addHandler(handler, HideEvent.getType()));
       handlerRegistration.add(widget.addHandler(handler, AttachEvent.getType()));
+
+      // handles displaying tooltip on long press
+      longPressOrTapGestureRecognizer = new LongPressOrTapGestureRecognizer() {
+        @Override
+        protected void onLongPress(TouchData touchData) {
+          super.onLongPress(touchData);
+
+          onTargetOver(touchData.getLastNativeEvent().<Event>cast());
+        }
+
+        @Override
+        public boolean handleEnd(NativeEvent endEvent) {
+          // cancel preventing default in this recognizer.
+          cancel();
+
+          return super.handleEnd(endEvent);
+        }
+      };
+
+      // listen for touch events on the widget
+      new TouchEventToGestureAdapter(widget, longPressOrTapGestureRecognizer);
     }
   }
 
@@ -289,10 +356,9 @@ public class ToolTip extends Tip {
     if (isAttached()) {
       updateContent();
     }
-    doAutoWidth();
     
     // When the tooltip text is updated reposition if the text runs the tooltip out of range/screen
-    if (!config.isTrackMouse() && isAttached()) {
+    if (!showing && !config.isTrackMouse() && isAttached()) {
       show();
     }
   }
@@ -320,9 +386,12 @@ public class ToolTip extends Tip {
     clearTimer("show");
     clearTimer("dismiss");
     clearTimer("hide");
+    if (longPressOrTapGestureRecognizer != null) {
+      longPressOrTapGestureRecognizer.cancel();
+    }
   }
 
-  protected void delayHide() {
+  public void delayHide() {
     if (isAttached() && hideTimer == null && toolTipConfig.isAutoHide() && !toolTipConfig.isCloseable()) {
       if (toolTipConfig.getHideDelay() == 0) {
         hide();
@@ -463,7 +532,7 @@ public class ToolTip extends Tip {
     Element source = event.getNativeEvent().getEventTarget().cast();
     EventTarget from = event.getNativeEvent().getRelatedEventTarget();
     if (source != null && (from == null || !source.isOrHasChild(from.<Element> cast()))) {
-      onTargetOver(event.getNativeEvent().<Event> cast());
+      onTargetOver(event.getNativeEvent().<Event>cast());
     }
   }
 
@@ -480,8 +549,12 @@ public class ToolTip extends Tip {
       return;
     }
     clearTimer("hide");
-    targetXY = new Point(ce.getClientX(), ce.getClientY());
+    targetXY = ce.<XEvent>cast().getXY();
     delayShow();
+  }
+
+  protected void onTargetTouchMove(TouchMoveEvent event) {
+    onMouseMove(event.getNativeEvent().<Event>cast());
   }
 
   @Override
@@ -528,18 +601,21 @@ public class ToolTip extends Tip {
   @SuppressWarnings({"unchecked", "rawtypes"})
   @Override
   protected void updateContent() {
-    String textHtml = "";
+    SafeHtml bh = SafeHtmlUtils.EMPTY_SAFE_HTML;
 
     if (toolTipConfig.getRenderer() != null) {
       Object data = toolTipConfig.getData();
       ToolTipRenderer r = toolTipConfig.getRenderer();
-      SafeHtml html = r.renderToolTip(data);
-      textHtml = html.asString();
+      bh = r.renderToolTip(data);
     } else {
-      textHtml = Util.isEmptyString(bodyHtml) ? "&#160;" : bodyHtml;
+      bh = body;
     }
 
-    getAppearance().updateContent(getElement(), titleHtml, textHtml);
+    if (bh == SafeHtmlUtils.EMPTY_SAFE_HTML) {
+      getAppearance().updateContent(getElement(), title, Util.NBSP_SAFE_HTML);
+    } else {
+      getAppearance().updateContent(getElement(), title, bh);
+    }
   }
 
   /**
@@ -711,7 +787,6 @@ public class ToolTip extends Tip {
       int x = targetXY.getX() + toolTipConfig.getMouseOffsetX();
       int y = targetXY.getY() + toolTipConfig.getMouseOffsetY();
 
-
       return new Point(x, y);
     }
   }
@@ -725,8 +800,8 @@ public class ToolTip extends Tip {
     setMinWidth(config.getMinWidth());
     setMaxWidth(config.getMaxWidth());
     setClosable(config.isCloseable());
-    bodyHtml = config.getBodyHtml();
-    titleHtml = config.getTitleHtml();
+    body = config.getBody();
+    title = config.getTitle();
   }
 
 }

@@ -14,6 +14,7 @@ import com.google.gwt.dom.client.Style.Display;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
@@ -142,10 +143,10 @@ public class TreeView<M> {
     return scrollDelay;
   }
 
-  public SafeHtml getTemplate(M m, String id, SafeHtml text, ImageResource icon, boolean checkable, CheckState checked,
+  public SafeHtml getTemplate(M m, String id, SafeHtml html, ImageResource icon, boolean checkable, CheckState checked,
       Joint joint, int level, TreeViewRenderMode renderMode) {
     SafeHtmlBuilder sb = new SafeHtmlBuilder();
-    tree.getAppearance().renderNode(sb, id, text, tree.getStyle(), icon, checkable, checked, joint, level, renderMode);
+    tree.getAppearance().renderNode(sb, id, html, tree.getStyle(), icon, checkable, checked, joint, level, renderMode);
     return sb.toSafeHtml();
   }
 
@@ -250,10 +251,14 @@ public class TreeView<M> {
     }
   }
 
-  public void onTextChange(TreeNode<M> node, SafeHtml text) {
+  public void onTextChange(TreeNode<M> node, SafeHtml html) {
     Element textEl = getTextElement(node);
     if (textEl != null) {
-      textEl.setInnerHTML(Util.isEmptyString(text.asString()) ? "&#160;" : text.asString());
+      if (html == SafeHtmlUtils.EMPTY_SAFE_HTML) {
+        textEl.setInnerSafeHtml(Util.NBSP_SAFE_HTML);
+      } else {
+        textEl.setInnerSafeHtml(html);
+      }
     }
   }
 

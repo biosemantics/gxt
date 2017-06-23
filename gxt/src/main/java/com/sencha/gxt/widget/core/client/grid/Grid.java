@@ -1,13 +1,44 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.grid;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.google.gwt.cell.client.Cell;
@@ -18,6 +49,7 @@ import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.EventTarget;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiConstructor;
@@ -25,6 +57,9 @@ import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.dom.XDOM;
+import com.sencha.gxt.core.client.gestures.LongPressOrTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.PointerEventsSupport;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
@@ -336,7 +371,6 @@ public class Grid<M> extends Component implements HasViewReadyHandlers, HasSortC
   private int lazyRowRender = 10;
   private HandlerRegistration loaderRegistration;
   private LoaderHandler<ListLoadConfig, ListLoadResult<?>> loadHandler = new LoaderHandler<ListLoadConfig, ListLoadResult<?>>() {
-
     @Override
     public void onBeforeLoad(final BeforeLoadEvent<ListLoadConfig> event) {
       Grid.this.onLoaderBeforeLoad();
@@ -384,6 +418,8 @@ public class Grid<M> extends Component implements HasViewReadyHandlers, HasSortC
     this.store = store;
     this.cm = cm;
     this.view = view;
+    this.view.grid = this;
+    this.view.ds = store;
 
     disabledStyle = null;
     setSelectionModel(new GridSelectionModel<M>());
@@ -395,8 +431,39 @@ public class Grid<M> extends Component implements HasViewReadyHandlers, HasSortC
 
     setElement((Element) XDOM.create(builder.toSafeHtml()));
     getElement().makePositionable();
+    getElement().setTabIndex(0);
 
     sinkCellEvents();
+
+    // use either long press or tap to select
+    addGestureRecognizer(new LongPressOrTapGestureRecognizer() {
+      @Override
+      protected void onLongPress(TouchData touchData) {
+        Event event = touchData.getLastNativeEvent().cast();
+        onMouseDown(event);
+        super.onLongPress(touchData);
+      }
+
+      @Override
+      protected void onTap(TouchData touchData) {
+        Event event = touchData.getLastNativeEvent().cast();
+        onMouseDown(event);
+        onClick(event);
+        // need to make sure to call view's mouse methods as well
+        // view can be set post-construction - make sure to use Grid's member variable rather than the constructor param
+        GridView<M> view = Grid.this.view;
+        if (view != null) {
+          // since we're not preventingDefault, no reason to call view.onMouseDown
+          view.onClick(event);
+        }
+        super.onTap(touchData);
+      }
+
+      @Override
+      protected void handlePreventDefault(NativeEvent event) {
+        // don't call preventDefault here
+      }
+    });
   }
 
   /**
@@ -604,7 +671,11 @@ public class Grid<M> extends Component implements HasViewReadyHandlers, HasSortC
     super.onBrowserEvent(ce);
     switch (type) {
       case Event.ONCLICK:
-        onClick(ce);
+        // onTap is being called in super.onBrowserEvent, we don't want to call click twice on MSEdge
+        // also - various grids rely on the other mouse events, only want to prevent the onClick
+        if (!PointerEventsSupport.impl.isSupported()) {
+          onClick(ce);
+        }
         break;
       case Event.ONDBLCLICK:
         onDoubleClick(ce);
@@ -615,15 +686,14 @@ public class Grid<M> extends Component implements HasViewReadyHandlers, HasSortC
       case Event.ONMOUSEUP:
         onMouseUp(ce);
         break;
-      case Event.ONFOCUS:
-        onFocus(ce);
-        break;
-      case Event.ONBLUR:
-        onBlur(ce);
-        break;
     }
     view.handleComponentEvent(ce);
+  }
 
+  @Override
+  protected void onFocus(Event event) {
+    super.onFocus(event);
+    view.onFocus(event);
   }
 
   /**
@@ -662,6 +732,9 @@ public class Grid<M> extends Component implements HasViewReadyHandlers, HasSortC
   @Override
   public void setAllowTextSelection(boolean enable) {
     allowTextSelection = enable;
+    if (isAttached()) {
+      getElement().disableTextSelectionSingle(!enable);
+    }
   }
 
   /**
@@ -751,6 +824,8 @@ public class Grid<M> extends Component implements HasViewReadyHandlers, HasSortC
   public void setView(GridView<M> view) {
     assertPreRender();
     this.view = view;
+    this.view.grid = this;
+    this.view.ds = store;
 
     // rebind the sm
     if (getSelectionModel() != sm) {
@@ -942,6 +1017,7 @@ public class Grid<M> extends Component implements HasViewReadyHandlers, HasSortC
    * activities that require a rendered view.
    */
   protected void onAfterRenderView() {
+    view.onAfterRenderView();
   }
 
   @Override
@@ -951,8 +1027,6 @@ public class Grid<M> extends Component implements HasViewReadyHandlers, HasSortC
     }
     super.onAttach();
   }
-
-
 
   /**
    * Handles the browser click event. Propagates the event to the cell and row

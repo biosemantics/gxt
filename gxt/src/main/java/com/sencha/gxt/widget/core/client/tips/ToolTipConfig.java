@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.tips;
 
@@ -37,8 +67,8 @@ public class ToolTipConfig implements HasUiAttributes {
   private Object data;
   private int showDelay = 500;
   private ToolTipRenderer<?> renderer;
-  private String bodyHtml;
-  private String titleHtml;
+  private SafeHtml body = SafeHtmlUtils.EMPTY_SAFE_HTML;
+  private SafeHtml title = SafeHtmlUtils.EMPTY_SAFE_HTML;
   private boolean trackMouse;
   private boolean closeable;
 
@@ -49,23 +79,43 @@ public class ToolTipConfig implements HasUiAttributes {
   }
 
   /**
-   * Creates a new tool tip config with the given text.
+   * Creates a new tool tip config with the given body as text.
    *
-   * @param text the tool tip text
+   * @param text the tool tip body as text
    */
   public ToolTipConfig(String text) {
-    this.setBodyHtml(text);
+    this.setBody(text);
   }
 
   /**
-   * Creates a new tool tip config with the given title and text.
+   * Creates a new tool tip config with the given body as html.
    *
-   * @param title the tool tip title
-   * @param text the tool tip text
+   * @param html the tool tip body as html
    */
-  public ToolTipConfig(String title, String text) {
-    this.setTitleHtml(title);
-    this.setBodyHtml(text);
+  public ToolTipConfig(SafeHtml html) {
+    this.setBody(html);
+  }
+
+  /**
+   * Creates a new tool tip config with the given title and body text.
+   *
+   * @param titleText the tool tip title as text
+   * @param bodyText the tool tip body as text
+   */
+  public ToolTipConfig(String titleText, String bodyText) {
+    this.setTitle(titleText);
+    this.setBody(bodyText);
+  }
+
+  /**
+   * Creates a new tool tip config with the given title and body html.
+   *
+   * @param titleHtml the tool tip title as html
+   * @param bodyHtml the tool tip body as html
+   */
+  public ToolTipConfig(SafeHtml titleHtml, SafeHtml bodyHtml) {
+    setTitle(titleHtml);
+    setBody(bodyHtml);
   }
 
   /**
@@ -87,12 +137,12 @@ public class ToolTipConfig implements HasUiAttributes {
   }
 
   /**
-   * Returns the tool tip text.
+   * Returns the tool tip body.
    *
-   * @return the text
+   * @return the body
    */
-  public String getBodyHtml() {
-    return bodyHtml;
+  public SafeHtml getBody() {
+    return body;
   }
 
   /**
@@ -179,8 +229,8 @@ public class ToolTipConfig implements HasUiAttributes {
    *
    * @return the title
    */
-  public String getTitleHtml() {
-    return titleHtml;
+  public SafeHtml getTitle() {
+    return title;
   }
 
   /**
@@ -290,21 +340,22 @@ public class ToolTipConfig implements HasUiAttributes {
     this.autoHide = autoHide;
   }
 
-  public void setBodyHtml(SafeHtml bodyHtml) {
-    this.bodyHtml = bodyHtml.asString();
+  /**
+   * Sets the tool tip body as html.
+   *
+   * @param html the tip body html
+   */
+  public void setBody(SafeHtml html) {
+    this.body = html;
   }
 
   /**
-   * The tool tip text.
+   * Sets the tool tip body as text.
    *
-   * @param bodyHtml the text
+   * @param text the tip body text
    */
-  public void setBodyHtml(String bodyHtml) {
-    this.bodyHtml = bodyHtml;
-  }
-
-  public void setBodyText(String bodyText) {
-    this.bodyHtml = SafeHtmlUtils.htmlEscape(bodyText);
+  public void setBody(String text) {
+    this.body = SafeHtmlUtils.fromString(text);
   }
 
   /**
@@ -414,21 +465,22 @@ public class ToolTipConfig implements HasUiAttributes {
     this.showDelay = showDelay;
   }
 
-  public void setTitleHtml(SafeHtml titleHtml) {
-    this.titleHtml = titleHtml.asString();
+  /**
+   * Sets the tool tip title as html.
+   *
+   * @param html the title html
+   */
+  public void setTitle(SafeHtml html) {
+    this.title = html;
   }
 
   /**
-   * Sets the tool tip title.
+   * Sets the tool tip title as text
    * 
-   * @param titleHtml the title
+   * @param text the title text
    */
-  public void setTitleHtml(String titleHtml) {
-    this.titleHtml = titleHtml;
-  }
-
-  public void setTitleText(String titleText) {
-    this.titleHtml = SafeHtmlUtils.htmlEscape(titleText);
+  public void setTitle(String text) {
+    this.title = SafeHtmlUtils.fromString(text);
   }
 
   /**

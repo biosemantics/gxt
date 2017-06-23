@@ -1,19 +1,55 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.dnd.core.client;
 
 import java.util.List;
 
+import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.dom.client.Node;
+import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.event.logical.shared.AttachEvent;
 import com.google.gwt.event.logical.shared.AttachEvent.Handler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.GXT;
+import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.shared.event.CancellableEvent;
 import com.sencha.gxt.dnd.core.client.DND.Feedback;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
@@ -28,6 +64,7 @@ import com.sencha.gxt.dnd.core.client.DndDragMoveEvent.HasDndDragMoveHandlers;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.HasDndDropHandlers;
 import com.sencha.gxt.widget.core.client.Component;
+import com.sencha.gxt.widget.core.client.event.XEvent;
 
 /**
  * Enables a component to act as the target of a drag and drop operation (i.e. a
@@ -42,22 +79,21 @@ import com.sencha.gxt.widget.core.client.Component;
 public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandlers, HasDndDragCancelHandlers,
     HasDndDragMoveHandlers, HasDndDropHandlers {
 
-  protected Widget component;
+  protected Widget dropWidget;
   protected Feedback feedback;
   protected Operation operation;
   protected String overStyle;
 
   private boolean allowSelfAsSource;
   private SimpleEventBus eventBus;
-  private HandlerRegistration componentRegistration;
-  private AttachEvent.Handler componentHandler = new Handler() {
-
+  private HandlerRegistration dropWidgetRegistration;
+  private AttachEvent.Handler dropWidgetHandler = new Handler() {
     @Override
     public void onAttachOrDetach(AttachEvent event) {
       if (event.isAttached()) {
-        onComponentAttach();
+        onDropWidgetAttach();
       } else {
-        onComponentDetach();
+        onDropWidgetDetach();
       }
     }
   };
@@ -66,18 +102,19 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
   private String group = "";
 
   /**
-   * Creates a new drop target.
+   * Creates a new drop dropWidget.
    * 
-   * @param target the target widget
+   * @param dropWidget the dropWidget widget
    */
-  public DropTarget(Widget target) {
-    this.component = target;
+  public DropTarget(Widget dropWidget) {
+    this.dropWidget = dropWidget;
     this.operation = Operation.MOVE;
     this.feedback = Feedback.APPEND;
-    componentRegistration = component.addAttachHandler(componentHandler);
 
-    if (component.isAttached()) {
-      onComponentAttach();
+    dropWidgetRegistration = this.dropWidget.addAttachHandler(dropWidgetHandler);
+
+    if (this.dropWidget.isAttached()) {
+      onDropWidgetAttach();
     }
   }
 
@@ -162,7 +199,7 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
    * @return the widget
    */
   public Widget getWidget() {
-    return component;
+    return dropWidget;
   }
 
   /**
@@ -180,16 +217,17 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
    * @return true for enabled
    */
   public boolean isEnabled() {
-    return enabled && (component instanceof Component ? ((Component) component).isEnabled() : true);
+    return enabled && (dropWidget instanceof Component ? ((Component) dropWidget).isEnabled() : true);
   }
 
   /**
    * Unregisters the target as a drop target.
    */
   public void release() {
-    componentRegistration.removeHandler();
-    if (component.isAttached()) {
-      onComponentDetach();
+    dropWidgetRegistration.removeHandler();
+
+    if (dropWidget.isAttached()) {
+      onDropWidgetDetach();
     }
   }
 
@@ -244,11 +282,31 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
     this.overStyle = overStyle;
   }
 
-  protected void onComponentAttach() {
+  /**
+   * Obtain potential top-most target element associated with provided event.
+   *
+   * For touch devices, this method will attempt to find element from contained Widget.
+   * This is due to touch events "getEventTarget" always returning the element you started
+   * the gesture on, regardless if you moved outside of the region of said element.  If the
+   * event coordinates do not match up with any dropTarget elements, then null will be returned.
+   *
+   * @param event
+   * @return
+   */
+  protected XElement getElementFromEvent(NativeEvent event) {
+    if (GXT.isTouch()) {
+      Point eventXY = event.<XEvent>cast().getXY();
+      XElement dropTargetElement = getWidget().getElement().cast();
+      return elementFromPoint(dropTargetElement, eventXY.getX(), eventXY.getY());
+    }
+    return event.getEventTarget().cast();
+  }
+
+  protected void onDropWidgetAttach() {
     DNDManager.get().registerDropTarget(this);
   }
 
-  protected void onComponentDetach() {
+  protected void onDropWidgetDetach() {
     DNDManager.get().unregisterDropTarget(this);
   }
 
@@ -268,7 +326,6 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
    * @param event the drop event
    */
   protected void onDragDrop(DndDropEvent event) {
-
   }
 
   /**
@@ -279,7 +336,6 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
    * @param event the drag enter event
    */
   protected void onDragEnter(DndDragEnterEvent event) {
-
   }
 
   /**
@@ -288,7 +344,6 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
    * @param event the drop event
    */
   protected void onDragFail(DndDropEvent event) {
-
   }
 
   /**
@@ -297,7 +352,6 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
    * @param event the drag leave event
    */
   protected void onDragLeave(DndDragLeaveEvent event) {
-
   }
 
   /**
@@ -310,7 +364,6 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
    * @param event the dd event
    */
   protected void onDragMove(DndDragMoveEvent event) {
-
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -318,6 +371,7 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
     if (data instanceof List) {
       return (List) data;
     }
+    // TODO why is this commented out or remove
     // List<ModelData> models = new ArrayList<ModelData>();
     // if (data instanceof ModelData) {
     // if (convertTreeStoreModel && data instanceof TreeStoreModel) {
@@ -346,7 +400,6 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
    * @param event the dd event
    */
   protected void showFeedback(DndDragMoveEvent event) {
-
   }
 
   SimpleEventBus ensureHandlers() {
@@ -354,7 +407,7 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
   }
 
   boolean handleDragEnter(DndDragMoveEvent event) {
-    DndDragEnterEvent e = new DndDragEnterEvent(component, event.getDragSource(), event.getDragMoveEvent(),
+    DndDragEnterEvent e = new DndDragEnterEvent(dropWidget, event.getDragSource(), event.getDragMoveEvent(),
         event.getStatusProxy());
     event.setCancelled(false);
     event.getStatusProxy().setStatus(true);
@@ -367,20 +420,21 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
       return false;
     }
     if (overStyle != null) {
-      component.addStyleName(overStyle);
+      dropWidget.addStyleName(overStyle);
     }
     return true;
   }
 
   void handleDragLeave(DndDragMoveEvent event) {
     if (overStyle != null) {
-      component.removeStyleName(overStyle);
+      dropWidget.removeStyleName(overStyle);
     }
+
     event.getStatusProxy().setStatus(false);
     Insert.get().hide();
 
-    DndDragLeaveEvent e = new DndDragLeaveEvent(component, event.getDragSource(), event.getDragMoveEvent(),
-        event.getStatusProxy());
+    DndDragLeaveEvent e = new DndDragLeaveEvent(dropWidget, event.getDragSource(), event.getDragMoveEvent(),
+    event.getStatusProxy());
 
     onDragLeave(e);
     ensureHandlers().fireEventFromSource(e, this);
@@ -394,9 +448,32 @@ public class DropTarget implements HasDndDragEnterHandlers, HasDndDragLeaveHandl
   void handleDrop(DndDropEvent event) {
     Insert.get().hide();
     if (overStyle != null) {
-      component.removeStyleName(overStyle);
+      dropWidget.removeStyleName(overStyle);
     }
     onDragDrop(event);
   }
 
+
+  private XElement elementFromPoint(XElement element, int x, int y) {
+    if (!element.getBounds().contains(x, y)) {
+      return null;
+    }
+    if (!element.hasChildNodes()) {
+      return element;
+    }
+
+    NodeList<Node> childNodes = element.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      Node node = childNodes.getItem(i);
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        XElement child = node.cast();
+        if (child.getBounds().contains(x, y)) {
+          return elementFromPoint(child, x, y);
+        }
+      }
+    }
+
+    // children are not within bounds, return this
+    return element;
+  }
 }

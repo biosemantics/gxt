@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.container;
 
@@ -31,20 +61,29 @@ import com.sencha.gxt.core.client.dom.ScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer;
 import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.core.client.util.Size;
 
 /**
  * A layout container that lays out its children in a single column. The lay out
- * properties for each child are specified using {@link VerticalLayoutData}.
- * 
+ * properties for each child are specified using {@link VerticalLayoutData}. 
  * <p/>
- * Code Snippet:
- * 
+ * Note: This container must be given a size directly or by its parent. 
+ * <p/>
+ * <ul>
+ * <li><a href="http://docs.sencha.com/gxt/latest/ui/layout/containers/VerticalLayoutContainer.html">Vertical Layout Container Guide</a>
+ * - More on sizing.
+ * </li>
+ * <li><a href="http://docs.sencha.com/gxt/latest/ui/layout/LayoutContainers.html">Layouts Guide</a> - More on layouts.
+ * </li>
+ * </ul>
+ * <p/>
+ * Example:
  * <pre>
     VerticalLayoutContainer c = new VerticalLayoutContainer();
-    c.add(new FieldLabel(new TextField(), "Home"), new VerticalLayoutData(1, -1));
-    c.add(new FieldLabel(new TextField(), "Office"), new VerticalLayoutData(1, -1));
+    c.add(new FieldLabel(new TextField(), "Home"), new VerticalLayoutData(1, .5));
+    c.add(new FieldLabel(new TextField(), "Office"), new VerticalLayoutData(1, .5));
     RootPanel.get().add(c);
  * </pre>
  */
@@ -117,6 +156,7 @@ public class VerticalLayoutContainer extends InsertResizeContainer implements Ha
   private boolean adjustForScroll;
   private boolean secondPassRequired;
   private ScrollSupport scrollSupport;
+  private ScrollGestureRecognizer scrollGestureRecognizer;
 
   private static Logger logger = Logger.getLogger(VerticalLayoutContainer.class.getName());
 
@@ -125,7 +165,7 @@ public class VerticalLayoutContainer extends InsertResizeContainer implements Ha
    */
   public VerticalLayoutContainer() {
     setElement(Document.get().createDivElement());
-    getElement().getStyle().setPosition(Position.RELATIVE);
+    getContainerTarget().makePositionable(false);
   }
 
   /**
@@ -164,6 +204,7 @@ public class VerticalLayoutContainer extends InsertResizeContainer implements Ha
     if (scrollSupport == null) {
       scrollSupport = new DefaultScrollSupport(getContainerTarget());
     }
+    initScrollGestureRecognizer();
     return scrollSupport;
   }
 
@@ -215,6 +256,7 @@ public class VerticalLayoutContainer extends InsertResizeContainer implements Ha
   @Override
   public void setScrollSupport(ScrollSupport support) {
     this.scrollSupport = support;
+    initScrollGestureRecognizer();
   }
 
   @Override
@@ -235,6 +277,9 @@ public class VerticalLayoutContainer extends InsertResizeContainer implements Ha
     // so we need to make 2 passes
     for (int i = 0; i < count; i++) {
       Widget c = getWidget(i);
+      if (!c.isVisible()) {
+        continue;
+      }
       c.getElement().getStyle().setPosition(Position.RELATIVE);
       double height = -1;
       Object d = c.getLayoutData();
@@ -269,6 +314,9 @@ public class VerticalLayoutContainer extends InsertResizeContainer implements Ha
     int yOffset = 0;
     for (int i = 0; i < count; i++) {
       Widget c = getWidget(i);
+      if (!c.isVisible()) {
+        continue;
+      }
       double width = -1;
       double height = -1;
 
@@ -345,4 +393,22 @@ public class VerticalLayoutContainer extends InsertResizeContainer implements Ha
     //no op, super applies margins that doLayout deals with instead
   }
 
+  private void initScrollGestureRecognizer() {
+    if (scrollGestureRecognizer == null) {
+      scrollGestureRecognizer = new ScrollGestureRecognizer(getContainerTarget()) {
+        @Override
+        protected ScrollDirection getDirection() {
+          ScrollMode scrollMode = getScrollMode();
+          switch (scrollMode) {
+            case AUTOX:
+              return ScrollDirection.HORIZONTAL;
+            case AUTOY:
+              return ScrollDirection.VERTICAL;
+          }
+          return ScrollDirection.BOTH;
+        }
+      };
+      addGestureRecognizer(scrollGestureRecognizer);
+    }
+  }
 }

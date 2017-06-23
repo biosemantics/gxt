@@ -1,17 +1,47 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.tips;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
@@ -36,23 +66,23 @@ public class Tip extends Component {
 
     void applyAnchorStyle(XElement anchorEl);
 
-    XElement getTextElement(XElement parent);
+    XElement getBodyElement(XElement parent);
 
     XElement getToolsElement(XElement parent);
-
-    int autoWidth(XElement parent, int minWidth, int maxWidth);
 
     void removeAnchorStyle(XElement anchorEl);
 
     void render(SafeHtmlBuilder sb);
 
-    void updateContent(XElement parent, String heading, String text);
+    void updateContent(XElement parent, SafeHtml title, SafeHtml body);
 
   }
 
   protected int quickShowInterval = 250;
   protected boolean constrainPosition = true;
   protected ToolButton close;
+  protected boolean showing;
+
   private final TipAppearance appearance;
 
   private int minWidth = 40;
@@ -75,10 +105,7 @@ public class Tip extends Component {
 
     shim = true;
 
-    // TODO shadows are off
-    if (!GXT.isIE6() && !GXT.isIE7()) {
-      setShadow(true);
-    }
+    setShadow(true);
 
     getElement().makePositionable(true);
   }
@@ -191,14 +218,15 @@ public class Tip extends Component {
     }
 
     // need to show before constrain calls as offset will be 0 if hidden
+    showing = true;
     super.show();
+    showing = false;
 
     updateContent();
 
     getElement().makePositionable(true);
     getElement().updateZIndex(0);
 
-    doAutoWidth();
     Point p = new Point(x, y);
     if (constrainPosition) {
       p = getElement().adjustForConstraints(p);
@@ -222,13 +250,6 @@ public class Tip extends Component {
   protected void doAttachChildren() {
     super.doAttachChildren();
     ComponentHelper.doAttach(close);
-  }
-
-  protected void doAutoWidth() {
-    if (isAutoWidth()) {
-      setWidth(appearance.autoWidth(getElement(), minWidth, maxWidth));
-      width = null;
-    }
   }
 
   @Override

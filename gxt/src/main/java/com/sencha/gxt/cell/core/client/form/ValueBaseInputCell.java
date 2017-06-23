@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.cell.core.client.form;
 
@@ -21,6 +51,8 @@ import com.sencha.gxt.cell.core.client.FocusableCell;
 import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.GXTLogConfiguration;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer.CellTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.widget.core.client.event.ParseErrorEvent;
 import com.sencha.gxt.widget.core.client.event.ParseErrorEvent.HasParseErrorHandlers;
 import com.sencha.gxt.widget.core.client.event.ParseErrorEvent.ParseErrorHandler;
@@ -32,6 +64,18 @@ import com.sencha.gxt.widget.core.client.form.PropertyEditor;
  * @param <T> the data type
  */
 public abstract class ValueBaseInputCell<T> extends FieldCell<T> implements HasParseErrorHandlers, FocusableCell {
+
+  private CellTapGestureRecognizer<T> cellTapGestureRecognizer = new CellTapGestureRecognizer<T>() {
+    @Override
+    protected void onTap(TouchData tap, Context context, Element parent, T value, ValueUpdater<T> valueUpdater) {
+      ValueBaseInputCell.this.onTap(tap, context, parent, value, valueUpdater);
+    }
+
+    @Override
+    protected void handlePreventDefault(NativeEvent event) {
+      // don't prevent default on input cells
+    }
+  };
 
   public interface ValueBaseFieldAppearance extends FieldAppearance {
     XElement getInputElement(Element parent);
@@ -64,6 +108,7 @@ public abstract class ValueBaseInputCell<T> extends FieldCell<T> implements HasP
    */
   public ValueBaseInputCell(ValueBaseFieldAppearance appearance) {
     super(appearance);
+    addCellGestureAdapter(cellTapGestureRecognizer);
   }
 
   /**
@@ -74,6 +119,7 @@ public abstract class ValueBaseInputCell<T> extends FieldCell<T> implements HasP
    */
   public ValueBaseInputCell(ValueBaseFieldAppearance appearance, Set<String> consumedEvents) {
     super(appearance, consumedEvents);
+    addCellGestureAdapter(cellTapGestureRecognizer);
   }
 
   /**
@@ -84,6 +130,7 @@ public abstract class ValueBaseInputCell<T> extends FieldCell<T> implements HasP
    */
   public ValueBaseInputCell(ValueBaseFieldAppearance appearance, String... consumedEvents) {
     super(appearance, consumedEvents);
+    addCellGestureAdapter(cellTapGestureRecognizer);
   }
 
   @Override
@@ -349,7 +396,7 @@ public abstract class ValueBaseInputCell<T> extends FieldCell<T> implements HasP
     // Browsers should fire the change event
     // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-eventgroupings-htmlevents-h3
 
-    if (finishEditOnBlur && (GXT.isSafari() || GXT.isChrome() || GXT.isOpera() || GXT.isIE9() || GXT.isIE10())) {
+    if (finishEditOnBlur && (GXT.isSafari() || GXT.isChrome() || GXT.isIE9() || GXT.isIE10() || GXT.isMSEdge())) {
       String text = getText(parent);
       String sValue = getPropertyEditor().render(value);
       if (!text.equals(sValue)) {
@@ -398,7 +445,16 @@ public abstract class ValueBaseInputCell<T> extends FieldCell<T> implements HasP
   protected void onMouseDown(XElement parent, NativeEvent event) {
     super.onMouseDown(parent, event);
 
+    // There is a bug in Edge that will not focus the textarea
+    // the caret is there, but never receives the focus event and document.activeElement is always body
+    if (GXT.isMSEdge()) {
+      getInputElement(parent).focus();
+    }
+
     stopClick = selectOnFocus && !hasFocus(null, parent);
+  }
+
+  protected void onTap(TouchData t, Context context, Element parent, T value, ValueUpdater<T> valueUpdater) {
   }
 
   protected void removeEmptyText(XElement parent) {

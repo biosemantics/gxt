@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.dnd.core.client;
 
@@ -11,7 +41,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
+import com.sencha.gxt.core.client.GXT;
+import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Util;
+import com.sencha.gxt.widget.core.client.event.XEvent;
 
 class DNDManager {
 
@@ -25,23 +60,51 @@ class DNDManager {
   }
 
   private DropTarget currentTarget;
-  private List<DropTarget> targets = new ArrayList<DropTarget>();
+  private List<DropTarget> dropTargets = new ArrayList<DropTarget>();
 
-  protected DropTarget getTarget(DragSource source, Element elem) {
+  protected DropTarget getTarget(DragSource dragSource, Element dropTargetElement) {
+    if (dropTargetElement == null) {
+      return null;
+    }
     DropTarget target = null;
-    for (DropTarget t : targets) {
+    for (DropTarget t : dropTargets) {
       if (t.isEnabled()
-          && Util.equalWithNull(t.getGroup(), source.getGroup())
-          && t.component.getElement().isOrHasChild(elem)
-          && (target == null || (target.component.getElement().isOrHasChild(t.component.getElement())))) {
+          && Util.equalWithNull(t.getGroup(), dragSource.getGroup())
+          && t.dropWidget.getElement().isOrHasChild(dropTargetElement)
+          && (target == null || (target.dropWidget.getElement().isOrHasChild(t.dropWidget.getElement())))) {
         target = t;
       }
     }
     return target;
   }
 
+  /**
+   * Obtain potential top-most target element associated with provided event.
+   *
+   * For touch devices, this method will attempt to find element from available dropTargets.
+   * This is due to touch events "getEventTarget" always returning the element you started
+   * the gesture on, regardless if you moved outside of the region of said element.  If the
+   * event coordinates do not match up with any dropTarget elements, then null will be returned.
+   *
+   * @param event
+   * @return
+   */
+  XElement getDropTargetElement(NativeEvent event) {
+    if (GXT.isTouch()) {
+      for (DropTarget dropTarget : dropTargets) {
+        XElement dropTargetElement = dropTarget.getElementFromEvent(event);
+        if (dropTargetElement != null) {
+          return dropTargetElement;
+        }
+      }
+      return null;
+    }
+
+    return event.getEventTarget().cast();
+  }
+
   List<DropTarget> getDropTargets() {
-    return targets;
+    return dropTargets;
   }
 
   void handleDragCancelled(DragSource source, DndDragCancelEvent event) {
@@ -58,6 +121,7 @@ class DNDManager {
       event.setDropTarget(currentTarget);
       event.setOperation(currentTarget.getOperation());
     }
+
     if (currentTarget != null && event.getStatusProxy().getStatus()) {
       source.onDragDrop(event);
       source.ensureHandlers().fireEventFromSource(event, source);
@@ -68,15 +132,19 @@ class DNDManager {
       source.onDragFail(event);
       source.ensureHandlers().fireEventFromSource(event, source);
 
-      if (currentTarget != null) currentTarget.onDragFail(event);
+      if (currentTarget != null) {
+        currentTarget.onDragFail(event);
+      }
     }
+
     currentTarget = null;
     Insert.get().hide();
-
   }
 
   void handleDragMove(DragSource source, DndDragMoveEvent event) {
-    DropTarget target = getTarget(source, (Element) event.getDragMoveEvent().getNativeEvent().getEventTarget().cast());
+    XElement dropTargetElement = getDropTargetElement(event.getDragMoveEvent().getNativeEvent());
+
+    DropTarget target = getTarget(source, dropTargetElement);
 
     // no target with current
     if (target == null) {
@@ -120,6 +188,7 @@ class DNDManager {
     event.setCancelled(true);
     event.setDropTarget(currentTarget);
     currentTarget.handleDragEnter(event);
+
     if (event.isCancelled()) {
       Insert.get().hide();
       currentTarget = null;
@@ -130,7 +199,6 @@ class DNDManager {
 
   void handleDragStart(DragSource source, DndDragStartEvent event) {
     source.onDragStart(event);
-
     source.ensureHandlers().fireEventFromSource(event, source);
 
     if (event.getData() == null || event.isCancelled()) {
@@ -138,16 +206,17 @@ class DNDManager {
       event.getDragStartEvent().setCancelled(true);
       return;
     }
+
     source.setData(event.getData());
     source.statusProxy.setStatus(false);
   }
 
   void registerDropTarget(DropTarget target) {
-    targets.add(target);
+    dropTargets.add(target);
   }
 
   void unregisterDropTarget(DropTarget target) {
-    targets.remove(target);
+    dropTargets.remove(target);
   }
 
 }

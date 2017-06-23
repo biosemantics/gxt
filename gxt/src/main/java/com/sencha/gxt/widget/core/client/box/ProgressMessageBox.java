@@ -1,13 +1,46 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.box;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.widget.core.client.ComponentHelper;
 import com.sencha.gxt.widget.core.client.ProgressBar;
 
@@ -22,47 +55,60 @@ public class ProgressMessageBox extends MessageBox {
 
   /**
    * Creates a progress message box with the specified heading HTML.
-   * 
+   *
+   * @param headingText the text to display for the message box heading.
+   */
+  public ProgressMessageBox(String headingText) {
+    this(SafeHtmlUtils.fromString(headingText), SafeHtmlUtils.EMPTY_SAFE_HTML);
+  }
+
+  /**
+   * Creates a progress message box with the specified heading HTML.
+   *
    * @param headingHtml the HTML to display for the message box heading
    */
   public ProgressMessageBox(SafeHtml headingHtml) {
-    this(headingHtml.asString(), null);
+    this(headingHtml, SafeHtmlUtils.EMPTY_SAFE_HTML);
   }
 
   /**
    * Creates a progress message box with the specified heading and message HTML.
-   * 
+   *
+   * @param headingText the text to display for the message box heading
+   * @param messageText the text to display in the message box
+   */
+  public ProgressMessageBox(String headingText, String messageText) {
+    this(SafeHtmlUtils.fromString(headingText), SafeHtmlUtils.fromString(messageText));
+  }
+
+  /**
+   * Creates a progress message box with the specified heading and message HTML.
+   *
    * @param headingHtml the HTML to display for the message box heading
    * @param messageHtml the HTML to display in the message box
    */
   public ProgressMessageBox(SafeHtml headingHtml, SafeHtml messageHtml) {
-    this(headingHtml.asString(), messageHtml.asString());
-  }
-
-  /**
-   * Creates a progress message box with the specified heading HTML. It is the
-   * caller's responsibility to ensure the HTML is CSS safe.
-   * 
-   * @param headingHtml the HTML to display for the message box heading.
-   */
-  public ProgressMessageBox(String headingHtml) {
-    this(headingHtml, null);
+    this(headingHtml, messageHtml,
+        GWT.<WindowAppearance>create(WindowAppearance.class),
+        GWT.<MessageBoxAppearance>create(MessageBoxAppearance.class));
   }
 
   /**
    * Creates a progress message box with the specified heading and message HTML.
-   * It is the caller's responsibility to ensure the HTML is CSS safe.
-   * 
+   *
    * @param headingHtml the HTML to display for the message box heading
    * @param messageHtml the HTML to display in the message box
+   * @param windowAppearance the message box window windowAppearance
+   * @param messageBoxAppearance the message box content windowAppearance
    */
-  public ProgressMessageBox(String headingHtml, String messageHtml) {
-    super(headingHtml, messageHtml);
+  public ProgressMessageBox(SafeHtml headingHtml, SafeHtml messageHtml, WindowAppearance windowAppearance,
+                            MessageBoxAppearance messageBoxAppearance) {
+    super(headingHtml, messageHtml, windowAppearance, messageBoxAppearance);
 
     progressBar = new ProgressBar();
 
-    contentAppearance.getContentElement(getElement()).appendChild(progressBar.getElement());
-    
+    messageBoxAppearance.getContentElement(getElement()).appendChild(progressBar.getElement());
+
     progressBar.clearSizeCache();
     progressBar.setWidth(300 - getFrameSize().getWidth());
 
@@ -151,11 +197,15 @@ public class ProgressMessageBox extends MessageBox {
     }
   }
 
+  /**
+   * Resize the progress bar width to fit the content box.
+   */
   @Override
-  protected void onResize(int width, int height) {
-    super.onResize(width, height);
-    progressBar.clearSizeCache();
-    progressBar.setWidth(width - getFrameSize().getWidth());
+  protected void resizeContents() {
+    int width = getAppearance().getContentElem(getElement()).getWidth(true);
+    int padding = getMessageBoxAppearance().getContentElement(getElement()).getPadding(Side.LEFT, Side.RIGHT);
+
+    getProgressBar().setWidth(width - padding);
   }
 
 }

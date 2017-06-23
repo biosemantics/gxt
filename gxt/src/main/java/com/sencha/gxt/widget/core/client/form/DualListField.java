@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.form;
 
@@ -118,12 +148,12 @@ public class DualListField<M, T> extends AdapterField<List<M>> {
 
   protected ListViewDropTarget<M> targetFromField;
   protected ListViewDropTarget<M> targetToField;
+  protected IconButton up, allRight, right, left, allLeft, down;
 
   private DualListFieldMessages messages;
   private VerticalPanel buttonBar;
   private ListView<M, T> fromView, toView;
   private ListStore<M> fromStore, toStore;
-  private IconButton up, allRight, right, left, allLeft, down;
   private final DualListFieldAppearance appearance;
   private String dndGroup;
 
@@ -369,6 +399,60 @@ public class DualListField<M, T> extends AdapterField<List<M>> {
   @Override
   public List<M> getValue() {
     return toStore.getAll();
+  }
+
+  /**
+   * Returns the left icon button.
+   *
+   * @return the left button
+   */
+  public IconButton getLeftButton() {
+    return left;
+  }
+
+  /**
+   * Returns the all left button.
+   *
+   * @return the all left button
+   */
+  public IconButton getAllLeftButton() {
+    return allLeft;
+  }
+
+  /**
+   * Returns the right button.
+   *
+   * @return the right button
+   */
+  public IconButton getRightButton() {
+    return right;
+  }
+
+  /**
+   * Returns the all right button.
+   *
+   * @return the all right button
+   */
+  public IconButton getAllRightButton() {
+    return allRight;
+  }
+
+  /**
+   * Returns the up button.
+   *
+   * @return the up button
+   */
+  public IconButton getUpButton() {
+    return up;
+  }
+
+  /**
+   * Returns the down button.
+   *
+   * @return the down button
+   */
+  public IconButton getDownButton() {
+    return down;
   }
 
   /**

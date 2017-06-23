@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.core.client;
 
@@ -73,7 +103,7 @@ private SampleXTemplates tpl = GWT.create(SampleXTemplates.class);
  * <p>
  * This is the data used for reference in each code sample:
  * </p>
- * <pre></code>
+ * <pre><code>
 public class Kid {
   public Kid(String name, int age) ...
 
@@ -87,23 +117,23 @@ public class Person {
   public String getCompany() ...
   public String getProduct() ...
   public String getLocation() ...
-  public List&lt;Kid> getKids() ...
+  public List<Kid> getKids() ...
 
-  public void setKids(List&lt;Kid> kids) ...
+  public void setKids(List<Kid> kids) ...
 }
 
-final Person person = new Person("Darrell Meyer", "Sencha Inc", "GXT", "Washington, DC");
+final Person person = new Person("John Doe", "ACME Widget Co.", "Widgets", "Anytown, USA");
 
-List&lt;Kid> kids = new ArrayList&lt;Kid>();
-kids.add(new Kid("Alec", 4));
-kids.add(new Kid("Lia", 2));
-kids.add(new Kid("Andrew", 1));
+List<Kid> kids = new ArrayList<Kid>();
+kids.add(new Kid("Noah", 4));
+kids.add(new Kid("Emma", 2));
+kids.add(new Kid("Liam", 1));
 
 person.setKids(kids);
 </pre></code>
  * <p>
  * Properties are read by naming the object or property to read in {@code { ... }} brackets in the
- * template body. In the main template (not in a {@code &lt;tpl for="...">} tag) these will be
+ * template body. In the main template (not in a {@code <tpl for="...">} tag) these will be
  * scoped based on the arguments to the template. If there is only one argument, the argument may 
  * be named, or properties may be referred to directly. If there are multiple arguments, they must
  * be named. 

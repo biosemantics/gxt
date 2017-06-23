@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.menu;
 
@@ -15,9 +45,12 @@ import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.dom.XDOM;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.util.KeyNav;
 import com.sencha.gxt.widget.core.client.container.InsertContainer;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
@@ -69,7 +102,7 @@ public class MenuBar extends InsertContainer {
   private Handler handler = new Handler();
 
   public MenuBar() {
-    this(GWT.<MenuBarAppearance> create(MenuBarAppearance.class));
+    this(GWT.<MenuBarAppearance>create(MenuBarAppearance.class));
   }
 
   public MenuBar(MenuBarAppearance appearance) {
@@ -93,6 +126,16 @@ public class MenuBar extends InsertContainer {
 
     // Ignore Menu preview event hiding menubar when toggle click occurs.
     addStyleName("x-ignore");
+
+
+    addGestureRecognizer(new TapGestureRecognizer() {
+      @Override
+      public boolean handleEnd(NativeEvent endEvent) {
+        super.handleEnd(endEvent);
+        onClick(endEvent.<Event>cast());
+        return true;
+      }
+    });
   }
 
   public MenuBarAppearance getAppearance() {
@@ -132,7 +175,8 @@ public class MenuBar extends InsertContainer {
    * @param expand true to expand the item's menu
    */
   public void setActiveItem(final MenuBarItem item, boolean expand) {
-    setActiveItem(item, expand, true);
+    // shouldn't automatically select first item on touch since it disables that item from being selected
+    setActiveItem(item, expand, !GXT.isTouch());
   }
 
   /**

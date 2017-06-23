@@ -56,6 +56,8 @@ import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.dom.DomHelper;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.ScrollGestureRecognizer.ScrollDirection;
 import com.sencha.gxt.core.client.resources.CommonStyles;
 import com.sencha.gxt.core.client.util.DelayedTask;
 import com.sencha.gxt.core.client.util.Point;
@@ -200,7 +202,7 @@ public class  GridView<M> {
 
   }
   interface StateBundle extends ClientBundle {
-    @Source("GridStateStyles.css")
+    @Source("GridStateStyles.gss")
     GridStateStyles styles();
   }
 
@@ -240,16 +242,16 @@ public class  GridView<M> {
 
     String grid();
 
-	String cellCommented();
+	String cellCommented(); 
 
-	String cellDirtyCommented();
+	String cellDirtyCommented(); 
   }
 
   public interface GridTemplates extends SafeHtmlTemplates {
     @Template("<table cellpadding=\"0\" cellspacing=\"0\" class=\"{0}\" style=\"{1};table-layout: fixed\"><tbody>{3}</tbody><tbody>{2}</tbody></table>")
     SafeHtml table(String classes, SafeStyles tableStyles, SafeHtml contents, SafeHtml sizingHeads);
 
-    @Template("<td cellindex=\"{0}\" class=\"{1}\" style=\"{2}\"><div class=\"{3}\" style=\"{4}\">{5}</div></td>")
+    @Template("<td cellindex=\"{0}\" class=\"{1}\" style=\"{2}\" tabindex=\"-1\"><div class=\"{3}\" style=\"{4}\">{5}</div></td>")
     SafeHtml td(int cellIndex, String cellClasses, SafeStyles cellStyles, String textClasses, SafeStyles textStyles,
         SafeHtml contents);
 
@@ -257,7 +259,7 @@ public class  GridView<M> {
     SafeHtml tdRowSpan(int cellIndex, String classes, SafeStyles styles, int rowSpan, String cellInnerClasses,
         SafeHtml contents);
 
-    @Template("<td cellindex=\"{0}\" class=\"{1}\" style=\"{2}\"><div class=\"{3}\" style=\"{4}\" unselectable=\"on\">{5}</div></td>")
+    @Template("<td cellindex=\"{0}\" class=\"{1}\" style=\"{2}\" tabindex=\"-1\"><div class=\"{3}\" style=\"{4}\" unselectable=\"on\">{5}</div></td>")
     SafeHtml tdUnselectable(int cellIndex, String cellClasses, SafeStyles cellStyles, String textClasses,
         SafeStyles textStyles, SafeHtml contents);
 
@@ -318,20 +320,17 @@ public class  GridView<M> {
   /**
    * The safe HTML value to display when the grid is empty (defaults to &nbsp;).
    */
-  protected String emptyText = "&nbsp;";
+  protected String emptyText = "";
 
   /**
    * True to enable a column spanning row body, as used by {@link RowExpander} (defaults to false).
    */
   protected boolean enableRowBody = false;
 
-  protected XElement focusEl;
 
-  protected final FocusImpl focusImpl = FocusImpl.getFocusImplForPanel();
 
   protected ColumnFooter<M> footer;
 
-  protected boolean focusConstrainScheduled = false;
   protected boolean forceFit;
   protected Grid<M> grid;
   protected ColumnHeader<M> header;
@@ -387,7 +386,7 @@ public class  GridView<M> {
   /**
    * True to enable the grid to be focused (defaults to true).
    */
-  private boolean focusEnabled = true;
+  private Element focusedCell;
 
   private DelayedTask removeTask = new DelayedTask() {
 
@@ -412,6 +411,7 @@ public class  GridView<M> {
 
   private boolean trackMouseOver = true;
   private SimpleEventBus eventBus;
+  private boolean removeInProgress = false;
 
   /**
    * Creates a new grid view.
@@ -477,61 +477,10 @@ public class  GridView<M> {
       col = 0;
     }
 
-    Element rowEl = getRow(row);
-    Element cellEl = null;
-    if (!(!hscroll && col == 0)) {
-      while (cm.isHidden(col)) {
-        col++;
-      }
-      cellEl = getCell(row, col);
+    focusCell(row, col, hscroll);
 
-    }
 
-    if (rowEl == null) {
       return null;
-    }
-
-    Element c = scroller;
-
-    int ctop = 0;
-    Element p = rowEl, stope = grid.getElement();
-    while (p != null && p != stope) {
-      ctop += p.getOffsetTop();
-      p = p.getOffsetParent();
-    }
-    ctop -= headerElem.getOffsetHeight();
-
-    int cbot = ctop + rowEl.getOffsetHeight();
-
-    int ch = c.getOffsetHeight();
-    int stop = c.getScrollTop();
-    int sbot = stop + ch;
-
-    // EXTGWT-2791
-    int adj = GXT.isIE10() ? 1 : 0;
-    if (ctop < stop) {
-      c.setScrollTop(ctop + adj);
-    } else if (cbot > sbot) {
-      if ((getTotalWidth() > scroller.getWidth(false) - scrollOffset)) {
-        cbot += scrollOffset;
-      }
-      c.setScrollTop((cbot -= ch) + adj);
-    }
-
-    if (hscroll && cellEl != null) {
-      int cleft = cellEl.getOffsetLeft();
-      int cright = cleft + cellEl.getOffsetWidth();
-      int sleft = c.getScrollLeft();
-      int sright = sleft + c.getOffsetWidth();
-      if (cleft < sleft) {
-        c.setScrollLeft(cleft);
-      } else if (cright > sright) {
-        c.setScrollLeft(cright - scroller.getComputedWidth());
-      }
-    }
-
-    return cellEl != null ? cellEl.<XElement> cast().getXY() : new Point(c.getAbsoluteLeft() + c.getScrollLeft(),
-        rowEl.<XElement> cast().getY());
   }
 
   /**
@@ -605,17 +554,15 @@ public class  GridView<M> {
    * Focuses the grid.
    */
   public void focus() {
-    if (GXT.isGecko()) {
-      Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-        @Override
-        public void execute() {
-          if (focusEl != null) {
-            focusImpl.focus(focusEl);
+    if (focusedCell != null) {
+      grid.getElement().removeAttribute("tabindex");
+      focusedCell.addClassName("x-grid-item-focused");
+      focusedCell.setTabIndex(0);
+      if (XDOM.getActiveElement() != null && !(focusedCell.isOrHasChild(XDOM.getActiveElement()))) {
+        focusedCell.focus();
           }
-        }
-      });
-    } else if (focusEl != null) {
-      focusImpl.focus(focusEl);
+    } else {
+      grid.getElement().setTabIndex(0);
     }
   }
 
@@ -627,12 +574,22 @@ public class  GridView<M> {
    * @param hscroll true to scroll horizontally
    */
   public void focusCell(int rowIndex, int colIndex, boolean hscroll) {
-    Point xy = ensureVisible(rowIndex, colIndex, hscroll);
-    if (xy != null) {
-      focusEl.setXY(xy);
-      if (focusEnabled) {
-        focus();
+    grid.getElement().removeAttribute("tabindex");
+    if (focusedCell != null) {
+      focusedCell.removeClassName("x-grid-item-focused");
+      focusedCell.setTabIndex(-1);
+      focusedCell = null;
+    }
+    Element cell = getCell(rowIndex, colIndex);
+    if (cell != null) {
+      cell.addClassName("x-grid-item-focused");
+      focusedCell = cell;
+      focusedCell.setTabIndex(0);
+      if (XDOM.getActiveElement() != null && !(focusedCell.isOrHasChild(XDOM.getActiveElement()))) {
+        focusedCell.focus();
       }
+    }  else {
+      grid.getElement().setTabIndex(0);
     }
   }
 
@@ -698,6 +655,11 @@ public class  GridView<M> {
    * @return the &lt;TD> at the specified coordinates
    */
   public Element getCell(int row, int col) {
+    if (removeInProgress) {
+      // event is occurring on next row
+      // due to possible blur event during row removal
+      row++;
+    }
     Element rowEl = getRow(row);
     if (rowEl == null || !rowEl.hasChildNodes() || col < 0) {
       return null;
@@ -733,6 +695,9 @@ public class  GridView<M> {
    * @return the header
    */
   public ColumnHeader<M> getHeader() {
+    if (header == null) {
+      initHeader();
+    }
     return header;
   }
 
@@ -950,19 +915,19 @@ public class  GridView<M> {
     if (grid != null && grid.isViewReady()) {
 
       if (!preventScrollToTopOnRefresh) {
-        scrollToTop();
+        scrollToTop(headerToo);
       }
 
       if (GXT.isIE()) {
         dataTableBody.removeChildren();
         dataTableSizingHead.removeChildren();
       } else {
-        dataTableBody.setInnerHTML("");
-        dataTableSizingHead.setInnerHTML("");
+        dataTableBody.setInnerSafeHtml(SafeHtmlUtils.EMPTY_SAFE_HTML);
+        dataTableSizingHead.setInnerSafeHtml(SafeHtmlUtils.EMPTY_SAFE_HTML);
       }
 
-      DomHelper.insertHtml("afterBegin", dataTableSizingHead, renderHiddenHeaders(getColumnWidths()).asString());
-      DomHelper.insertHtml("afterBegin", dataTableBody, renderRows(0, -1).asString());
+      DomHelper.insertHtml("afterBegin", dataTableSizingHead, renderHiddenHeaders(getColumnWidths()));
+      DomHelper.insertHtml("afterBegin", dataTableBody, renderRows(0, -1));
 
       dataTable.getStyle().setWidth(getTotalWidth(), Unit.PX);
 
@@ -1001,12 +966,29 @@ public class  GridView<M> {
     }
   }
 
+  
   /**
+   * Invoked after the view has been rendered, may be overridden to perform any
+   * activities that require a rendered view.
+   */
+  protected void onAfterRenderView() {
+  }
+/*
    * Scrolls the grid to the top.
    */
   public void scrollToTop() {
+    scrollToTop(true);
+  }
+  /**
+   * Scrolls the grid the top.
+   *
+   * @param resetHorizontal true to reset horizontal
+   */
+  public void scrollToTop(boolean resetHorizontal) {
     scroller.setScrollTop(0);
+    if (resetHorizontal) {
     scroller.setScrollLeft(0);
+    }
   }
 
   /**
@@ -1197,7 +1179,7 @@ public class  GridView<M> {
    * Invoked after the view element is first attached, performs steps that require that the view element is attached.
    */
   protected void afterRender() {
-    DomHelper.insertHtml("afterBegin", dataTableBody, renderRows(0, -1).asString());
+    DomHelper.insertHtml("afterBegin", dataTableBody, renderRows(0, -1));
 
     dataTable.getStyle().setWidth(getTotalWidth(), Unit.PX);
 
@@ -1229,19 +1211,16 @@ public class  GridView<M> {
    * Applies the empty text, normalizing it to non-breaking space if necessary, then displaying it if the grid is empty.
    */
   protected void applyEmptyText() {
-    if (emptyText == null) {
-      emptyText = "&nbsp;";
-    }
     if (!hasRows()) {
       if (GXT.isIE()) {
         dataTableBody.removeChildren();
       } else {
-        dataTableBody.setInnerHTML("");
+        dataTableBody.setInnerSafeHtml(SafeHtmlUtils.EMPTY_SAFE_HTML);
       }
 
       SafeHtml con = appearance.renderEmptyContent(emptyText);
       con = tpls.tr("", tpls.tdWrap(cm.getColumnCount(), "", styles.empty(), con));
-      DomHelper.append(dataTableBody, con.asString());
+      DomHelper.append(dataTableBody, con);
     }
   }
 
@@ -1629,7 +1608,7 @@ public class  GridView<M> {
       aw = grid.getElement().getComputedWidth();
     }
 
-    if (aw < 20 || aw > 2000) { // not initialized, so don't screw up the
+    if (aw < 20) { // not initialized, so don't screw up the
       // default widths
       return;
     }
@@ -1789,7 +1768,7 @@ public class  GridView<M> {
     if (val != null) {
       text = val.toString();
     }
-    return Util.isEmptyString(text) ? SafeHtmlUtils.fromTrustedString("&#160;") : SafeHtmlUtils.fromString(text);
+    return Util.isEmptyString(text) ? Util.NBSP_SAFE_HTML : SafeHtmlUtils.fromString(text);
   }
 
   /**
@@ -1937,7 +1916,7 @@ public class  GridView<M> {
     grid.addHeaderClickHandler(new HeaderClickHandler() {
       @Override
       public void onHeaderClick(HeaderClickEvent event) {
-        GridView.this.onHeaderClick(event.getColumnIndex());
+        GridView.this.onHeaderClick(event);
       }
     });
 
@@ -1953,13 +1932,13 @@ public class  GridView<M> {
     }
 
     renderUI();
-    grid.sinkEvents(Event.ONCLICK | Event.ONDBLCLICK | Event.MOUSEEVENTS);
+    grid.sinkEvents(Event.ONCLICK | Event.ONDBLCLICK | Event.MOUSEEVENTS | Event.FOCUSEVENTS);
   }
 
   public void setColumnHeader(ColumnHeader<M> columnHeader) {
     // check if we've been assigned a grid instance yet via init, if so, we've already wired up and
     // attached our own header instance
-    if (grid != null) {
+    if (grid != null && grid.isRendered()) {
       throw new IllegalStateException("Can't set a new ColumnHeader after the grid has been rendered");
     }
     this.header = columnHeader;
@@ -2024,6 +2003,7 @@ public class  GridView<M> {
     scroller = (XElement) cs.getItem(1);
     scroller.addEventsSunk(Event.ONSCROLL);
 
+    grid.addGestureRecognizer(new ScrollGestureRecognizer(scroller, ScrollDirection.BOTH));
     if (forceFit) {
       scroller.getStyle().setOverflowX(Overflow.HIDDEN);
     }
@@ -2034,19 +2014,6 @@ public class  GridView<M> {
     dataTableSizingHead = dataTable.getFirstChildElement().cast();
     dataTableBody = dataTableSizingHead.getNextSiblingElement().cast();
 
-    focusEl = (XElement) scroller.appendChild(focusImpl.createFocusable());
-    focusEl.addClassName(CommonStyles.get().noFocusOutline());
-    if (focusEl.hasChildNodes()) {
-      focusEl.getFirstChildElement().addClassName(CommonStyles.get().noFocusOutline());
-      com.google.gwt.dom.client.Style focusElStyle = focusEl.getFirstChildElement().getStyle();
-      focusElStyle.setBorderWidth(0, Unit.PX);
-      focusElStyle.setFontSize(1, Unit.PX);
-      focusElStyle.setPropertyPx("lineHeight", 1);
-    }
-    focusEl.setLeft(0);
-    focusEl.setTop(0);
-    focusEl.makePositionable(true);
-    focusEl.addEventsSunk(Event.FOCUSEVENTS);
   }
 
   /**
@@ -2156,7 +2123,7 @@ public class  GridView<M> {
       if (GXT.isIE()) {
         dataTableBody.removeChildren();
       } else {
-        dataTableBody.setInnerHTML("");
+        dataTableBody.setInnerSafeHtml(SafeHtmlUtils.EMPTY_SAFE_HTML);
       }
     }
 
@@ -2164,9 +2131,9 @@ public class  GridView<M> {
     XElement before = getRow(firstRow).cast();
 
     if (before != null) {
-      DomHelper.insertBefore(before, html.asString());
+      DomHelper.insertBefore(before, html);
     } else {
-      DomHelper.insertHtml("beforeEnd", dataTableBody, html.asString());
+      DomHelper.insertHtml("beforeEnd", dataTableBody, html);
     }
     if (!isUpdate) {
       processRows(firstRow, false);
@@ -2238,6 +2205,9 @@ public class  GridView<M> {
    * Invoked after the grid has been shown, the default implementation for {@link GridView} does nothing.
    */
   protected void notifyShow() {
+    if (header != null) {
+      header.refresh();
+    }
   }
 
   /**
@@ -2347,6 +2317,16 @@ public class  GridView<M> {
     }
   }
 
+  protected void onFocus(Event event) {
+    EventTarget eventTarget = event.getEventTarget();
+    if (Element.is(eventTarget)) {
+      final Element target = eventTarget.cast();
+      int rowIndex = findRowIndex(target);
+      int columnIndex = findCellIndex(target, null);
+      focusCell(rowIndex, columnIndex, false);
+    }
+    focus();
+  }
   /**
    * Handles a change in the safe HTML that represents the header (see
    * {@link ColumnModel#setColumnHeader(int, SafeHtml)}).
@@ -2363,10 +2343,10 @@ public class  GridView<M> {
    * 
    * @param column the column that was clicked
    */
-  protected void onHeaderClick(int column) {
-    this.headerColumnIndex = column;
-    if (!headerDisabled && cm.isSortable(column)) {
-      doSort(column, null);
+  protected void onHeaderClick(HeaderClickEvent event) {
+    headerColumnIndex = event.getColumnIndex();
+    if (!headerDisabled && cm.isSortable(headerColumnIndex)) {
+      doSort(headerColumnIndex, null);
     }
   }
 
@@ -2432,7 +2412,6 @@ public class  GridView<M> {
       } else {
         removeTask.delay(0);
       }
-      constrainFocusElement();
     }
   }
 
@@ -2558,15 +2537,15 @@ public class  GridView<M> {
     if (grid != null && grid.isViewReady()) {
       M m = ds.get(row);
       if (m != null) {
-        // do not change focus on refresh
-        // handles situation with changing cell value with field binding
-        focusEnabled = false;
+
 
         insertRows(row, row, true);
         getRow(row).setPropertyInt("rowindex", row);
+       // sets a flag for getCell to know it's being removed and adjust index
+        removeInProgress = true;
         onRemove(m, row + 1, true);
 
-        focusEnabled = true;
+        removeInProgress = false;
       }
     }
   }
@@ -2653,7 +2632,7 @@ public class  GridView<M> {
 
     initElements();
 
-    DomHelper.insertHtml("afterBegin", dataTableSizingHead, renderHiddenHeaders(getColumnWidths()).asString());
+    DomHelper.insertHtml("afterBegin", dataTableSizingHead, renderHiddenHeaders(getColumnWidths()));
 
     header.setEnableColumnResizing(grid.isColumnResize());
     header.setEnableColumnReorder(grid.isColumnReordering());
@@ -2719,7 +2698,6 @@ public class  GridView<M> {
       footer.setWidth(vw);
     }
 
-    constrainFocusElement();
   }
 
   /**
@@ -2758,7 +2736,6 @@ public class  GridView<M> {
     syncHeaderScroll();
     int scrollLeft = scroller.getScrollLeft();
     int scrollTop = scroller.getScrollTop();
-    constrainFocusElement();
     grid.fireEvent(new BodyScrollEvent(scrollLeft, scrollTop));
   }
 
@@ -2941,23 +2918,7 @@ public class  GridView<M> {
    */
   protected void updateSortIcon(int colIndex, SortDir dir) {
     header.updateSortIcon(colIndex, dir);
-  }
 
-  private void constrainFocusElement() {
-    if (!focusConstrainScheduled) {
-      focusConstrainScheduled = true;
-      Scheduler.get().scheduleFinally(new ScheduledCommand() {
-        @Override
-        public void execute() {
-          focusConstrainScheduled = false;
-          int scrollLeft = scroller.getScrollLeft();
-          int scrollTop = scroller.getScrollTop();
-          int left = scroller.getWidth(true) / 2 + scrollLeft;
-          int top = scroller.getHeight(true) / 2 + scrollTop;
-          focusEl.setLeftTop(left, top);
-        }
-      });
-    }
   }
 
   private SimpleEventBus ensureHandlers() {

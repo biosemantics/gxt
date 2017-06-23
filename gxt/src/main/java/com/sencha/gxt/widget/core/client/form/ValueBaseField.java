@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.form;
 
@@ -29,6 +59,7 @@ import com.google.gwt.i18n.client.BidiPolicy;
 import com.google.gwt.i18n.client.BidiUtils;
 import com.google.gwt.i18n.shared.DirectionEstimator;
 import com.google.gwt.i18n.shared.HasDirectionEstimator;
+import com.google.gwt.user.client.ui.HasText;
 import com.google.gwt.user.client.ui.impl.TextBoxImpl;
 import com.sencha.gxt.cell.core.client.form.ValueBaseInputCell;
 import com.sencha.gxt.core.client.GXT;
@@ -46,7 +77,7 @@ import com.sencha.gxt.widget.core.client.form.validator.EmptyValidator;
  * @param <T> the field type
  */
 public abstract class ValueBaseField<T> extends Field<T> implements HasKeyPressHandlers, HasKeyDownHandlers,
-    HasChangeHandlers, HasParseErrorHandlers, HasDirectionEstimator, AutoDirectionHandler.Target {
+    HasChangeHandlers, HasParseErrorHandlers, HasDirectionEstimator, AutoDirectionHandler.Target, HasText {
 
   protected static TextBoxImpl impl = GWT.create(TextBoxImpl.class);
 
@@ -521,6 +552,13 @@ public abstract class ValueBaseField<T> extends Field<T> implements HasKeyPressH
 
   @Override
   protected void doAutoValidate() {
+    // handle any parse errors before calling validateCurrent as parse exceptions are swallowed.
+    try {
+      getValueOrThrow();
+    } catch (ParseException e) {
+      onCellParseError(new ParseErrorEvent(e.getLocalizedMessage(), e));
+      return;
+    }
     validateCurrent(false);
   }
 

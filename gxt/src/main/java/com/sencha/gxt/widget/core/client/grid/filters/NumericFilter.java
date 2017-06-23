@@ -182,8 +182,8 @@ return Math.abs(modelValue.doubleValue() - filterValue.doubleValue()) < epsilon;
    * @param b
    * @return true if the two values should be considered to be equal for the purposes of filtering
    */
-  protected boolean equals(V a, V b) {
-    return a.equals(b.doubleValue());
+  protected boolean equals(V n1, V n2) {
+    return propertyEditor.compare(n1, n2) == 0;
   }
 
   protected NumberPropertyEditor<V> getPropertyEditor() {
@@ -203,10 +203,20 @@ return Math.abs(modelValue.doubleValue() - filterValue.doubleValue()) < epsilon;
    * @param b
    * @return true if the first parameter is greater than the second parameter
    */
-  protected boolean greaterThan(V a, V b) {
-    return Double.compare(a.doubleValue(), b.doubleValue()) > 0;
+  protected boolean greaterThan(V n1, V n2) {
+    return propertyEditor.compare(n1, n2) > 0;
   }
 
+  /**
+   * Compares the values given and returns true if the first is less than the second.
+   *
+   * @param n1 first number
+   * @param n2 second number
+   * @return true if the first parameter is less than the second parameter
+   */
+  protected boolean lessThan(V n1, V n2) {
+    return propertyEditor.compare(n1, n2) < 0;
+  }
   @Override
   public boolean validateModel(M model) {
     boolean isValid = true;
@@ -218,7 +228,7 @@ return Math.abs(modelValue.doubleValue() - filterValue.doubleValue()) < epsilon;
       }
       if (isValid && rangeMenu.lt != null) {
         V filterValue = rangeMenu.lt.getCurrentValue();
-        isValid = filterValue == null || greaterThan(filterValue, modelValue); // filterValue > modelValue
+        isValid = filterValue == null || lessThan(modelValue, filterValue);
       }
       if (isValid && rangeMenu.gt != null) {
         V filterValue = rangeMenu.gt.getCurrentValue();

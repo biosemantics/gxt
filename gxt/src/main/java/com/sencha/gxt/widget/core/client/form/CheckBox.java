@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.form;
 
@@ -16,6 +46,8 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.util.DelayedTask;
@@ -78,7 +110,7 @@ public class CheckBox extends Field<Boolean> implements HasChangeHandlers {
    * 
    * @return the box label
    */
-  public String getBoxLabel() {
+  public SafeHtml getBoxLabel() {
     return getCell().getBoxLabel();
   }
 
@@ -88,12 +120,21 @@ public class CheckBox extends Field<Boolean> implements HasChangeHandlers {
   }
 
   /**
-   * The text that appears beside the checkbox (defaults to null).
-   * 
-   * @param boxLabel the box label
+   * The text that appears beside the checkbox (defaults to empty string).
+   *
+   * @param text the box label text
    */
-  public void setBoxLabel(String boxLabel) {
-    getCell().setBoxLabel(getElement(), boxLabel);
+  public void setBoxLabel(String text) {
+    getCell().setBoxLabel(getElement(), SafeHtmlUtils.fromString(text));
+  }
+
+  /**
+   * The html that appears beside the checkbox (defaults to empty string).
+   * 
+   * @param html the box label html
+   */
+  public void setBoxLabel(SafeHtml html) {
+    getCell().setBoxLabel(getElement(), html);
   }
 
   @Override
@@ -109,7 +150,6 @@ public class CheckBox extends Field<Boolean> implements HasChangeHandlers {
       value = false;
     }
     setValue(value, false);
-    // IE6 is losing state when detached and attached
     redraw();
   }
 

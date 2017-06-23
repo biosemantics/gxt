@@ -1,14 +1,46 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.event;
 
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.EventTarget;
+import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.dom.client.Touch;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.user.client.Event;
 import com.sencha.gxt.core.client.GXT;
@@ -51,11 +83,16 @@ public class XEvent extends Event {
   }
 
   /**
-   * Returns the mouse location.
+   * Returns the mouse/touch location.
    * 
-   * @return the mouse location
+   * @return the mouse/touch location
    */
   public final Point getXY() {
+    if (getChangedTouches() != null) {
+      // touch event
+      Touch touch = getChangedTouches().get(0);
+      return new Point(touch.getClientX(), touch.getClientY());
+    }
     return new Point(getClientX(), getClientY());
   }
 
@@ -146,4 +183,26 @@ public class XEvent extends Event {
     }
     return false;
   }
+
+  /**
+   * Temporary workaround for IE11 GWT bug (https://code.google.com/p/google-web-toolkit/issues/detail?id=8476).
+   *
+   * @deprecated this method will be removed when the bug is fixed
+   * @return the correct velocity
+   */
+  @Deprecated
+  public final int getMouseWheelVelocityFix() {
+    int vel = getMouseWheelVelocityY();
+    if (vel == 0) {
+      return workaroundEventGetMouseWheelVelocityY(this);
+    }
+    return vel;
+  }
+
+  private static final native int workaroundEventGetMouseWheelVelocityY(NativeEvent evt) /*-{
+    if (typeof evt.wheelDelta == "undefined") {
+      return 0;
+    }
+    return Math.round(-evt.wheelDelta / 40) || 0;
+  }-*/;
 }

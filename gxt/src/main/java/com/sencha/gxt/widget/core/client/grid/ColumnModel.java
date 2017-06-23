@@ -182,6 +182,16 @@ public class ColumnModel<M> implements HasColumnModelHandlers {
   }
 
   /**
+   * Returns the column's header horizontal alignment.
+   *
+   * @param colIndex the column index
+   * @return the alignment
+   */
+  public HorizontalAlignmentConstant getColumnHorizontalHeaderAlignment(int colIndex) {
+    ColumnConfig<M, ?> c = getColumn(colIndex);
+    return c != null ? c.getHorizontalHeaderAlignment() : null;
+  }
+	/*
    * Returns the column count.
    * 
    * @return the column count

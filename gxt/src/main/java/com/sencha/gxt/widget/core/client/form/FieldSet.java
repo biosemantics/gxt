@@ -1,17 +1,48 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.form;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.sencha.gxt.core.client.GXT;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.core.client.Style.Side;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
@@ -19,6 +50,7 @@ import com.sencha.gxt.core.client.util.Size;
 import com.sencha.gxt.core.client.util.TextMetrics;
 import com.sencha.gxt.widget.core.client.Collapsible;
 import com.sencha.gxt.widget.core.client.ComponentHelper;
+import com.sencha.gxt.widget.core.client.button.IconButton.IconConfig;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeCollapseEvent;
@@ -46,18 +78,23 @@ public class FieldSet extends SimpleContainer implements HasBeforeExpandHandlers
   public interface FieldSetAppearance {
     XElement getContainerTarget(XElement parent);
 
-    XElement getTextElement(XElement parent);
+    XElement getHeadingElement(XElement parent);
 
     XElement getToolElement(XElement parent);
 
     void onCollapse(XElement parent, boolean collapse);
 
     void render(SafeHtmlBuilder sb);
+
+    IconConfig collapseIcon();
+
+    IconConfig expandIcon();
   }
 
   private final FieldSetAppearance appearance;
   private boolean collapsed, collapsible;
   private ToolButton collapseButton;
+  private SafeHtml heading = SafeHtmlUtils.EMPTY_SAFE_HTML;
 
   /**
    * Creates a new field set.
@@ -109,7 +146,8 @@ public class FieldSet extends SimpleContainer implements HasBeforeExpandHandlers
       if (fireCancellableEvent(new BeforeCollapseEvent())) {
         this.collapsed = true;
         appearance.onCollapse(getElement(), true);
-        getCollapseButton().changeStyle(ToolButton.DOWN);
+        // the widget has been collapsed, show the expand icon
+        getCollapseButton().changeStyle(appearance.expandIcon());
         fireEvent(new CollapseEvent());
       }
     }
@@ -122,7 +160,8 @@ public class FieldSet extends SimpleContainer implements HasBeforeExpandHandlers
       if (fireCancellableEvent(new BeforeExpandEvent())) {
         this.collapsed = false;
         appearance.onCollapse(getElement(), false);
-        getCollapseButton().changeStyle(ToolButton.UP);
+        // the widget has been expanded, show the collapse icon
+        getCollapseButton().changeStyle(appearance.collapseIcon());
         fireEvent(new ExpandEvent());
       }
     }
@@ -139,7 +178,7 @@ public class FieldSet extends SimpleContainer implements HasBeforeExpandHandlers
    */
   public ToolButton getCollapseButton() {
     if (collapseButton == null) {
-      collapseButton = new ToolButton(ToolButton.UP);
+      collapseButton = new ToolButton(appearance.collapseIcon());
       collapseButton.addSelectHandler(new SelectHandler() {
 
         @Override
@@ -152,24 +191,6 @@ public class FieldSet extends SimpleContainer implements HasBeforeExpandHandlers
       }
     }
     return collapseButton;
-  }
-
-  /**
-   * Returns the heading.
-   * 
-   * @return the heading HTML
-   */
-  public String getHeadingHtml() {
-    return appearance.getTextElement(getElement()).getInnerHTML();
-  }
-
-  /**
-   * Returns the heading.
-   * 
-   * @return the heading text
-   */
-  public String getHeadingText() {
-    return appearance.getTextElement(getElement()).getInnerText();
   }
 
   /**
@@ -212,21 +233,33 @@ public class FieldSet extends SimpleContainer implements HasBeforeExpandHandlers
   }
 
   /**
-   * Sets the heading.
-   * 
-   * @param heading the heading HTML
+   * Returns the heading html.
+   *
+   * @return the heading html
    */
-  public void setHeadingHtml(String heading) {
-    appearance.getTextElement(getElement()).setInnerHTML(heading);
+  public SafeHtml getHeading() {
+    return heading;
   }
 
   /**
-   * Sets the heading.
-   * 
-   * @param heading the heading text
+   * Sets the heading html.
+   *
+   * @param html the heading html
    */
-  public void setHeadingText(String heading) {
-    appearance.getTextElement(getElement()).setInnerText(heading);
+  public void setHeading(SafeHtml html) {
+    this.heading = html;
+    getAppearance().getHeadingElement(getElement()).setInnerSafeHtml(html);
+  }
+
+  /**
+   * Sets the heading text.
+   *
+   * Text that contains reserved html characters will be escaped.
+   *
+   * @param text the text
+   */
+  public void setHeading(String text) {
+    setHeading(SafeHtmlUtils.fromString(text));
   }
 
   @Override
@@ -285,28 +318,24 @@ public class FieldSet extends SimpleContainer implements HasBeforeExpandHandlers
     int tw = width - getElement().getFrameWidth(Side.LEFT, Side.RIGHT);
     getContainerTarget().setWidth(tw, true);
 
-    // the following legend overflow code works in all browsers except ie6 and ie7
-    // the bug (extended text) still exists for ie6 and ie7
-    if (!(GXT.isIE7() || GXT.isIE6())) {
-      // measure legend width
-      XElement legend = getElement().selectNode("legend");
+    // measure legend width
+    XElement legend = getElement().selectNode("legend");
 
-      TextMetrics.get().bind(legend);
+    TextMetrics.get().bind(legend);
 
-      int legendWidth = TextMetrics.get().getWidth(getHeadingText());
+    int legendWidth = TextMetrics.get().getWidth(getAppearance().getHeadingElement(getElement()).getInnerText());
 
-      if (legendWidth > tw) {
-        legend.setWidth(tw - 5);
-      } else {
-        legend.getStyle().clearWidth();
-      }
+    if (legendWidth > tw) {
+      legend.setWidth(tw - 5);
+    } else {
+      legend.getStyle().clearWidth();
     }
 
     if (isAutoHeight()) {
       getContainerTarget().getStyle().clearHeight();
     } else {
       int adj = getElement().getFrameWidth(Side.TOP, Side.BOTTOM);
-      adj += appearance.getTextElement(getElement()).getOffsetHeight();
+      adj += appearance.getHeadingElement(getElement()).getOffsetHeight();
       getContainerTarget().setHeight(height - adj, true);
     }
     super.onResize(width, height);

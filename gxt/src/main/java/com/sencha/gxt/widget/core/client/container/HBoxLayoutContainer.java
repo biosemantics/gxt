@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.container;
 
@@ -24,7 +54,6 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.GXTLogConfiguration;
 import com.sencha.gxt.core.client.Style;
 import com.sencha.gxt.core.client.dom.XElement;
@@ -260,10 +289,7 @@ public class HBoxLayoutContainer extends BoxLayoutContainer implements HasOverfl
       ButtonGroup g = (ButtonGroup) w;
       g.setItemId(g.getItemId());
       menu.add(new SeparatorMenuItem());
-      String heading = g.getHeadingText();
-      if (heading != null && heading.length() > 0 && !heading.equals("&#160;")) {
-        menu.add(new HeaderMenuItem(heading));
-      }
+      menu.add(new HeaderMenuItem(g.getHeading()));
 
       Widget con = g.getWidget();
       if (con != null && con instanceof HasWidgets) {
@@ -424,14 +450,7 @@ public class HBoxLayoutContainer extends BoxLayoutContainer implements HasOverfl
       Widget widget = getWidget(i);
 
       widget.addStyleName(CommonStyles.get().positionable());
-
-      // very strange behavior where clearing the margins in causing
-      // widget.getOffsetWidth to return an invalid result (for buttons -5 px
-      // actual width)
-      // which is corrected by the time enable overflow code runs
-      if (!GXT.isIE7()) {
-        widget.getElement().getStyle().setMargin(0, Unit.PX);
-      }
+      widget.getElement().getStyle().setMargin(0, Unit.PX);
 
       if (!widget.isVisible()) {
         continue;

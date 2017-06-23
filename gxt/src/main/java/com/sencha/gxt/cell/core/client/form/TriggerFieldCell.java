@@ -27,6 +27,7 @@ import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.GXTLogConfiguration;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.util.DelayedTask;
 import com.sencha.gxt.widget.core.client.event.ParseErrorEvent;
 import com.sencha.gxt.widget.core.client.event.TriggerClickEvent;
@@ -82,8 +83,7 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
               (activeElement != null &&
                       !isFocusedWithTarget(parent, activeElement))) {
         //either we are invisible, or someone else has focus, drop the appearance of focus and trigger the blur
-        triggerBlur(context, parent, value, updater);
-        onBlur(context, parent, value, null, updater);
+        handleFocusManagerExecute(context, parent, value, updater);
         remove();
       } else {
         delay(100);
@@ -92,9 +92,10 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
 
     @Override
     public void onPreviewNativeEvent(NativePreviewEvent event) {
-      NativeEvent e = event.getNativeEvent();
-      XElement target = event.getNativeEvent().getEventTarget().cast();
-      if ("mousedown".equals(e.getType())) {
+      NativeEvent nativeEvent = event.getNativeEvent();
+      XElement target = nativeEvent.getEventTarget().cast();
+      String eventType = nativeEvent.getType();
+      if ("mousedown".equals(eventType) || "touchstart".equals(eventType)) {
         if (GXTLogConfiguration.loggingIsEnabled()) {
           logger.finest("preview mouse down");
         }
@@ -108,10 +109,18 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
           lastValueUpdater = updater;
           lastContext = context;
 
+          if (GXT.isIE8() || GXT.isTouch()) {
+            triggerBlur(lastContext, parent, lastValue, lastValueUpdater);
+            onBlur(lastContext, parent, lastValue, null, lastValueUpdater);
+            if (GXT.isTouch()) {
+              getInputElement(parent).blur();
+            }
+          } else {
           // rather than calling triggerBlur, we just set the mimic flag and
           // wait
           // for onBlur to be called, then we finish the edit
           mimicking = false;
+          }
         }
       }
     }
@@ -375,6 +384,10 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
     super.setSize(parent, width, height);
     getAppearance().onResize(parent, width, height, isHideTrigger());
   }
+  protected void handleFocusManagerExecute(Context context, XElement parent, T value, ValueUpdater<T> updater) {
+    triggerBlur(context, parent, value, updater);
+    onBlur(context, parent, value, null, updater);
+  }
 
   @Override
   protected void clearContext() {
@@ -426,6 +439,18 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
     }
   }
 
+  protected void onTap(TouchData t, Context context, Element parent, T value, ValueUpdater<T> valueUpdater) {
+    XElement target = t.getStartElement().asElement().cast();
+    if (!isReadOnly() && (!isEditable() && getInputElement(parent).isOrHasChild(target))
+        || getAppearance().triggerIsOrHasChild(parent.<XElement>cast(), target)) {
+      onTriggerClick(context, parent.<XElement>cast(), null, value, valueUpdater);
+      t.getLastNativeEvent().preventDefault();
+    }
+    if (! editable) {
+      t.getLastNativeEvent().preventDefault();
+      t.getLastNativeEvent().stopPropagation();
+    }
+  }
   @Override
   protected void onEnterKeyDown(Context context, Element parent, T value, NativeEvent event,
       ValueUpdater<T> valueUpdater) {
@@ -451,19 +476,7 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
     // Either we're mimicking focus or we have actual focus - either way, the input element should be focused
     // at this time. This is necessary because occasionally we preventDefault() some other events, but directly
     // invoke onFocus, so we need to actually focus the element.
-    if (GXT.isIE8()) {
-      Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-        @Override
-        public void execute() {
-          if (parent == lastParent) {
-            if (GXTLogConfiguration.loggingIsEnabled()) {
-              logger.finest("TriggerFieldCell onFocus " + parent.getId(true) + " actually ran");
-            }
-            getInputElement(parent).focus();
-          }
-        }
-      });
-    } else {
+    if (!GXT.isTouch()) {
       getInputElement(parent).focus();
     }
 
@@ -592,8 +605,11 @@ public class TriggerFieldCell<T> extends ValueBaseInputCell<T> {
   }
 
   void doTriggerBlur() {
-    triggerBlur(lastContext, lastParent, lastValue, lastValueUpdater);
-    onBlur(lastContext, lastParent, lastValue, null, lastValueUpdater);
+    doTriggerBlur(lastContext, lastParent, lastValue, lastValueUpdater);
+  }
+  void doTriggerBlur(Context context, XElement parent, T value, ValueUpdater<T> valueUpdater) {
+    triggerBlur(context, parent, value, valueUpdater);
+    onBlur(context, parent, value, null, valueUpdater);
   }
 
   protected native void clearFocusKey() /*-{

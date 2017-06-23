@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.grid;
 
@@ -23,7 +53,7 @@ public class HeaderGroupConfig {
   private int colspan = 1;
   private int column;
   private HorizontalAlignmentConstant horizontalAlignment = HasHorizontalAlignment.ALIGN_CENTER;
-  private SafeHtml html;
+  private SafeHtml html = SafeHtmlUtils.EMPTY_SAFE_HTML;
   private int row;
   private int rowspan = 1;
   private Widget widget;
@@ -31,7 +61,7 @@ public class HeaderGroupConfig {
   /**
    * Creates a new header group without rowspan and colspan.
    * 
-   * @param html the group text
+   * @param html the group text or html
    */
   public HeaderGroupConfig(String html) {
     this(SafeHtmlUtils.fromString(html));
@@ -40,7 +70,7 @@ public class HeaderGroupConfig {
   /**
    * Creates a new header group without rowspan and colspan.
    * 
-   * @param html the group text
+   * @param html the group html
    */
   public HeaderGroupConfig(SafeHtml html) {
     this.html = html;
@@ -49,23 +79,23 @@ public class HeaderGroupConfig {
   /**
    * Creates a header group.
    * 
-   * @param text the group text
+   * @param html the group text or html
    * @param rowspan the rowspan
    * @param colspan the colspan
    */
-  public HeaderGroupConfig(String text, int rowspan, int colspan) {
-    this(SafeHtmlUtils.fromString(text), rowspan, colspan);
+  public HeaderGroupConfig(String html, int rowspan, int colspan) {
+    this(SafeHtmlUtils.fromString(html), rowspan, colspan);
   }
 
   /**
    * Creates a header group.
    * 
-   * @param text the group text
+   * @param html the group html
    * @param rowspan the rowspan
    * @param colspan the colspan
    */
-  public HeaderGroupConfig(SafeHtml text, int rowspan, int colspan) {
-    this(text);
+  public HeaderGroupConfig(SafeHtml html, int rowspan, int colspan) {
+    this(html);
     this.rowspan = rowspan;
     this.colspan = colspan;
   }

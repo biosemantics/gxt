@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client;
 
@@ -20,11 +50,20 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.event.shared.HandlerManager;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.sencha.gxt.cell.core.client.DisableCell;
+import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.TapGestureRecognizer.CellTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.widget.core.client.cell.HandlerManagerContext;
 import com.sencha.gxt.widget.core.client.event.CellSelectionEvent;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A Cell Widget representing a palette of colors.
@@ -148,7 +187,7 @@ public class ColorPaletteCell extends AbstractEditableCell<String, String> imple
     /**
      * Renders the appearance of a color palette cell as HTML into a
      * {@link SafeHtmlBuilder}, suitable for passing to
-     * {@link Element#setInnerHTML(String)} on a container element.
+     * {@link Element#setInnerSafeHtml(SafeHtml)} on a container element.
      * 
      * @param context contains information about context of the element
      * @param value the color of the currently selected element
@@ -182,6 +221,9 @@ public class ColorPaletteCell extends AbstractEditableCell<String, String> imple
 
   private boolean disabled;
 
+  private Set<String> consumedEvents;
+  private CellTapGestureRecognizer<String> tapGestureRecognizer;
+
   /**
    * Creates a color palette cell with a default set of colors.
    */
@@ -209,12 +251,22 @@ public class ColorPaletteCell extends AbstractEditableCell<String, String> imple
    */
   public ColorPaletteCell(ColorPaletteAppearance appearance, String[] colors, String[] labels) {
     super("click", "mouseover", "mouseout", "focus", "blur");
+    consumedEvents = new HashSet<String>(super.getConsumedEvents());
     this.appearance = appearance;
     if (colors != null) {
       this.colors = colors;
     }
     if (labels != null) {
       this.labels = labels;
+    }
+    if (GXT.isTouch()) {
+      consumedEvents.addAll(Arrays.asList("touchstart", "touchmove", "touchend", "touchcancel"));
+      tapGestureRecognizer = new CellTapGestureRecognizer<String>() {
+        @Override
+        protected void onTap(TouchData tap, Context context, Element parent, String value, ValueUpdater<String> valueUpdater) {
+          onClick(context, parent.<XElement> cast(), value, tap.getLastNativeEvent(), valueUpdater);
+        }
+      };
     }
   }
 
@@ -226,7 +278,7 @@ public class ColorPaletteCell extends AbstractEditableCell<String, String> imple
    * @param labels the color names, in the same order as <code>colors</code>
    */
   public ColorPaletteCell(String[] colors, String[] labels) {
-    this(GWT.<ColorPaletteAppearance> create(ColorPaletteAppearance.class), colors, labels);
+    this(GWT.<ColorPaletteAppearance>create(ColorPaletteAppearance.class), colors, labels);
   }
 
   @Override
@@ -260,6 +312,11 @@ public class ColorPaletteCell extends AbstractEditableCell<String, String> imple
    */
   public String[] getColors() {
     return colors;
+  }
+
+  @Override
+  public Set<String> getConsumedEvents() {
+    return consumedEvents;
   }
 
   /**
@@ -299,6 +356,10 @@ public class ColorPaletteCell extends AbstractEditableCell<String, String> imple
       onFocus(context, xParent, value, event, valueUpdater);
     } else if ("blur".equals(type)) {
       onBlur(context, xParent, value, event, valueUpdater);
+    } else if ("touchstart".equals(type) || "touchmove".equals(type) || "touchend".equals(type) || "touchcancel".equals(type)) {
+      if (tapGestureRecognizer != null){
+        tapGestureRecognizer.handle(context, parent, value, event, valueUpdater);
+      }
     }
 
   }

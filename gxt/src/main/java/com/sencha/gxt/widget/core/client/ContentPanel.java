@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client;
 
@@ -13,6 +43,7 @@ import com.google.gwt.dom.client.Style.Cursor;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.uibinder.client.UiChild;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Widget;
@@ -61,7 +92,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
  * <pre>
  * public void onModuleLoad() {
  *   ContentPanel cp = new ContentPanel();
- *   cp.setHeadingText("Content Panel");
+ *   cp.setHeading("Content Panel");
  *   cp.setPixelSize(250, 140);
  *   cp.setPosition(10, 10);
  *   cp.setCollapsible(true);
@@ -76,181 +107,26 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 public class ContentPanel extends SimpleContainer implements HasBeforeExpandHandlers, HasExpandHandlers,
     HasBeforeCollapseHandlers, HasCollapseHandlers, Collapsible {
 
-  /**
-   * The appearance of a content panel. A content panel has a header, body and footer. The header includes a button that
-   * can be used to collapse or expand the body. The button has an icon that changes to indicate whether a collapse or
-   * expand is possible. The body contains a single widget, added using {@link ContentPanel#add}. The widget is resized
-   * to match the size of the container. The footer contains a button bar with optional buttons.
-   */
-  public interface ContentPanelAppearance {
-
-    /**
-     * Returns the button icon that indicates a collapse is possible.
-     *
-     * @return the collapse icon
-     */
-    IconConfig collapseIcon();
-
-    /**
-     * Returns the button icon that indicates an expand is possible.
-     *
-     * @return the expand icon
-     */
-    IconConfig expandIcon();
-
-    /**
-     * Returns the element that wraps the content panel body. In the default implementation, this wraps the body widget
-     * and footer.
-     *
-     * @param parent the content panel root element
-     * @return the element that wraps the body
-     */
-    XElement getBodyWrap(XElement parent);
-
-    /**
-     * Returns the content panel body element.
-     *
-     * @param parent the content panel root element
-     * @return the body element
-     */
-    XElement getContentElem(XElement parent);
-
-    /**
-     * Returns the content panel footer element.
-     *
-     * @param parent the content panel root element
-     * @return the body element
-     */
-    XElement getFooterElem(XElement parent);
-
-    /**
-     * Returns the total height of the content panel frame elements.
-     *
-     * @param parent the content panel root element
-     * @return the total height of the frame elements
-     */
-    int getFrameHeight(XElement parent);
-
-    /**
-     * Returns the total width of the content panel frame elements.
-     *
-     * @param parent the content panel root element
-     * @return the total width of the frame elements
-     */
-    int getFrameWidth(XElement parent);
-
-    /**
-     * Returns the content panel header's appearance
-     *
-     * @return the header appearance
-     */
-    HeaderAppearance getHeaderAppearance();
-
-    /**
-     * Returns the content panel header element.
-     *
-     * @param parent the content panel root element
-     * @return the content panel header element
-     */
-    XElement getHeaderElem(XElement parent);
-
-    /**
-     * Returns the header size excluding any framing.
-     *
-     * @return the header size
-     */
-    Size getHeaderSize(XElement parent);
-
-    /**
-     * Handles a change in the visibility of the body border.
-     *
-     * @param parent content panel root element
-     * @param border true to display the border
-     */
-    void onBodyBorder(XElement parent, boolean border);
-
-    /**
-     * Hides or shows the header.
-     *
-     * @param parent content panel root element
-     * @param hide true to hide the header
-     */
-    void onHideHeader(XElement parent, boolean hide);
-
-    /**
-     * Renders the appearance of a content panel as HTML into a {@link SafeHtmlBuilder}, suitable for passing to
-     * {@link Element#setInnerHTML(String)} on a container element.
-     *
-     * @param sb receives the rendered appearance
-     */
-    void render(SafeHtmlBuilder sb);
-
-  }
-
-  /**
-   * Provides access to content panel messages.
-   */
-  public interface ContentPanelMessages {
-
-    /**
-     * Returns the content panel collapse message.
-     *
-     * @return the content panel collapse message
-     */
-    String panelCollapse();
-
-    /**
-     * Returns the content panel expand message.
-     *
-     * @return the content panel expand message
-     */
-    String panelExpand();
-
-  }
-
-  /**
-   * Provides support for deferred binding for the panel header appearance.
-   */
-  public interface PanelHeaderAppearance extends HeaderAppearance {
-
-  }
-
-  protected class DefaultContentPanelMessages implements ContentPanelMessages {
-
-    public String panelCollapse() {
-      return DefaultMessages.getMessages().panel_collapsePanel();
-    }
-
-    public String panelExpand() {
-      return DefaultMessages.getMessages().panel_expandPanel();
-    }
-
-  }
-
+  private final ContentPanelAppearance appearance;
   protected Header header;
   protected ButtonBar buttonBar;
-  private final ContentPanelAppearance appearance;
+  protected boolean secondPassRequired;
   private ContentPanelMessages messages;
-
   private boolean animating;
   private boolean animCollapse = true;
   private int animationDuration = 500;
   private ToolButton collapseBtn;
   private boolean collapsed, hideCollapseTool;
-  protected boolean secondPassRequired;
   private boolean collapsible;
   private boolean titleCollapse;
-
   private boolean headerVisible = true;
   private boolean layoutOnExpand;
-
   /**
    * Creates a content panel with default appearance.
    */
   public ContentPanel() {
     this((ContentPanelAppearance) GWT.create(ContentPanelAppearance.class));
   }
-
   /**
    * Creates a content panel with the specified appearance.
    *
@@ -277,6 +153,7 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
     buttonBar.setMinButtonWidth(75);
     buttonBar.setPack(BoxLayoutPack.END);
     buttonBar.setVisible(false);
+    buttonBar.getElement().getStyle().setProperty("minHeight", "5px");
     appearance.getFooterElem(getElement()).appendChild(buttonBar.getElement());
   }
 
@@ -361,6 +238,15 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
   }
 
   /**
+   * Sets the duration for the expand/collapse animations.
+   *
+   * @param animationDuration the duration of the expand/collapse animations in milliseconds
+   */
+  public void setAnimationDuration(int animationDuration) {
+    this.animationDuration = animationDuration;
+  }
+
+  /**
    * Gets a reference to the appearance this object was instantiated with
    *
    * @return the appearance impl used by this component
@@ -388,6 +274,16 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
   }
 
   /**
+   * Sets the button alignment of any buttons added to this panel (defaults to RIGHT, pre-render).
+   *
+   * @param buttonAlign the button alignment
+   */
+  public void setButtonAlign(BoxLayoutPack buttonAlign) {
+    assertPreRender();
+    buttonBar.setPack(buttonAlign);
+  }
+
+  /**
    * Returns the content panel button bar. In the default implementation, the button bar is displayed in the content
    * panel's footer.
    *
@@ -395,24 +291,6 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
    */
   public ButtonBar getButtonBar() {
     return buttonBar;
-  }
-
-  /**
-   * Returns the content panel header.
-   *
-   * @return the header
-   */
-  public Header getHeader() {
-    return header;
-  }
-
-  /**
-   * Returns the HTML displayed in the header.
-   *
-   * @return the header HTML
-   */
-  public String getHTML() {
-    return header.getHTML();
   }
 
   /**
@@ -428,6 +306,15 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
   }
 
   /**
+   * Sets the content panel messages.
+   *
+   * @param messages the messages
+   */
+  public void setMessages(ContentPanelMessages messages) {
+    this.messages = messages;
+  }
+
+  /**
    * Returns the minimum button width.
    *
    * @return the minimum button width
@@ -437,12 +324,12 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
   }
 
   /**
-   * Returns the content panel header text set by a previous call to {@link #setHeadingText(String)}.
+   * Sets the minimum button width.
    *
-   * @return the header text
+   * @param width the button width
    */
-  public String getText() {
-    return header.getText();
+  public void setMinButtonWidth(int width) {
+    buttonBar.setMinButtonWidth(width);
   }
 
   /**
@@ -452,6 +339,15 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
    */
   public boolean isAnimCollapse() {
     return animCollapse;
+  }
+
+  /**
+   * Sets whether expand and collapse is animating (defaults to true).
+   *
+   * @param animCollapse true to enable animations
+   */
+  public void setAnimCollapse(boolean animCollapse) {
+    this.animCollapse = animCollapse;
   }
 
   /**
@@ -472,9 +368,33 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
     return collapsible;
   }
 
+  /**
+   * True to make the panel collapsible and have the expand/collapse toggle button automatically rendered into the
+   * header tool button area (defaults to false, pre-render).
+   *
+   * @param collapsible the collapsible state
+   */
+  public void setCollapsible(boolean collapsible) {
+    assertPreRender();
+    this.collapsible = collapsible;
+  }
+
   @Override
   public boolean isExpanded() {
     return !isCollapsed();
+  }
+
+  /**
+   * Sets the panel's expand state.
+   *
+   * @param expanded <code>true<code> true to expand
+   */
+  public void setExpanded(boolean expanded) {
+    if (expanded) {
+      expand();
+    } else {
+      collapse();
+    }
   }
 
   /**
@@ -487,6 +407,16 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
   }
 
   /**
+   * Sets whether the collapse tool should be displayed (when {@link #setCollapsible(boolean)} = true) (defaults to false, pre-render).
+   *
+   * @param hideCollapseTool true if the tool is hidden
+   */
+  public void setHideCollapseTool(boolean hideCollapseTool) {
+    assertPreRender();
+    this.hideCollapseTool = hideCollapseTool;
+  }
+
+  /**
    * Returns true if title collapsing has been enabled.
    *
    * @return true for title collapse
@@ -495,30 +425,28 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
     return titleCollapse;
   }
 
+  /**
+   * True to allow expanding and collapsing the panel (when {@link #setCollapsible(boolean)} = true) by clicking
+   * anywhere in the header bar, false to allow it only by clicking to tool button (defaults to false).
+   *
+   * @param titleCollapse the titleCollapse to set
+   */
+  public void setTitleCollapse(boolean titleCollapse) {
+    this.titleCollapse = titleCollapse;
+    if (titleCollapse) {
+      header.getElement().getStyle().setCursor(Cursor.POINTER);
+      sinkEvents(Event.ONCLICK);
+    } else {
+      header.getElement().getStyle().setCursor(Cursor.DEFAULT);
+    }
+  }
+
   @Override
   public void onBrowserEvent(Event event) {
     super.onBrowserEvent(event);
     if (event.getTypeInt() == Event.ONCLICK && event.getEventTarget() != null) {
       onClick(event);
     }
-  }
-
-  /**
-   * Sets the duration for the expand/collapse animations.
-   *
-   * @param animationDuration the duration of the expand/collapse animations in milliseconds
-   */
-  public void setAnimationDuration(int animationDuration) {
-    this.animationDuration = animationDuration;
-  }
-
-  /**
-   * Sets whether expand and collapse is animating (defaults to true).
-   *
-   * @param animCollapse true to enable animations
-   */
-  public void setAnimCollapse(boolean animCollapse) {
-    this.animCollapse = animCollapse;
   }
 
   /**
@@ -550,37 +478,12 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
   }
 
   /**
-   * Sets the button alignment of any buttons added to this panel (defaults to RIGHT, pre-render).
+   * Returns the content panel header.
    *
-   * @param buttonAlign the button alignment
+   * @return the header
    */
-  public void setButtonAlign(BoxLayoutPack buttonAlign) {
-    assertPreRender();
-    buttonBar.setPack(buttonAlign);
-  }
-
-  /**
-   * True to make the panel collapsible and have the expand/collapse toggle button automatically rendered into the
-   * header tool button area (defaults to false, pre-render).
-   *
-   * @param collapsible the collapsible state
-   */
-  public void setCollapsible(boolean collapsible) {
-    assertPreRender();
-    this.collapsible = collapsible;
-  }
-
-  /**
-   * Sets the panel's expand state.
-   *
-   * @param expanded <code>true<code> true to expand
-   */
-  public void setExpanded(boolean expanded) {
-    if (expanded) {
-      expand();
-    } else {
-      collapse();
-    }
+  public Header getHeader() {
+    return header;
   }
 
   /**
@@ -594,74 +497,32 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
   }
 
   /**
-   * Sets the heading.
+   * Returns the heading html.
    *
-   * @param html the heading as HTML
+   * @return the heading html
    */
-  public void setHeadingHtml(SafeHtml html) {
+  public SafeHtml getHeading() {
+    return header.getSafeHtml();
+  }
+
+  /**
+   * Sets the heading html.
+   *
+   * @param html the heading html
+   */
+  public void setHeading(SafeHtml html) {
     header.setHTML(html);
   }
 
   /**
-   * Sets the heading.
+   * Sets the heading text.
    *
-   * @param html the heading as HTML
-   */
-  public void setHeadingHtml(String html) {
-    header.setHTML(html);
-  }
-
-  /**
-   * Sets the heading.
+   * Text that contains reserved html characters will be escaped.
    *
-   * @param text the heading text
+   * @param text the text
    */
-  public void setHeadingText(String text) {
-    header.setText(text);
-  }
-
-  /**
-   * Sets whether the collapse tool should be displayed (when {@link #setCollapsible(boolean)} = true) (defaults to false, pre-render).
-   *
-   * @param hideCollapseTool true if the tool is hidden
-   */
-  public void setHideCollapseTool(boolean hideCollapseTool) {
-    assertPreRender();
-    this.hideCollapseTool = hideCollapseTool;
-  }
-
-  /**
-   * Sets the content panel messages.
-   *
-   * @param messages the messages
-   */
-  public void setMessages(ContentPanelMessages messages) {
-    this.messages = messages;
-  }
-
-  /**
-   * Sets the minimum button width.
-   *
-   * @param width the button width
-   */
-  public void setMinButtonWidth(int width) {
-    buttonBar.setMinButtonWidth(width);
-  }
-
-  /**
-   * True to allow expanding and collapsing the panel (when {@link #setCollapsible(boolean)} = true) by clicking
-   * anywhere in the header bar, false to allow it only by clicking to tool button (defaults to false).
-   *
-   * @param titleCollapse the titleCollapse to set
-   */
-  public void setTitleCollapse(boolean titleCollapse) {
-    this.titleCollapse = titleCollapse;
-    if (titleCollapse) {
-      header.getElement().getStyle().setCursor(Cursor.POINTER);
-      sinkEvents(Event.ONCLICK);
-    } else {
-      header.getElement().getStyle().setCursor(Cursor.DEFAULT);
-    }
+  public void setHeading(String text) {
+    header.setHTML(SafeHtmlUtils.fromString(text));
   }
 
   protected Size adjustBodySize() {
@@ -761,8 +622,8 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
 
   protected void doLayoutButtonBar() {
     if (buttonBar != null) {
-      Size containerSize = getContainerTarget().getStyleSize();
-      buttonBar.setWidth(containerSize.getWidth());
+      int offsetWidth = getContainerTarget().getOffsetWidth();
+      buttonBar.setWidth(offsetWidth);
     }
   }
 
@@ -931,5 +792,156 @@ public class ContentPanel extends SimpleContainer implements HasBeforeExpandHand
     }
 
     super.onResize(width, height);
+  }
+
+  /**
+   * The appearance of a content panel. A content panel has a header, body and footer. The header includes a button that
+   * can be used to collapse or expand the body. The button has an icon that changes to indicate whether a collapse or
+   * expand is possible. The body contains a single widget, added using {@link ContentPanel#add}. The widget is resized
+   * to match the size of the container. The footer contains a button bar with optional buttons.
+   */
+  public interface ContentPanelAppearance {
+
+    /**
+     * Returns the button icon that indicates a collapse is possible.
+     *
+     * @return the collapse icon
+     */
+    IconConfig collapseIcon();
+
+    /**
+     * Returns the button icon that indicates an expand is possible.
+     *
+     * @return the expand icon
+     */
+    IconConfig expandIcon();
+
+    /**
+     * Returns the element that wraps the content panel body. In the default implementation, this wraps the body widget
+     * and footer.
+     *
+     * @param parent the content panel root element
+     * @return the element that wraps the body
+     */
+    XElement getBodyWrap(XElement parent);
+
+    /**
+     * Returns the content panel body element.
+     *
+     * @param parent the content panel root element
+     * @return the body element
+     */
+    XElement getContentElem(XElement parent);
+
+    /**
+     * Returns the content panel footer element.
+     *
+     * @param parent the content panel root element
+     * @return the body element
+     */
+    XElement getFooterElem(XElement parent);
+
+    /**
+     * Returns the total height of the content panel frame elements.
+     *
+     * @param parent the content panel root element
+     * @return the total height of the frame elements
+     */
+    int getFrameHeight(XElement parent);
+
+    /**
+     * Returns the total width of the content panel frame elements.
+     *
+     * @param parent the content panel root element
+     * @return the total width of the frame elements
+     */
+    int getFrameWidth(XElement parent);
+
+    /**
+     * Returns the content panel header's appearance
+     *
+     * @return the header appearance
+     */
+    HeaderAppearance getHeaderAppearance();
+
+    /**
+     * Returns the content panel header element.
+     *
+     * @param parent the content panel root element
+     * @return the content panel header element
+     */
+    XElement getHeaderElem(XElement parent);
+
+    /**
+     * Returns the header size excluding any framing.
+     *
+     * @return the header size
+     */
+    Size getHeaderSize(XElement parent);
+
+    /**
+     * Handles a change in the visibility of the body border.
+     *
+     * @param parent content panel root element
+     * @param border true to display the border
+     */
+    void onBodyBorder(XElement parent, boolean border);
+
+    /**
+     * Hides or shows the header.
+     *
+     * @param parent content panel root element
+     * @param hide true to hide the header
+     */
+    void onHideHeader(XElement parent, boolean hide);
+
+    /**
+     * Renders the appearance of a content panel as HTML into a {@link SafeHtmlBuilder}, suitable for passing to
+     * {@link Element#setInnerSafeHtml(SafeHtml)} on a container element.
+     *
+     * @param sb receives the rendered appearance
+     */
+    void render(SafeHtmlBuilder sb);
+
+  }
+
+  /**
+   * Provides access to content panel messages.
+   */
+  public interface ContentPanelMessages {
+
+    /**
+     * Returns the content panel collapse message.
+     *
+     * @return the content panel collapse message
+     */
+    String panelCollapse();
+
+    /**
+     * Returns the content panel expand message.
+     *
+     * @return the content panel expand message
+     */
+    String panelExpand();
+
+  }
+
+  /**
+   * Provides support for deferred binding for the panel header appearance.
+   */
+  public interface PanelHeaderAppearance extends HeaderAppearance {
+
+  }
+
+  protected class DefaultContentPanelMessages implements ContentPanelMessages {
+
+    public String panelCollapse() {
+      return DefaultMessages.getMessages().panel_collapsePanel();
+    }
+
+    public String panelExpand() {
+      return DefaultMessages.getMessages().panel_expandPanel();
+    }
+
   }
 }

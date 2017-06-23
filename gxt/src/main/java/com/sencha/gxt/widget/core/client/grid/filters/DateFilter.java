@@ -346,6 +346,7 @@ public class DateFilter<M> extends Filter<M, Date> {
       if (afterMenu.getDate() == null) {
         afterItem.setChecked(false, true);
       } else {
+        minDate = afterMenu.getDate();
         afterItem.setChecked(checked, true);
         if (checked) {
           // EXTGWT-3257 - Sanity check to before and after don't conflict
@@ -361,6 +362,7 @@ public class DateFilter<M> extends Filter<M, Date> {
       } else {
         beforeItem.setChecked(checked, true);
         if (checked) {
+          maxDate = beforeMenu.getDate();
           onItem.setChecked(false, true);
           // EXTGWT-3257 - Sanity check to before and after don't conflict
           if (!(afterMenu.getDate() != null && afterMenu.getDate().before(beforeMenu.getDate()))) {

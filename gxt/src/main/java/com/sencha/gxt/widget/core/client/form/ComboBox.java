@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.form;
 
@@ -425,7 +455,8 @@ public class ComboBox<T> extends TriggerField<T> implements HasBeforeSelectionHa
   }
 
   /**
-   * Sets the comobo's loader.
+   * Sets the comobo's loader. Keep in mind {@link #setMinChars(int)} (defaults to 4 if remote, or 0 if local) when
+   * using the loader, as it will only load when the min amount of characters has been met.
    * 
    * @param loader the loader
    */
@@ -444,31 +475,31 @@ public class ComboBox<T> extends TriggerField<T> implements HasBeforeSelectionHa
   }
 
   /**
-   * Sets the html loading text to be displayed during a load request.
+   * Sets the loading indicator html to be displayed during a load request.
    * <p>
    * <ul>
    * <li>The {@link #setLoader(Loader)} has to be set for this use.
-   * <li>The css class name 'loading-indicator' can style the loading HTML.
+   * <li>The css class name 'loading-indicator' can style the loading indicator html.
    * </ul>
    *
-   * @param loadingHtml the loading html
+   * @param html the loading html
    */
-  public void setLoadingHtml(SafeHtml loadingHtml) {
-    getCell().setLoadingHtml(loadingHtml);
+  public void setLoadingIndicator(SafeHtml html) {
+    getCell().setLoadingIndicator(html);
   }
 
   /**
-   * Sets the text loading text to be displayed during a load request.
+   * Sets the loading indicator text to be displayed during a load request.
    * <p>
    * <ul>
    * <li>The {@link #setLoader(Loader)} has to be set for this use.
-   * <li>The css class name 'loading-indicator' can style the loading text.
+   * <li>The css class name 'loading-indicator' can style the loading indicator text.
    * </ul>
    *
-   * @param loadingText the loading text
+   * @param text the loading text
    */
-  public void setLoadingText(String loadingText) {
-    getCell().setLoadingText(loadingText);
+  public void setLoadingIndicator(String text) {
+    getCell().setLoadingIndicator(text);
   }
 
   /**

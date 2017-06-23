@@ -1,9 +1,39 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client.grid;
 
@@ -34,6 +64,7 @@ public class ColumnConfig<M, N> implements HasHorizontalAlignment, HasVerticalAl
    */
   protected boolean ariaIgnore;
 
+  private HorizontalAlignmentConstant horizontalHeaderAlignment;
   private HorizontalAlignmentConstant horizontalAlignment;
   private VerticalAlignmentConstant verticalAlignment;
 
@@ -41,7 +72,7 @@ public class ColumnConfig<M, N> implements HasHorizontalAlignment, HasVerticalAl
 
   private boolean fixed;
   private boolean groupable = true;
-  private SafeHtml header;
+  private SafeHtml header = SafeHtmlUtils.EMPTY_SAFE_HTML;
   private boolean hidden;
   private boolean menuDisabled;
   private boolean resizable = true;
@@ -50,7 +81,7 @@ public class ColumnConfig<M, N> implements HasHorizontalAlignment, HasVerticalAl
   private boolean sortable = true;
   private boolean cellPadding = true;
 
-  private SafeHtml toolTip;
+  private SafeHtml toolTip = SafeHtmlUtils.EMPTY_SAFE_HTML;
   private final ValueProvider<? super M, N> valueProvider;
   private Comparator<N> comparator;
   private Widget widget;
@@ -122,6 +153,15 @@ public class ColumnConfig<M, N> implements HasHorizontalAlignment, HasVerticalAl
   }
 
   /**
+   * Returns the column's header horizontal alignment.
+   *
+   * @return the horizontalAlignment
+   */
+  public HorizontalAlignmentConstant getHorizontalHeaderAlignment() {
+    return horizontalHeaderAlignment;
+  }
+
+  /**
    * Returns the column's cell renderer.
    * 
    * @return the renderer
@@ -187,9 +227,9 @@ public class ColumnConfig<M, N> implements HasHorizontalAlignment, HasVerticalAl
   }
 
   /**
-   * Returns the column's header text.
+   * Returns the column's header html.
    * 
-   * @return the header text
+   * @return the header html
    */
   public SafeHtml getHeader() {
     return header;
@@ -321,10 +361,20 @@ public class ColumnConfig<M, N> implements HasHorizontalAlignment, HasVerticalAl
    * Sets the column's horizontal alignment.
    * This will affect cells with a rendering width less than 100%.
    * 
-   * @param horizontalAlignment the horizontalAlignment
+   * @param horizontalAlignment the horizontal alignment
    */
   public void setHorizontalAlignment(HorizontalAlignmentConstant horizontalAlignment) {
     this.horizontalAlignment = horizontalAlignment;
+  }
+
+  /**
+   * Sets the column's header horizontal alignment.
+   * This will affect cells with a rendering width less than 100%.
+   *
+   * @param horizontalHeaderAlignment the horizontal header alignment
+   */
+  public void setHorizontalHeaderAlignment(HorizontalAlignmentConstant horizontalHeaderAlignment) {
+    this.horizontalHeaderAlignment = horizontalHeaderAlignment;
   }
 
   /**
@@ -427,23 +477,25 @@ public class ColumnConfig<M, N> implements HasHorizontalAlignment, HasVerticalAl
   }
 
   /**
-   * Sets the column's header text.
+   * Sets the column's header html.
    * 
    * @see #setHeader(String)
-   * @param header the header text
+   * @param html the column's header html
    */
-  public void setHeader(SafeHtml header) {
-    this.header = header;
+  public void setHeader(SafeHtml html) {
+    this.header = html;
   }
 
   /**
-   * Sets the column's header text, to be displayed as escaped html.
+   * Sets the column's header text.
+   *
+   * Text that contains reserved html characters will be escaped.
    * 
    * @see #setHeader(SafeHtml)
-   * @param header the header text to be displayed as escaped html
+   * @param text the column's header text
    */
-  public void setHeader(String header) {
-    setHeader(SafeHtmlUtils.fromString(header));
+  public void setHeader(String text) {
+    setHeader(SafeHtmlUtils.fromString(text));
   }
 
   /**
@@ -510,12 +562,21 @@ public class ColumnConfig<M, N> implements HasHorizontalAlignment, HasVerticalAl
   }
 
   /**
-   * Sets the column's tool tip.
+   * Sets the column's tool tip as html.
    * 
    * @param toolTip the tool tip
    */
   public void setToolTip(SafeHtml toolTip) {
     this.toolTip = toolTip;
+  }
+
+  /**
+   * Sets the column's tool tip as text, to be displayed as escaped html.
+   *
+   * @param toolTip the tool tip
+   */
+  public void setToolTip(String toolTip) {
+    this.toolTip = SafeHtmlUtils.fromString(toolTip);
   }
 
   /**

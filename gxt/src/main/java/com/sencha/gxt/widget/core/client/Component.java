@@ -1,12 +1,43 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
- * licensing@sencha.com
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
  *
+ * licensing@sencha.com
  * http://www.sencha.com/products/gxt/license/
+ *
+ * ================================================================================
+ * Open Source License
+ * ================================================================================
+ * This version of Sencha GXT is licensed under the terms of the Open Source GPL v3
+ * license. You may use this license only if you are prepared to distribute and
+ * share the source code of your application under the GPL v3 license:
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * If you are NOT prepared to distribute and share the source code of your
+ * application under the GPL v3 license, other commercial and oem licenses
+ * are available for an alternate download of Sencha GXT.
+ *
+ * Please see the Sencha GXT Licensing page at:
+ * http://www.sencha.com/products/gxt/license/
+ *
+ * For clarification or additional options, please contact:
+ * licensing@sencha.com
+ * ================================================================================
+ *
+ *
+ * ================================================================================
+ * Disclaimer
+ * ================================================================================
+ * THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND
+ * REPRESENTATIONS WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ * IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+ * THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.
+ * ================================================================================
  */
 package com.sencha.gxt.widget.core.client;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,12 +45,14 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DomEvent;
 import com.google.gwt.event.logical.shared.HasResizeHandlers;
 import com.google.gwt.event.logical.shared.ResizeEvent;
 import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.uibinder.client.UiChild;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
@@ -34,6 +67,11 @@ import com.sencha.gxt.core.client.dom.DomIdProvider;
 import com.sencha.gxt.core.client.dom.Layer;
 import com.sencha.gxt.core.client.dom.Layer.ShadowPosition;
 import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.gestures.GestureRecognizer;
+import com.sencha.gxt.core.client.gestures.HasGestureRecognizers;
+import com.sencha.gxt.core.client.gestures.LongPressOrTapGestureRecognizer;
+import com.sencha.gxt.core.client.gestures.PointerEventsSupport;
+import com.sencha.gxt.core.client.gestures.TouchData;
 import com.sencha.gxt.core.client.resources.ThemeStyles;
 import com.sencha.gxt.core.client.util.DelayedTask;
 import com.sencha.gxt.core.client.util.Point;
@@ -75,6 +113,7 @@ import com.sencha.gxt.widget.core.client.event.ShowContextMenuEvent.ShowContextM
 import com.sencha.gxt.widget.core.client.event.ShowEvent;
 import com.sencha.gxt.widget.core.client.event.ShowEvent.HasShowHandlers;
 import com.sencha.gxt.widget.core.client.event.ShowEvent.ShowHandler;
+import com.sencha.gxt.widget.core.client.event.XEvent;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.tips.ToolTip;
 import com.sencha.gxt.widget.core.client.tips.ToolTipConfig;
@@ -83,9 +122,9 @@ import com.sencha.gxt.widget.core.client.tips.ToolTipConfig;
  * Base class for all GXT widgets.
  */
 public class Component extends Widget implements HasFocusHandlers, HasBlurHandlers, HasBeforeHideHandlers,
-    HasHideHandlers, HasBeforeShowHandlers, HasShowHandlers, HasEnableHandlers, HasDisableHandlers,
-    HasBeforeShowContextMenuHandler, HasShowContextMenuHandler, HasMoveHandlers, HasResizeHandlers, HasItemId,
-    HasFocusSupport, HasEnabled {
+  HasHideHandlers, HasBeforeShowHandlers, HasShowHandlers, HasEnableHandlers, HasDisableHandlers,
+  HasBeforeShowContextMenuHandler, HasShowContextMenuHandler, HasMoveHandlers, HasResizeHandlers, HasItemId,
+  HasFocusSupport, HasEnabled, HasGestureRecognizers {
 
   /**
    * True to adjust sizes for box model issues to ensure actual size matches set size.
@@ -146,6 +185,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   protected String width;
   protected int windowResizeDelay = !GWT.isScript() ? 100 : 0;
   protected DelayedTask windowResizeTask;
+  protected int tabIndex;
   private Menu contextMenu;
   private Map<String, Object> dataMap;
   private boolean deferHeight;
@@ -154,12 +194,12 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   private HideMode hideMode = HideMode.DISPLAY;
   private String itemId;
   private Map<String, String> overElements;
-
+  private List<GestureRecognizer> gestureRecognizers;
+  private GestureRecognizer contextMenuGestureRecognizer;
   private boolean shadow;
   private ShadowPosition shadowPosition = ShadowPosition.SIDES;
   private boolean stateful;
   private String stateId;
-  protected int tabIndex;
 
   protected Component() {
 
@@ -224,10 +264,33 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
     return addHandler(handler, ShowEvent.getType());
   }
 
+  @Override
+  public void addGestureRecognizer(GestureRecognizer gestureRecognizer) {
+    if (gestureRecognizers == null) {
+      gestureRecognizers = new ArrayList<GestureRecognizer>();
+      sinkEvents(Event.TOUCHEVENTS);
+    }
+    gestureRecognizers.add(gestureRecognizer);
+    gestureRecognizer.setDelegate(this);
+  }
+
+  @Override
+  public GestureRecognizer getGestureRecognizer(int index) {
+    if (gestureRecognizers != null) {
+      return gestureRecognizers.get(index);
+    }
+    return null;
+  }
+
+  @Override
+  public int getGestureRecognizerCount() {
+    return gestureRecognizers == null ? 0 : gestureRecognizers.size();
+  }
+
   /**
    * Adds a style to the given element on mouseover. The widget must be sinking mouse events for the over style to
    * function.
-   * 
+   *
    * @param elem the over element
    * @param style the style to add
    */
@@ -292,7 +355,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns the application defined property for the given name, or <code>null</code> if it has not been set.
-   * 
+   *
    * @param key the name of the property
    * @return the value or <code>null</code> if it has not been set
    */
@@ -306,7 +369,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
    * Gets a handle to the object's underlying DOM element. This method should not be overridden. It is non-final solely
    * to support legacy code that depends upon overriding it. If it is overridden, the subclass implementation must not
    * return a different element than was previously set using {@link #setElement(com.google.gwt.dom.client.Element)}.
-   * 
+   *
    * @return the object's browser element
    */
   @Override
@@ -316,7 +379,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns the focus manager support configuration. Only applicable when the focus manager has been enabled.
-   * 
+   *
    * @return the focus manager configuration
    */
   public FocusManagerSupport getFocusSupport() {
@@ -328,7 +391,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns the widget's hide mode.
-   * 
+   *
    * @return the hide mode
    */
   public HideMode getHideMode() {
@@ -336,8 +399,17 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * Sets the components hide mode (defaults to HideMode.DISPLAY).
+   *
+   * @param hideMode the hide mode.
+   */
+  public void setHideMode(HideMode hideMode) {
+    this.hideMode = hideMode;
+  }
+
+  /**
    * Returns the widget's id.
-   * 
+   *
    * @return the widget id
    */
   public String getId() {
@@ -350,8 +422,17 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * Sets the component's id.
+   *
+   * @param id the id
+   */
+  public void setId(String id) {
+    getElement().setId(id);
+  }
+
+  /**
    * Returns the item id of this widget. Unlike the widget's id, the item id does not have to be unique.
-   * 
+   *
    * @return the widget's item id
    */
   @Override
@@ -360,8 +441,19 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * Sets the widget's item id. Unlike a widget's id, the widget's item id is not tied to id attribute of the widget's
+   * root element. As such, the item id does not have to be unique.
+   *
+   * @param id the item id
+   */
+  @Override
+  public void setItemId(String id) {
+    this.itemId = id;
+  }
+
+  /**
    * Returns the widget's height.
-   * 
+   *
    * @param content true to get the height minus borders and padding
    * @return the element's height
    */
@@ -375,7 +467,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns the element's width.
-   * 
+   *
    * @param content true to get the width minus borders and padding
    * @return the width
    */
@@ -389,7 +481,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns true if the shadow is enabled.
-   * 
+   *
    * @return the shadow the shadow state
    */
   public boolean getShadow() {
@@ -397,8 +489,18 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * True to enable a shadow that will be displayed behind the widget (defaults to false, pre-render).
+   *
+   * @param shadow true to enable the shadow
+   */
+  public void setShadow(boolean shadow) {
+    assertPreRender();
+    this.shadow = shadow;
+  }
+
+  /**
    * Returns the shadow position.
-   * 
+   *
    * @return the shadow position
    */
   public ShadowPosition getShadowPosition() {
@@ -406,9 +508,19 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * Sets the shadow position (defaults to SIDES, pre-render).
+   *
+   * @param shadowPosition the position
+   */
+  public void setShadowPosition(ShadowPosition shadowPosition) {
+    assertPreRender();
+    this.shadowPosition = shadowPosition;
+  }
+
+  /**
    * Returns the widget's state id. If a state id is specified, it is used as the key when saving and retrieving the
    * widget's state.
-   * 
+   *
    * @return the state id
    */
   public String getStateId() {
@@ -419,9 +531,19 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * Sets the widget's state id which is a unique id for this widget to use for state management purposes (defaults to
+   * the widget id if one was set, otherwise null if the widget is using a generated id).
+   *
+   * @param stateId the state id
+   */
+  public void setStateId(String stateId) {
+    this.stateId = stateId;
+  }
+
+  /**
    * Returns the current tabIndex of the component. By default this is the tabIndex of the root element, but some
    * subclasses may modify this behavior.
-   * 
+   *
    * @return the tabIndex of the component
    */
   public int getTabIndex() {
@@ -429,8 +551,19 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * Sets the component's tab index. Subclasses may override this to set the tab index on a specific element for better
+   * focus behavior - they are also responsible for setting the tabIndex field.
+   *
+   * @param tabIndex the tab index
+   */
+  public void setTabIndex(int tabIndex) {
+    this.tabIndex = tabIndex;
+    getElement().setTabIndex(tabIndex);
+  }
+
+  /**
    * Returns the widget's tool tip.
-   * 
+   *
    * @return the tool tip
    */
   public ToolTip getToolTip() {
@@ -463,7 +596,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns the enable text selection state.
-   * 
+   *
    * @return true if enable, false if disabled
    */
   public boolean isAllowTextSelection() {
@@ -471,8 +604,20 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * Enables and disables text selection for the widget.
+   *
+   * @param enable true to enable, false to disable
+   */
+  public void setAllowTextSelection(boolean enable) {
+    allowTextSelection = enable;
+    if (isAttached()) {
+      getElement().disableTextSelection(!enable);
+    }
+  }
+
+  /**
    * Returns the auto height state.
-   * 
+   *
    * @return the auto height state
    */
   public boolean isAutoHeight() {
@@ -481,7 +626,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns the auto width state.
-   * 
+   *
    * @return true of auto width
    */
   public boolean isAutoWidth() {
@@ -490,7 +635,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns true if the height is being deferred
-   * 
+   *
    * @return the defer height state
    */
   public boolean isDeferHeight() {
@@ -498,8 +643,18 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * True to defer height calculations to an external widget, false to allow this widget to set its own height (defaults
+   * to false).
+   *
+   * @param deferHeight true to defer height
+   */
+  public void setDeferHeight(boolean deferHeight) {
+    this.deferHeight = deferHeight;
+  }
+
+  /**
    * Returns <code>true</code> if the widget is enabled.
-   * 
+   *
    * @return the enabled state
    */
   public boolean isEnabled() {
@@ -507,8 +662,21 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * Convenience function for setting disabled/enabled by boolean.
+   *
+   * @param enabled the enabled state
+   */
+  public void setEnabled(boolean enabled) {
+    if (!enabled) {
+      disable();
+    } else {
+      enable();
+    }
+  }
+
+  /**
    * Returns true if the component has been rendered.
-   * 
+   *
    * @return true if rendered
    */
   public boolean isRendered() {
@@ -517,11 +685,23 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns true if the widget is saving and restore it's state.
-   * 
+   *
    * @return true if stateful
    */
   public boolean isStateful() {
     return stateful;
+  }
+
+  /**
+   * A flag which specifies if the component is stateful (defaults to false). The widget must have either a
+   * {@link #setStateId(String)} or {@link #setId(String)} assigned for state to be managed. Auto-generated ids are not
+   * guaranteed to be stable across page loads and cannot be relied upon to save and restore the same state for a
+   * widget.
+   *
+   * @param stateful true to enable state
+   */
+  public void setStateful(boolean stateful) {
+    this.stateful = stateful;
   }
 
   @Override
@@ -530,8 +710,22 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
+   * Convenience function to hide or show this widget by boolean.
+   *
+   * @param visible the visible state
+   */
+  @Override
+  public void setVisible(boolean visible) {
+    if (visible) {
+      show();
+    } else {
+      hide();
+    }
+  }
+
+  /**
    * Returns <code>true</code> if the widget is visible.
-   * 
+   *
    * @param deep true to search up the widget hierarchy
    * @return true if the widget is visible
    */
@@ -558,7 +752,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Puts a mask over this widget to disable user interaction.
-   * 
+   *
    * @param message a message to display in the mask
    */
   public void mask(String message) {
@@ -566,6 +760,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
     maskMessage = message;
     getElement().mask(message);
   }
+
 
   @Override
   public void onBrowserEvent(Event event) {
@@ -582,7 +777,17 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
         }
         onRightClick(event);
         break;
+      case Event.ONTOUCHSTART:
+      case Event.ONTOUCHMOVE:
+      case Event.ONTOUCHCANCEL:
+      case Event.ONTOUCHEND:
+        onTouch(event);
+        break;
     }
+    if (PointerEventsSupport.impl.isSupported() && PointerEventsSupport.impl.isPointerEvent(event)) {
+      onTouch(event);
+    }
+
     int type = event.getTypeInt();
     // specialized support for mouse overs
     if (overElements != null && (type == Event.ONMOUSEOVER || type == Event.ONMOUSEOUT)) {
@@ -611,20 +816,8 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
-   * Enables and disables text selection for the widget.
-   * 
-   * @param enable true to enable, false to disable
-   */
-  public void setAllowTextSelection(boolean enable) {
-    allowTextSelection = enable;
-    if (isAttached()) {
-      getElement().disableTextSelection(!enable);
-    }
-  }
-
-  /**
    * Adds or removes a border.
-   * 
+   *
    * @param show <code>true</code> to display a border
    */
   public void setBorders(boolean show) {
@@ -633,7 +826,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Sets the widget's size.
-   * 
+   *
    * @param x the x coordinate
    * @param y the y coordinate
    * @param width the width
@@ -646,7 +839,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Sets the widget's size.
-   * 
+   *
    * @param bounds the update box
    */
   public void setBounds(Rectangle bounds) {
@@ -655,18 +848,36 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Sets the widget's context menu.
-   * 
+   *
    * @param menu the context menu
    */
   @UiChild(tagname = "contextmenu", limit = 1)
   public void setContextMenu(Menu menu) {
     contextMenu = menu;
     disableContextMenu(true);
+
+    if (contextMenuGestureRecognizer == null) {
+      contextMenuGestureRecognizer = new LongPressOrTapGestureRecognizer() {
+        @Override
+        protected void onLongPress(TouchData touchData) {
+          super.onLongPress(touchData);
+          onRightClick((Event) touchData.getLastNativeEvent());
+        }
+
+        @Override
+        public boolean handleEnd(NativeEvent endEvent) {
+          // onRightClick does preventDefault and stopPropagation
+          cancel();
+          return super.handleEnd(endEvent);
+        }
+      };
+      addGestureRecognizer(contextMenuGestureRecognizer);
+    }
   }
 
   /**
    * Sets the application defined property with the given name.
-   * 
+   *
    * @param key the name of the property
    * @param data the new value for the property
    */
@@ -676,31 +887,8 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
-   * True to defer height calculations to an external widget, false to allow this widget to set its own height (defaults
-   * to false).
-   * 
-   * @param deferHeight true to defer height
-   */
-  public void setDeferHeight(boolean deferHeight) {
-    this.deferHeight = deferHeight;
-  }
-
-  /**
-   * Convenience function for setting disabled/enabled by boolean.
-   * 
-   * @param enabled the enabled state
-   */
-  public void setEnabled(boolean enabled) {
-    if (!enabled) {
-      disable();
-    } else {
-      enable();
-    }
-  }
-
-  /**
    * Sets the widget's height. This method fires the <i>Resize</i> event. element.
-   * 
+   *
    * @param height the new height
    */
   public void setHeight(int height) {
@@ -709,7 +897,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Sets the height of the widget. This method fires the <i>Resize</i> event. element.
-   * 
+   *
    * @param height the new height to set
    */
   public void setHeight(String height) {
@@ -717,37 +905,8 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
-   * Sets the components hide mode (defaults to HideMode.DISPLAY).
-   * 
-   * @param hideMode the hide mode.
-   */
-  public void setHideMode(HideMode hideMode) {
-    this.hideMode = hideMode;
-  }
-
-  /**
-   * Sets the component's id.
-   * 
-   * @param id the id
-   */
-  public void setId(String id) {
-    getElement().setId(id);
-  }
-
-  /**
-   * Sets the widget's item id. Unlike a widget's id, the widget's item id is not tied to id attribute of the widget's
-   * root element. As such, the item id does not have to be unique.
-   * 
-   * @param id the item id
-   */
-  @Override
-  public void setItemId(String id) {
-    this.itemId = id;
-  }
-
-  /**
    * Sets the page XY position of the widget. To set the left and top instead, use {@link #setPosition}.
-   * 
+   *
    * @param x the x coordinate
    * @param y the y coordinate
    */
@@ -769,7 +928,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   /**
    * Sets the component's size. Unlike GWT widget's, when setting sizes, the component's actual size will match exactly
    * the size specified independent of borders and padding.
-   * 
+   *
    * @param width new width, in pixels
    * @param height height, in pixels
    */
@@ -845,7 +1004,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Sets the left and top of the widget. To set the page XY position instead, use {@link #setPagePosition}.
-   * 
+   *
    * @param left the new left
    * @param top the new top
    */
@@ -881,28 +1040,8 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
-   * True to enable a shadow that will be displayed behind the widget (defaults to false, pre-render).
-   * 
-   * @param shadow true to enable the shadow
-   */
-  public void setShadow(boolean shadow) {
-    assertPreRender();
-    this.shadow = shadow;
-  }
-
-  /**
-   * Sets the shadow position (defaults to SIDES, pre-render).
-   * 
-   * @param shadowPosition the position
-   */
-  public void setShadowPosition(ShadowPosition shadowPosition) {
-    assertPreRender();
-    this.shadowPosition = shadowPosition;
-  }
-
-  /**
    * Sets the width and height of the widget. This method fires the <i>Resize</i> event.
-   * 
+   *
    * @param width the new width to set
    * @param height the new height to set
    */
@@ -917,8 +1056,8 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
     }
 
     if ((height == null && width != null && width.endsWith("px"))
-        || (width == null && height != null && height.endsWith("px"))
-        || (width != null && height != null && width.endsWith("px") && height.endsWith("px"))) {
+      || (width == null && height != null && height.endsWith("px"))
+      || (width != null && height != null && width.endsWith("px") && height.endsWith("px"))) {
       int w, h;
       if (width == null) {
         w = -1;
@@ -1009,54 +1148,34 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
-   * A flag which specifies if the component is stateful (defaults to false). The widget must have either a
-   * {@link #setStateId(String)} or {@link #setId(String)} assigned for state to be managed. Auto-generated ids are not
-   * guaranteed to be stable across page loads and cannot be relied upon to save and restore the same state for a
-   * widget.
-   * 
-   * @param stateful true to enable state
+   * Sets the widget's tool tip.
+   *
+   * @param html the tip text or html
    */
-  public void setStateful(boolean stateful) {
-    this.stateful = stateful;
-  }
-
-  /**
-   * Sets the widget's state id which is a unique id for this widget to use for state management purposes (defaults to
-   * the widget id if one was set, otherwise null if the widget is using a generated id).
-   * 
-   * @param stateId the state id
-   */
-  public void setStateId(String stateId) {
-    this.stateId = stateId;
-  }
-
-  /**
-   * Sets the component's tab index. Subclasses may override this to set the tab index on a specific element for better
-   * focus behavior - they are also responsible for setting the tabIndex field.
-   * 
-   * @param tabIndex the tab index
-   */
-  public void setTabIndex(int tabIndex) {
-    this.tabIndex = tabIndex;
-    getElement().setTabIndex(tabIndex);
+  public void setToolTip(SafeHtml html) {
+    if (toolTipConfig == null) {
+      toolTipConfig = new ToolTipConfig();
+    }
+    toolTipConfig.setBody(html);
+    setToolTipConfig(toolTipConfig);
   }
 
   /**
    * Sets the widget's tool tip.
    * 
-   * @param text the text
+   * @param text the tip text
    */
   public void setToolTip(String text) {
     if (toolTipConfig == null) {
       toolTipConfig = new ToolTipConfig();
     }
-    toolTipConfig.setBodyHtml(text);
+    toolTipConfig.setBody(text);
     setToolTipConfig(toolTipConfig);
   }
 
   /**
    * Sets the widget's tool tip with the given config.
-   * 
+   *
    * @param config the tool tip config
    */
   public void setToolTipConfig(ToolTipConfig config) {
@@ -1073,22 +1192,8 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
-   * Convenience function to hide or show this widget by boolean.
-   * 
-   * @param visible the visible state
-   */
-  @Override
-  public void setVisible(boolean visible) {
-    if (visible) {
-      show();
-    } else {
-      hide();
-    }
-  }
-
-  /**
    * Sets the width of the widget. This method fires the <i>Resize</i> event.
-   * 
+   *
    * @param width the new width to set
    */
   public void setWidth(int width) {
@@ -1097,7 +1202,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Sets the width of the widget. This method fires the <i>Resize</i> event.
-   * 
+   *
    * @param width the new width to set
    */
   public void setWidth(String width) {
@@ -1118,7 +1223,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Syncs the layer of the widget.
-   * 
+   *
    * @param show true to show the layer
    */
   public void sync(boolean show) {
@@ -1149,7 +1254,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Adds a dependent style name to a child element.
-   * 
+   *
    * @param element the element
    * @param style the style name
    */
@@ -1186,7 +1291,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Enables and disables the widget's context menu.
-   * 
+   *
    * @param disable <code>true</code> to disable the context menu
    */
   protected void disableContextMenu(boolean disable) {
@@ -1212,7 +1317,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   /**
    * Returns the element to be used when positioning the widget. Subclasses may override as needed. Default method
    * returns the widget's root element.
-   * 
+   *
    * @return the position element
    */
   protected XElement getPositionEl() {
@@ -1227,11 +1332,22 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Returns true if browser resizing is monitored
-   * 
+   *
    * @return true if window resize monitoring is enabled
    */
   protected boolean isMonitorWindowResize() {
     return monitorWindowResize;
+  }
+
+  /**
+   * True to have onWindowResize executed when the browser window is resized (default to false).
+   *
+   * You need to override onWindowResize to get your needed functionality
+   *
+   * @param monitorWindowResize true to monitor window resizing
+   */
+  protected void setMonitorWindowResize(boolean monitorWindowResize) {
+    this.monitorWindowResize = monitorWindowResize;
   }
 
   protected void notifyHide() {
@@ -1347,7 +1463,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
         };
       }
       // window resizing in some cases when initially showing positioned widgets
-      if (GXT.isIE6() || GXT.isIE7() || GXT.isIE8()) {
+      if (GXT.isIE8()) {
         Scheduler.get().scheduleDeferred(new ScheduledCommand() {
           @Override
           public void execute() {
@@ -1371,7 +1487,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   /**
    * Called after the widget is moved, this method is empty by default but can be implemented by any subclass that needs
    * to perform custom logic after a move occurs.
-   * 
+   *
    * @param x the new x position
    * @param y the new y position
    */
@@ -1381,7 +1497,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   /**
    * Called after the widget is resized, this method is empty by default but can be implemented by any subclass that
    * needs to perform custom logic after a resize occurs.
-   * 
+   *
    * @param width the width
    * @param height the height
    */
@@ -1396,8 +1512,9 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
       event.preventDefault();
       event.stopPropagation();
 
-      final int x = event.getClientX();
-      final int y = event.getClientY();
+      Point point = event.<XEvent>cast().getXY();
+      final int x = point.getX();
+      final int y = point.getY();
       Scheduler.get().scheduleDeferred(new ScheduledCommand() {
 
         @Override
@@ -1434,6 +1551,12 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
     }
   }
 
+  protected void onTouch(Event event) {
+    for (int i = 0, len = getGestureRecognizerCount(); i < len; i++) {
+      getGestureRecognizer(i).handle(event);
+    }
+  }
+
   @Override
   protected void onUnload() {
     super.onUnload();
@@ -1453,7 +1576,7 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
 
   /**
    * Removes a dependent style name from a child element.
-   * 
+   *
    * @param element the element
    * @param style the style name
    */
@@ -1468,19 +1591,8 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
   }
 
   /**
-   * True to have onWindowResize executed when the browser window is resized (default to false).
-   * 
-   * You need to override onWindowResize to get your needed functionality
-   * 
-   * @param monitorWindowResize true to monitor window resizing
-   */
-  protected void setMonitorWindowResize(boolean monitorWindowResize) {
-    this.monitorWindowResize = monitorWindowResize;
-  }
-
-  /**
    * Adds or removes a dependent style name to a child element.
-   * 
+   *
    * @param element the element
    * @param style the style name
    * @param add true to add, otherwise remove
@@ -1501,5 +1613,4 @@ public class Component extends Widget implements HasFocusHandlers, HasBlurHandle
       getElement().restoreVisible(list);
     }
   }
-
 }
