@@ -25,7 +25,7 @@ import com.sencha.gxt.widget.core.client.grid.filters.RangeMenu.RangeItem;
  * @param <M> the model in the store and in each grid row
  * @param <V> the numeric type in the column to filter
  */
-public class NumericFilter<M, V extends Number> extends Filter<M, V> {
+public class NumericFilter<M, V extends Number & Comparable<V>> extends Filter<M, V> {
 
   /**
    * The default locale-sensitive messages used by this class.

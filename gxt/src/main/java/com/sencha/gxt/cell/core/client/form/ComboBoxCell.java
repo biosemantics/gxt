@@ -1136,10 +1136,7 @@ public class ComboBoxCell<T> extends TriggerFieldCell<T> implements HasBeforeSel
       ignoreNextEnter = false;
       return;
     }
-    if (isExpanded() && GXT.isOpera()) {
-      // Suppress blur on enter in ComboBox ListView drop-down
-      return;
-    }
+
     mimicking = false;
     super.onEnterKeyDown(context, parent, value, event, valueUpdater);
   }

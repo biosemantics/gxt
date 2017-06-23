@@ -64,7 +64,8 @@
 
   <source path="client" />
   <source path="shared" />
-  <resource path="public" />
+  <source path="public" />
+  <!--  <resource path="public" /> -->
 
   <!-- build permutations for OS -->
   <define-property name="user.agent.os" values="mac,linux,windows,unknown" />
