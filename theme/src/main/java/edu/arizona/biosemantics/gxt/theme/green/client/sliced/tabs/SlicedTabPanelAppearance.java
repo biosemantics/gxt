@@ -17,6 +17,7 @@ import com.google.gwt.resources.client.ImageResource.ImageOptions;
 import com.google.gwt.resources.client.ImageResource.RepeatStyle;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
@@ -170,11 +171,12 @@ public class SlicedTabPanelAppearance implements TabPanelAppearance {
   @Override
   public void createScrollers(XElement parent) {
     int h = getStripWrap(parent).getOffsetHeight();
-    XElement scrollLeft = getBar(parent).insertFirst("<div class='" + resources.style().tabScrollerLeft() + "'></div>");
+    
+    XElement scrollLeft = getBar(parent).insertFirst(SafeHtmlUtils.fromString("<div class='" + resources.style().tabScrollerLeft() + "'></div>"));
     scrollLeft.setId(XDOM.getUniqueId());
     scrollLeft.setHeight(h);
 
-    XElement scrollRight = getBar(parent).insertFirst("<div class='" + resources.style().tabScrollerRight() + "'></div>");
+    XElement scrollRight = getBar(parent).insertFirst(SafeHtmlUtils.fromString("<div class='" + resources.style().tabScrollerRight() + "'></div>"));
     scrollRight.setId(XDOM.getUniqueId());
     scrollRight.setHeight(h);
   }
@@ -216,10 +218,12 @@ public class SlicedTabPanelAppearance implements TabPanelAppearance {
 
   @Override
   public void insert(XElement parent, TabItemConfig config, int index) {
-    XElement item = XDOM.create(template.renderItem(resources.style(), config).asString());
+    //XElement item = XDOM.create(template.renderItem(resources.style(), config).asString());
+    XElement item = XDOM.create(template.renderItem(resources.style(), config));
     item.setClassName(ThemeStyles.get().style().disabled(), !config.isEnabled());
 
-    if (config.isHTML()) {
+    //if (config.isHTML()) { //isHTML deprecated
+    if(config.getContent().asString().contains(">")){
       XElement textEl = item.selectNode("." + resources.style().tabStripText());
       textEl.setInnerHTML(config.getHTML());
     }
@@ -314,7 +318,8 @@ public class SlicedTabPanelAppearance implements TabPanelAppearance {
   public void updateItem(XElement item, TabItemConfig config) {
     XElement textEl = item.selectNode("." + resources.style().tabStripText());
 
-    if (config.isHTML()) {
+    //if (config.isHTML()) {
+    if(config.getContent().asString().contains(">")){
       textEl.setInnerHTML(config.getHTML());
     } else {
       textEl.setInnerText(config.getText());

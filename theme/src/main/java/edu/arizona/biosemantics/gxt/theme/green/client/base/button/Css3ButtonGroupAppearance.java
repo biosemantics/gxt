@@ -64,11 +64,17 @@ public class Css3ButtonGroupAppearance implements ButtonGroupAppearance {
     sb.append(template.render(style));
   }
 
-  @Override
+  //hong 618
   public void updateText(XElement parent, String text) {
     getHeaderElement(parent).setInnerText(text);
   }
-
+  
+  //hong 618: this replaces updateText
+  @Override
+  public void setHeading(XElement parent, SafeHtml html) {
+	  getHeaderElement(parent).setInnerSafeHtml(html);  	
+  }
+  
   @Override
   public void onHideHeader(XElement parent, boolean hide) {
     getHeaderElement(parent).setVisible(!hide);
@@ -93,5 +99,7 @@ public class Css3ButtonGroupAppearance implements ButtonGroupAppearance {
   public int getFrameWidth(XElement parent) {
     return resources.theme().buttonGroup().borderRadius() * 2;
   }
+
+
 
 }

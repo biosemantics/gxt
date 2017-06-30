@@ -13,6 +13,7 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.resources.client.ImageResource.ImageOptions;
 import com.google.gwt.resources.client.ImageResource.RepeatStyle;
 import com.google.gwt.safecss.shared.SafeStylesBuilder;
+import com.google.gwt.safecss.shared.SafeStylesUtils;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.cell.core.client.ButtonCell;
@@ -209,9 +210,9 @@ public class SlicedButtonCellAppearance<C> extends ButtonCellDefaultAppearance<C
     SafeHtmlBuilder inside = new SafeHtmlBuilder();
 
     String innerWrap = arrowCls;
-    if (GXT.isIE6() || GXT.isIE7()) {
+    /*if (GXT.isIE6() || GXT.isIE7()) { // isIE6 isIE7 deprecated
       arrowCls += " " + CommonStyles.get().inlineBlock();
-    }
+    }*/
 
     inside.appendHtmlConstant("<div class='" + innerWrap + "'>");
     inside.appendHtmlConstant("<table cellpadding=0 cellspacing=0 class='" + style.mainTable() + "'>");
@@ -276,4 +277,22 @@ public class SlicedButtonCellAppearance<C> extends ButtonCellDefaultAppearance<C
     sb.appendHtmlConstant("</div>");
 
   }
+  /**
+   * added by hong 618, had no idea how could this method was missing -- maybe the class in not used at all
+   * @param builder
+   * @param text
+   * @param width
+   * @param height
+   */
+  protected void writeText(SafeHtmlBuilder builder, String text, int width, int height) {
+	    SafeStylesBuilder sb = new SafeStylesBuilder();
+	    if (height > 0) {
+	      int adjustedHeight = height;
+	      sb.append(SafeStylesUtils.fromTrustedString("height:" + adjustedHeight + "px;"));
+	    }
+	    if (width > 0) {
+	      sb.append(SafeStylesUtils.fromTrustedString("width:" + width + "px;"));
+	    }
+	    builder.append(templates.textWithStyles(style.text(), sb.toSafeStyles(), SafeHtmlUtils.fromTrustedString(text)));
+	  }
 }

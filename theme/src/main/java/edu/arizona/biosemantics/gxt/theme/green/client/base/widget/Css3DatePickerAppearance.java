@@ -15,6 +15,7 @@ import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.resources.client.ImageResource.ImageOptions;
 import com.google.gwt.resources.client.ImageResource.RepeatStyle;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.resources.StyleInjectorHelper;
@@ -195,20 +196,13 @@ public class Css3DatePickerAppearance implements DatePickerAppearance {
     return "." + style.year();
   }
 
-  @Override
-  public void onMonthButtonTextChange(XElement parent, String text) {
-    parent.selectNode("." + style.monthButtonText()).setInnerHTML(text);
-  }
 
   @Override
   public void onMonthSelected(Element cell, boolean select) {
     cell.<XElement>cast().setClassName(style.monthSelected(), select);
   }
 
-  @Override
-  public void onTextChange(Element cell, String text) {
-    cell.getFirstChildElement().setInnerHTML(text);
-  }
+
 
   @Override
   public void onUpdateDateStyle(Element cell, DateState type, boolean add) {
@@ -243,13 +237,7 @@ public class Css3DatePickerAppearance implements DatePickerAppearance {
     elem.setClassName(cls, add);
   }
 
-  @Override
-  public void onUpdateDayOfWeeks(XElement parent, List<String> values) {
-    NodeList<Element> elems = parent.select("." + style.columnHeaderInner());
-    for (int i = 0; i < elems.getLength(); i++) {
-      elems.getItem(i).setInnerHTML(values.get(i));
-    }
-  }
+  
 
   @Override
   public void render(SafeHtmlBuilder sb) {
@@ -351,4 +339,41 @@ public class Css3DatePickerAppearance implements DatePickerAppearance {
     monthPicker.setSize(width + borderOffset, height);
     monthPicker.getFirstChildElement().getFirstChildElement().<XElement>cast().setSize(width, height, true);
   }
+  
+//hong 618
+  public void onMonthButtonTextChange(XElement parent, String text) {
+    parent.selectNode("." + style.monthButtonText()).setInnerHTML(text);
+  }
+
+@Override
+public void onMonthButtonHtmlChange(XElement parent, SafeHtml html) {
+	 parent.selectNode("." + style.monthButtonText()).setInnerHTML(html.asString());
+}
+
+//hong 618
+public void onTextChange(Element cell, String text) {
+  cell.getFirstChildElement().setInnerHTML(text);
+}
+
+@Override
+public void onHtmlChange(Element cell, SafeHtml html) {
+	cell.getFirstChildElement().setInnerHTML(html.asString());
+	
+}
+
+/*public void onUpdateDayOfWeeks(XElement parent, List<String> values) {
+  NodeList<Element> elems = parent.select("." + style.columnHeaderInner());
+  for (int i = 0; i < elems.getLength(); i++) {
+    elems.getItem(i).setInnerHTML(values.get(i));
+  }
+}*/
+
+@Override
+public void onUpdateDayOfWeeks(XElement parent, List<SafeHtml> days) {
+	NodeList<Element> elems = parent.select("." + style.columnHeaderInner());
+	  for (int i = 0; i < elems.getLength(); i++) {
+	    elems.getItem(i).setInnerHTML((days.get(i)).asString());
+	  }
+	
+}
 }

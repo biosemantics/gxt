@@ -163,12 +163,12 @@ public class Css3TreeAppearance implements TreeAppearance {
 
   @Override
   public boolean isJointElement(XElement target) {
-    if (GXT.isIE6()) {
+    /*if (GXT.isIE6()) { //isIE6() deprecated
       target = target.getParentElement().cast();
       return target.hasClassName(style.joint());
-    } else {
+    } else {*/
       return target.hasClassName(style.joint());
-    }
+    //}
   }
 
   @Override
@@ -226,7 +226,7 @@ public class Css3TreeAppearance implements TreeAppearance {
         e = getImage(ts.getJointOpenIcon() == null ? resources.jointExpandedIcon() : ts.getJointOpenIcon());
         break;
       default:
-        e = XDOM.create("<img src=\"" + GXT.getBlankImageUrl() + "\" width=\"16px\"/>");
+        e = XDOM.create(SafeHtmlUtils.fromString("<img src=\"" + GXT.getBlankImageUrl() + "\" width=\"16px\"/>"));
     }
 
     e.addClassName(style.joint());
@@ -248,13 +248,13 @@ public class Css3TreeAppearance implements TreeAppearance {
   @Override
   public void render(SafeHtmlBuilder sb) {
     // EXTGWT-3113 the inner table is needed so that the tree nodes are as wide as needed with horizontal scrolling
-    if (GXT.isIE6() || GXT.isIE7()) {
+    /*if (GXT.isIE6() || GXT.isIE7()) { //isIE6 and isIE7 deprecated
       sb.appendHtmlConstant("<div class=" + style.tree() + " style=\"position: relative;\"></div>");
-    } else {
+    } else {*/
       sb.appendHtmlConstant("<div class="
           + style.tree()
           + " style=\"position: relative;\"><table cellpadding=0 cellspacing=0 width=100%><tr><td></td></tr></table></div>");
-    }
+    //}
   }
 
   @Override

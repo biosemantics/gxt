@@ -34,4 +34,9 @@ public class SlicedCheckMenuItemAppearance extends SlicedMenuItemAppearance impl
   public ImageResource radio() {
     return resources.groupChecked();
   }
+
+  @Override
+  public XElement getCheckIcon(XElement parent) {
+	return null;
+  }
 }

@@ -59,8 +59,7 @@ public class Css3CollapsePanelAppearance implements CollapsePanelAppearance {
     StyleInjectorHelper.ensureInjected(style, true);
   }
 
-
-  @Override
+  //save as @Override render 
   public void render(SafeHtmlBuilder sb, LayoutRegion region) {
     String cls = style.panel();
 
@@ -88,5 +87,35 @@ public class Css3CollapsePanelAppearance implements CollapsePanelAppearance {
   public XElement iconWrap(XElement parent) {
     return parent.getFirstChildElement().cast();
   }
+
+@Override
+public void render(SafeHtmlBuilder sb, LayoutRegion region, boolean header) {
+	   String cls = style.panel();
+
+	    switch (region) {
+	      case WEST:
+	        cls += " " + style.west();
+	        break;
+	      case EAST:
+	        cls += " " + style.east();
+	        break;
+	      case NORTH:
+	        cls += " " + style.north();
+	        break;
+	      case SOUTH:
+	        cls += " " + style.south();
+	        break;
+	    }
+
+	    sb.appendHtmlConstant("<div class='" + cls + "'>");
+	    sb.appendHtmlConstant("<div class='" + style.iconWrap() + "'></div>");
+	    sb.appendHtmlConstant("</div>");
+}
+
+@Override
+public XElement textWrap(XElement parent) {
+	// TODO Auto-generated method stub
+	return null;
+}
 
 }

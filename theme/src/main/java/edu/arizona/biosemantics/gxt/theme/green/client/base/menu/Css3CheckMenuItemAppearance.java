@@ -41,4 +41,10 @@ public class Css3CheckMenuItemAppearance extends Css3MenuItemAppearance implemen
   public ImageResource radio() {
     return resources.groupChecked();
   }
+
+  @Override
+  public XElement getCheckIcon(XElement parent) {
+	
+	return null;
+}
 }

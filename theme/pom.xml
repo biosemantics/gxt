@@ -5,16 +5,20 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.arizona.biosemantics.gxt</groupId>
   <artifactId>theme</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT-debug</version>
   <name>gxt themes</name>
   <properties>
-    <gxt.version>3.1.1</gxt.version>
-    <gwt.version>2.6.0</gwt.version>
+    <gxt.version>4.0.0</gxt.version>
+    <gwt.version>2.8.0</gwt.version>
     <phantomjs.version>1.9.2</phantomjs.version>
     <bin>bin/phantomjs</bin>
   </properties>
   
   	<repositories>
+  	<repository>
+			<id>sencharepo</id>
+			<url>https://maven.sencha.com/repo/gpl-release/</url>
+		</repository>
 		<repository>
 			<id>playground-releases</id>
 			<url>http://128.196.105.149:8081/nexus/content/repositories/releases/</url>

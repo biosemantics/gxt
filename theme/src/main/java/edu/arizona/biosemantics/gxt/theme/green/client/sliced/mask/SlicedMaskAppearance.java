@@ -116,7 +116,7 @@ public class SlicedMaskAppearance implements MaskAppearance {
       parent.appendChild(box);
     }
 
-    if (GXT.isIE() && !(GXT.isIE7()) && "auto".equals(parent.getStyle().getHeight())) {
+    if (GXT.isIE() /*&& !(GXT.isIE7())*/ && "auto".equals(parent.getStyle().getHeight())) {
       mask.setSize(parent.getOffsetWidth(), parent.getOffsetHeight());
     }
 

@@ -15,6 +15,7 @@ import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.core.client.dom.XElement;
@@ -22,6 +23,8 @@ import com.sencha.gxt.core.client.resources.StyleInjectorHelper;
 import com.sencha.gxt.core.client.resources.ThemeStyles;
 import com.sencha.gxt.core.client.util.IconHelper;
 import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
+
+
 import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.TabPanel.TabPanelAppearance;
 
@@ -138,11 +141,11 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
   @Override
   public void createScrollers(XElement parent) {
     int h = getStripWrap(parent).getOffsetHeight();
-    XElement scrollLeft = getBar(parent).insertFirst("<div class='" + style.tabScrollerLeft() + "'></div>");
+    XElement scrollLeft = getBar(parent).insertFirst(SafeHtmlUtils.fromString("<div class='" + style.tabScrollerLeft() + "'></div>"));
     scrollLeft.setId(XDOM.getUniqueId());
     scrollLeft.setHeight(h);
 
-    XElement scrollRight = getBar(parent).insertFirst("<div class='" + style.tabScrollerRight() + "'></div>");
+    XElement scrollRight = getBar(parent).insertFirst(SafeHtmlUtils.fromString("<div class='" + style.tabScrollerRight() + "'></div>"));
     scrollRight.setId(XDOM.getUniqueId());
     scrollRight.setHeight(h);
   }
@@ -188,10 +191,11 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
 
   @Override
   public void insert(XElement parent, TabItemConfig config, int index) {
-    XElement item = XDOM.create(itemTemplate.render(style, config).asString());
+    XElement item = XDOM.create(itemTemplate.render(style, config));
     item.setClassName(ThemeStyles.get().style().disabled(), !config.isEnabled());
 
-    if (config.isHTML()) {
+    //if (config.isHTML()) { //hong 618 isHTML deprecated
+    if(config.getContent().asString().contains(">")){
       XElement textEl = item.selectNode("." + style.tabStripText());
       textEl.setInnerHTML(config.getHTML());
     }
@@ -269,7 +273,9 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
   public void updateItem(XElement item, TabItemConfig config) {
     XElement textEl = item.selectNode("." + style.tabStripText());
 
-    if (config.isHTML()) {
+    
+    //if (config.isHTML()) { //isHTML deprecated
+    if(config.getContent().asString().contains(">")){
       textEl.setInnerHTML(config.getHTML());
     } else {
       textEl.setInnerText(config.getText());

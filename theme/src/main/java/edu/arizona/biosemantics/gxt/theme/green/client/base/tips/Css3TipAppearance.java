@@ -97,7 +97,7 @@ public class Css3TipAppearance implements TipAppearance {
     return parent.selectNode("." + style.heading());
   }
 
-  @Override
+  //=getBodyElement
   public XElement getTextElement(XElement parent) {
     return parent.selectNode("." + style.text());
   }
@@ -118,7 +118,6 @@ public class Css3TipAppearance implements TipAppearance {
   }
 
 
-  @Override
   public int autoWidth(XElement parent, int minWidth, int maxWidth) {
     int tw = getTextElement(parent).getTextWidth();
     int hw = getHeaderElement(parent).getTextWidth();
@@ -132,7 +131,7 @@ public class Css3TipAppearance implements TipAppearance {
     return Util.constrain(w, minWidth, maxWidth);
   }
 
-  @Override
+  //=updateContent
   public void updateContent(XElement parent, String heading, String text) {
     XElement header = getHeaderElement(parent);
     if (heading != null && !heading.equals("")) {
@@ -144,4 +143,23 @@ public class Css3TipAppearance implements TipAppearance {
 
     getTextElement(parent).setInnerHTML(text);
   }
+
+	@Override
+	public XElement getBodyElement(XElement parent) {
+		return parent.selectNode("." + style.text());	
+	}
+	
+	@Override
+	public void updateContent(XElement parent, SafeHtml title, SafeHtml body) {
+	    XElement header = getHeaderElement(parent);
+	    if (title != null && !title.asString().equals("")) {
+	      header.setInnerHTML(title.asString());
+	      header.getParentElement().getStyle().clearDisplay();
+	    } else {
+	      header.getParentElement().getStyle().setDisplay(Display.NONE);
+	    }
+	
+	    getTextElement(parent).setInnerHTML(body.asString());
+	
+	}
 }
