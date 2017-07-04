@@ -80,7 +80,7 @@ public class Css3TipAppearance implements TipAppearance {
     style.ensureInjected();
   }
 
-  @Override
+  
   public void applyAnchorDirectionStyle(XElement anchorEl, Side anchor) {
     anchorEl.setClassName(style.anchorTop(), anchor == Side.TOP);
     anchorEl.setClassName(style.anchorBottom(), anchor == Side.BOTTOM);
@@ -88,7 +88,7 @@ public class Css3TipAppearance implements TipAppearance {
     anchorEl.setClassName(style.anchorLeft(), anchor == Side.LEFT);
   }
 
-  @Override
+  
   public void applyAnchorStyle(XElement anchorEl) {
     anchorEl.addClassName(style.anchor());
   }
@@ -102,17 +102,17 @@ public class Css3TipAppearance implements TipAppearance {
     return parent.selectNode("." + style.text());
   }
 
-  @Override
+  
   public XElement getToolsElement(XElement parent) {
     return parent.selectNode("." + style.tools());
   }
 
-  @Override
+  
   public void removeAnchorStyle(XElement anchorEl) {
     anchorEl.removeClassName(style.anchor());
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.append(template.render(style));
   }
@@ -144,12 +144,12 @@ public class Css3TipAppearance implements TipAppearance {
     getTextElement(parent).setInnerHTML(text);
   }
 
-	@Override
+	
 	public XElement getBodyElement(XElement parent) {
 		return parent.selectNode("." + style.text());	
 	}
 	
-	@Override
+	
 	public void updateContent(XElement parent, SafeHtml title, SafeHtml body) {
 	    XElement header = getHeaderElement(parent);
 	    if (title != null && !title.asString().equals("")) {

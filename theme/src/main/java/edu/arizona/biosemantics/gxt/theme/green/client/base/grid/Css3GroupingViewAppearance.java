@@ -18,14 +18,14 @@ public class Css3GroupingViewAppearance extends GroupingViewDefaultAppearance {
 
   public interface Css3GroupingViewResources extends GroupingViewResources {
 
-    @Override
+    
     ImageResource groupBy();
 
     ImageResource expand();
 
     ImageResource collapse();
 
-    @Override
+    
     @Import(GridStateStyles.class)
     @Source("Css3GroupingView.css")
     Css3GroupingViewStyle style();

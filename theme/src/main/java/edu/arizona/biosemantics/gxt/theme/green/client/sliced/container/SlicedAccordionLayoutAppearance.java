@@ -23,12 +23,12 @@ import com.sencha.gxt.widget.core.client.container.AccordionLayoutContainer.Acco
 
 public class SlicedAccordionLayoutAppearance extends SlicedContentPanelAppearance implements AccordionLayoutAppearance {
   public interface SlicedAccordionLayoutResources extends SlicedContentPanelResources {
-    @Override
+    
     @Source("accordionlayout-background.png")
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     ImageResource headerBackground();
 
-    @Override
+    
     @Source("SlicedAccordionLayout.css")
     SlicedAccordionLayoutStyle style();
   }
@@ -41,7 +41,7 @@ public class SlicedAccordionLayoutAppearance extends SlicedContentPanelAppearanc
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     ImageResource headerBackground();
 
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/widget/Header.css", "SlicedAccordionHeader.css"})
     SlicedAccordionHeaderStyle style();
   }
@@ -53,17 +53,17 @@ public class SlicedAccordionLayoutAppearance extends SlicedContentPanelAppearanc
     super(GWT.<SlicedAccordionLayoutResources>create(SlicedAccordionLayoutResources.class));
   }
 
-  @Override
+  
   public HeaderAppearance getHeaderAppearance() {
     return new Css3HeaderAppearance(GWT.<Css3AccordionHeaderResources>create(Css3AccordionHeaderResources.class));
   }
 
-  @Override
+  
   public IconConfig collapseIcon() {
     return ToolButton.MINUS;
   }
 
-  @Override
+  
   public IconConfig expandIcon() {
     return ToolButton.PLUS;
   }

@@ -45,17 +45,17 @@ public class Css3RowNumbererAppearance implements RowNumbererAppearance {
     resources.styles().ensureInjected();
   }
 
-  @Override
+  
   public String getCellClassName() {
     return resources.styles().cell();
   }
 
-  @Override
+  
   public void renderCell(int rowNumber, SafeHtmlBuilder sb) {
     sb.appendHtmlConstant("<div class='"+resources.styles().numberer()+"'>").append(rowNumber).appendHtmlConstant("</div>");
   }
 
-  @Override
+  
   public SafeHtml renderHeader() {
     return SafeHtmlUtils.EMPTY_SAFE_HTML;
   }

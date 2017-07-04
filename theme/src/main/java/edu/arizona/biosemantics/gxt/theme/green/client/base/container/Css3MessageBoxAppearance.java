@@ -13,7 +13,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 
 public class Css3MessageBoxAppearance extends MessageBoxDefaultAppearance {
   public interface Css3MessageBoxResources extends MessageBoxResources {
-    @Override
+    
     @Source("Css3MessageBox.css")
     Css3MessageBoxStyles style();
 

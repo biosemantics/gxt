@@ -112,12 +112,12 @@ public class Css3TreeAppearance implements TreeAppearance {
   }
 
 
-  @Override
+  
   public ImageResource closeNodeIcon() {
     return resources.folderClosed();
   }
 
-  @Override
+  
   public String elementSelector() {
     return "." + style.element();
   }
@@ -126,42 +126,42 @@ public class Css3TreeAppearance implements TreeAppearance {
     return target.selectNode("." + style.icon());
   }
 
-  @Override
+  
   public XElement findJointElement(XElement target) {
     return target.selectNode("." + style.joint());
   }
 
-  @Override
+  
   public XElement getCheckElement(XElement container) {
     return container.getChildNodes().getItem(2).cast();
   }
 
-  @Override
+  
   public XElement getContainerElement(XElement node) {
     return node.getFirstChildElement().cast();
   }
 
-  @Override
+  
   public XElement getIconElement(XElement container) {
     return container.getChildNodes().getItem(3).cast();
   }
 
-  @Override
+  
   public XElement getJointElement(XElement container) {
     return container.getChildNodes().getItem(1).cast();
   }
 
-  @Override
+  
   public XElement getTextElement(XElement container) {
     return container.getChildNodes().getItem(4).cast();
   }
 
-  @Override
+  
   public boolean isCheckElement(XElement target) {
     return target.hasClassName(style.check());
   }
 
-  @Override
+  
   public boolean isJointElement(XElement target) {
     /*if (GXT.isIE6()) { //isIE6() deprecated
       target = target.getParentElement().cast();
@@ -171,17 +171,17 @@ public class Css3TreeAppearance implements TreeAppearance {
     //}
   }
 
-  @Override
+  
   public String itemSelector() {
     return "." + style.node();
   }
 
-  @Override
+  
   public ImageResource loadingIcon() {
     return resources.loadingIcon();
   }
 
-  @Override
+  
   public XElement onCheckChange(XElement node, XElement checkElement, boolean checkable, CheckState state) {
     Element e = null;
     if (checkable) {
@@ -205,17 +205,17 @@ public class Css3TreeAppearance implements TreeAppearance {
     return e.cast();
   }
 
-  @Override
+  
   public void onDropOver(XElement node, boolean over) {
     node.setClassName(style.dragOver(), over);
   }
 
-  @Override
+  
   public void onHover(XElement node, boolean over) {
     node.setClassName(style.over(), over);
   }
 
-  @Override
+  
   public XElement onJointChange(XElement node, XElement jointElement, Joint joint, TreeStyle ts) {
     Element e;
     switch (joint) {
@@ -235,17 +235,17 @@ public class Css3TreeAppearance implements TreeAppearance {
     return e.cast();
   }
 
-  @Override
+  
   public void onSelect(XElement node, boolean select) {
     node.setClassName(style.selected(), select);
   }
 
-  @Override
+  
   public ImageResource openNodeIcon() {
     return resources.folderOpened();
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     // EXTGWT-3113 the inner table is needed so that the tree nodes are as wide as needed with horizontal scrolling
     /*if (GXT.isIE6() || GXT.isIE7()) { //isIE6 and isIE7 deprecated
@@ -257,12 +257,12 @@ public class Css3TreeAppearance implements TreeAppearance {
     //}
   }
 
-  @Override
+  
   public void renderContainer(SafeHtmlBuilder sb) {
     sb.appendHtmlConstant("<div class='" + style.container() + "' role='group'></div>");
   }
 
-  @Override
+  
   public void renderNode(SafeHtmlBuilder sb, String id, SafeHtml text, TreeStyle ts, ImageResource icon,
                          boolean checkable, CheckState checked, Joint joint, int level, TreeViewRenderMode renderMode) {
 
@@ -335,7 +335,7 @@ public class Css3TreeAppearance implements TreeAppearance {
 
   }
 
-  @Override
+  
   public String textSelector() {
     return "." + style.text();
   }

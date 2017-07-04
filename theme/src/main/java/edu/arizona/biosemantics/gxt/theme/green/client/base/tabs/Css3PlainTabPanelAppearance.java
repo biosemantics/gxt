@@ -18,7 +18,7 @@ import com.sencha.gxt.widget.core.client.PlainTabPanel.PlainTabPanelAppearance;
 public class Css3PlainTabPanelAppearance extends Css3TabPanelAppearance implements PlainTabPanelAppearance {
 
   public interface Css3PlainTabPanelResources extends Css3TabPanelResources {
-    @Override
+    
     @Source({"Css3TabPanel.css", "Css3PlainTabPanel.css"})
     Css3PlainTabPanelStyle style();
   }
@@ -29,7 +29,7 @@ public class Css3PlainTabPanelAppearance extends Css3TabPanelAppearance implemen
   }
 
   public interface Css3PlainTabPanelTemplates extends Css3TabPanelTemplates {
-    @Override
+    
     @XTemplate(source = "Css3TabPanel.html")
     SafeHtml render(Css3TabPanelStyle style);
 
@@ -51,7 +51,7 @@ public class Css3PlainTabPanelAppearance extends Css3TabPanelAppearance implemen
     this.template = template;
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder builder) {
     builder.append(template.renderPlain(style));
   }

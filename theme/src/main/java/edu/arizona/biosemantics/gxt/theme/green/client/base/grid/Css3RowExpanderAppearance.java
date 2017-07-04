@@ -61,27 +61,27 @@ public class Css3RowExpanderAppearance<M> implements RowExpanderAppearance<M> {
     StyleInjectorHelper.ensureInjected(style, true);
   }
 
-  @Override
+  
   public void finishInit(XElement gridParent) {
     gridParent.addClassName(style.hasExpander());
   }
 
-  @Override
+  
   public String getCellClassName() {
     return style.cell();
   }
 
-  @Override
+  
   public String getRowStyles(M model, int rowIndex) {
     return style.rowCollapsed();
   }
 
-  @Override
+  
   public boolean isExpanded(XElement row) {
     return row.hasClassName(style.rowExpanded());
   }
 
-  @Override
+  
   public void onExpand(XElement row, boolean expand) {
     if (expand) {
       row.replaceClassName(style.rowCollapsed(), style.rowExpanded());
@@ -90,12 +90,12 @@ public class Css3RowExpanderAppearance<M> implements RowExpanderAppearance<M> {
     }
   }
 
-  @Override
+  
   public void renderExpander(Context context, M value, SafeHtmlBuilder sb) {
     sb.appendHtmlConstant("<div class='" + style.rowExpander() + "'>&nbsp;</div>");
   }
 
-  @Override
+  
   public boolean isExpandElement(XElement target) {
     return target.hasClassName(style.rowExpander());
   }

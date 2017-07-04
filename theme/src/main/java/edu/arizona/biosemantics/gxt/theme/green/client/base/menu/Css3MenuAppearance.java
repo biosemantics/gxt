@@ -15,7 +15,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 
 public class Css3MenuAppearance extends MenuBaseAppearance {
   public interface Css3MenuResources extends MenuResources, ClientBundle {
-    @Override
+    
     @Source("Css3Menu.css")
     Css3MenuStyle style();
 

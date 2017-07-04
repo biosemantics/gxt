@@ -79,37 +79,37 @@ public class Css3ColumnHeaderAppearance implements ColumnHeaderAppearance {
     StyleInjectorHelper.ensureInjected(style, true);
   }
 
-  @Override
+  
   public ImageResource columnsIcon() {
     return resources.columnsIcon();
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.append(templates.render(style));
   }
 
-  @Override
+  
   public ImageResource sortAscendingIcon() {
     return resources.sortAscendingIcon();
   }
 
-  @Override
+  
   public ImageResource sortDescendingIcon() {
     return resources.sortDescendingIcon();
   }
 
-  @Override
+  
   public ColumnHeaderStyles styles() {
     return style;
   }
 
-  @Override
+  
   public String columnsWrapSelector() {
     return "." + style.headerInner();
   }
 
-  @Override
+  
   public int getColumnMenuWidth() {
     return resources.theme().grid().columnHeader().menuButtonWidth();
   }

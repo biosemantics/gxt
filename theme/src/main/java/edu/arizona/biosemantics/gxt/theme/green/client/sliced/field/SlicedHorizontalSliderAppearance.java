@@ -29,7 +29,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
  */
 public class SlicedHorizontalSliderAppearance extends SliderHorizontalBaseAppearance implements HorizontalSliderAppearance {
   public interface SlicedHorizontalSliderResources extends SliderHorizontalResources, ClientBundle {
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/slider/Slider.css",
         "com/sencha/gxt/theme/base/client/slider/SliderHorizontal.css", "SlicedHorizontalSlider.css"})
     SlicedHorizontalSliderStyle style();
@@ -75,13 +75,13 @@ public class SlicedHorizontalSliderAppearance extends SliderHorizontalBaseAppear
   }
 
 
-  @Override
+  
   public int getSliderLength(XElement parent) {
     SliderDetails sliderDetails = resources.theme().create().field().slider();
     return super.getSliderLength(parent) + getTrackPadding() - (sliderDetails.thumbBorder().right() + sliderDetails.thumbBorder().left());
   }
 
-  @Override
+  
   public void setThumbPosition(Element parent, int pos) {
     XElement thumbElement = XElement.as(getThumb(parent));
     pos -= getHalfThumbWidth();
@@ -89,7 +89,7 @@ public class SlicedHorizontalSliderAppearance extends SliderHorizontalBaseAppear
     thumbElement.getStyle().setLeft(pos, Unit.PX);
   }
 
-  @Override
+  
   protected SafeStyles createThumbStyles(double fractionalValue, int width) {
     SafeStylesBuilder thumbStylesBuilder = new SafeStylesBuilder();
 
@@ -105,12 +105,12 @@ public class SlicedHorizontalSliderAppearance extends SliderHorizontalBaseAppear
     return thumbStylesBuilder.toSafeStyles();
   }
 
-  @Override
+  
   protected int getHalfThumbWidth() {
     return (int) Math.floor(resources.thumbHorizontal().getWidth() / 2);
   }
 
-  @Override
+  
   protected int getTrackPadding() {
     return resources.trackHorizontalLeft().getWidth();
   }

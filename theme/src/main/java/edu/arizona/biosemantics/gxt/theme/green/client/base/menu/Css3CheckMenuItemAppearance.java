@@ -23,26 +23,26 @@ public class Css3CheckMenuItemAppearance extends Css3MenuItemAppearance implemen
 
   private final Css3CheckMenuItemResources resources = GWT.create(Css3CheckMenuItemResources.class);
 
-  @Override
+  
   public void applyChecked(XElement parent, boolean state) {
   }
 
-  @Override
+  
   public ImageResource checked() {
     return resources.checked();
   }
 
-  @Override
+  
   public ImageResource unchecked() {
     return resources.unchecked();
   }
 
-  @Override
+  
   public ImageResource radio() {
     return resources.groupChecked();
   }
 
-  @Override
+  
   public XElement getCheckIcon(XElement parent) {
 	
 	return null;

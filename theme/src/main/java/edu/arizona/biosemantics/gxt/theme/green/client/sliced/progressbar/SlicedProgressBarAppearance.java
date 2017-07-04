@@ -23,7 +23,7 @@ public class SlicedProgressBarAppearance extends Css3ProgressBarAppearance {
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     ImageResource innerBar();
 
-    @Override
+    
     @Source("SlicedProgressBar.css")
     SlicedProgressBarStyle styles();
 

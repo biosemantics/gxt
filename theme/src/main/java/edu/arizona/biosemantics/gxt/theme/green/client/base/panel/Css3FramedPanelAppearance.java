@@ -73,70 +73,70 @@ public class Css3FramedPanelAppearance implements FramedPanelAppearance {
     this.theme = bundle.theme();
   }
 
-  @Override
+  
   public int getFrameHeight(XElement parent) {
     return Math.max(theme.framedPanel().borderRadius(), theme.framedPanel().border().top())
             + Math.max(theme.framedPanel().borderRadius(), theme.framedPanel().border().bottom());
   }
 
-  @Override
+  
   public int getFrameWidth(XElement parent) {
     return Math.max(theme.framedPanel().borderRadius(), theme.framedPanel().border().left())
             + Math.max(theme.framedPanel().borderRadius(), theme.framedPanel().border().right());
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.append(template.render(style));
   }
 
-  @Override
+  
   public HeaderAppearance getHeaderAppearance() {
     return new Css3HeaderAppearance();
   }
 
-  @Override
+  
   public IconConfig collapseIcon() {
     return ToolButton.UP;
   }
 
-  @Override
+  
   public IconConfig expandIcon() {
     return ToolButton.DOWN;
   }
 
-  @Override
+  
   public XElement getBodyWrap(XElement parent) {
     return parent.selectNode("." + style.bodyWrap());
   }
 
-  @Override
+  
   public XElement getContentElem(XElement parent) {
     return parent.selectNode("." + style.body());
   }
 
-  @Override
+  
   public XElement getFooterElem(XElement parent) {
     return parent.selectNode("." + style.footer());
   }
 
-  @Override
+  
   public XElement getHeaderElem(XElement parent) {
     return parent.selectNode("." + style.header());
   }
 
-  @Override
+  
   public void onBodyBorder(XElement parent, boolean border) {
     getContentElem(parent).applyStyles(!border ? "border: 0px" : "");
   }
 
-  @Override
+  
   public void onHideHeader(XElement parent, boolean hide) {
     parent.selectNode("." + style.header()).setVisible(!hide);
     parent.setClassName(style.noHeader(), hide);
   }
 
-  @Override
+  
   public Size getHeaderSize(XElement parent) {
     Element head = parent.getFirstChildElement();
     return new Size(head.getOffsetWidth(), head.getOffsetHeight());

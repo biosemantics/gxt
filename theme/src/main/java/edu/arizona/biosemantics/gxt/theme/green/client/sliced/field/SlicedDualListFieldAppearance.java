@@ -18,7 +18,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.base.field.Css3DualListFi
  */
 public class SlicedDualListFieldAppearance extends Css3DualListFieldAppearance {
   public interface SlicedDualListFieldResources extends Css3DualListFieldResources {
-    @Override
+    
     @Source("SlicedDualListField.css")
     @Import(IconButtonStyle.class)
     SlicedDualListFieldStyle style();

@@ -34,7 +34,7 @@ public class SlicedMaskAppearance implements MaskAppearance {
   }
 
   public interface SlicedMaskResources extends DivFrameResources, ClientBundle {
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/frame/DivFrame.css", "SlicedMask.css"})
     SlicedMaskStyles style();
 
@@ -45,39 +45,39 @@ public class SlicedMaskAppearance implements MaskAppearance {
     @ImageOptions(repeatStyle = RepeatStyle.Both)
     ImageResource background();
 
-    @Override
+    
     @Source("corner-bc.png")
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     ImageResource bottomBorder();
 
-    @Override
+    
     @Source("corner-bl.png")
     ImageResource bottomLeftBorder();
 
-    @Override
+    
     @Source("corner-br.png")
     ImageResource bottomRightBorder();
 
-    @Override
+    
     @Source("side-l.png")
     @ImageOptions(repeatStyle = RepeatStyle.Vertical)
     ImageResource leftBorder();
 
-    @Override
+    
     @Source("side-r.png")
     @ImageOptions(repeatStyle = RepeatStyle.Vertical)
     ImageResource rightBorder();
 
-    @Override
+    
     @Source("corner-tc.png")
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     ImageResource topBorder();
 
-    @Override
+    
     @Source("corner-tl.png")
     ImageResource topLeftBorder();
 
-    @Override
+    
     @Source("corner-tr.png")
     ImageResource topRightBorder();
 
@@ -101,7 +101,7 @@ public class SlicedMaskAppearance implements MaskAppearance {
     frame = new DivFrame(resources);
   }
 
-  @Override
+  
   public void mask(XElement parent, String message) {
     XElement mask = XElement.createElement("div");
     mask.setClassName(resources.style().mask());
@@ -126,17 +126,17 @@ public class SlicedMaskAppearance implements MaskAppearance {
     }
   }
 
-  @Override
+  
   public String masked() {
     return resources.style().masked();
   }
 
-  @Override
+  
   public String positioned() {
     return resources.style().positioned();
   }
 
-  @Override
+  
   public void unmask(XElement parent) {
     XElement mask = parent.selectNode("> ." + resources.style().mask());
     if (mask != null) {

@@ -48,21 +48,21 @@ public class Css3BorderLayoutAppearance implements BorderLayoutAppearance {
     StyleInjectorHelper.ensureInjected(style, true);
   }
 
-  @Override
+  
   public XElement getContainerTarget(XElement parent) {
     return parent;
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.appendHtmlConstant("<div class='" + style.container() + "'></div>");
   }
 
-  @Override
+  
   public void onInsert(Widget child) {
   }
 
-  @Override
+  
   public void onRemove(Widget child) {
   }
 

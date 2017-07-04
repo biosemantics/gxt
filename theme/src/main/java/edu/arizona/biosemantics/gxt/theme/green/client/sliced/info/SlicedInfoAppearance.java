@@ -17,7 +17,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 public class SlicedInfoAppearance extends InfoDefaultAppearance {
   interface SlicedInfoResources extends InfoResources {
     @Source({"com/sencha/gxt/theme/base/client/frame/DivFrame.css", "Info.css"})
-    @Override
+    
     SlicedInfoStyle style();
 
     @Source("background.png")

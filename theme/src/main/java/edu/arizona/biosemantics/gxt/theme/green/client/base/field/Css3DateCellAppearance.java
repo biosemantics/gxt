@@ -17,19 +17,19 @@ import com.sencha.gxt.cell.core.client.form.DateCell.DateCellAppearance;
 public class Css3DateCellAppearance extends Css3TriggerFieldAppearance implements DateCellAppearance {
 
   public interface Css3DateCellResources extends Css3TriggerFieldResources {
-    @Override
+    
     @Source({"Css3ValueBaseField.css", "Css3TextField.css", "Css3TriggerField.css"})
     Css3DateCellStyle style();
 
-    @Override
+    
     @Source("dateTrigger.png")
     ImageResource triggerArrow();
 
-    @Override
+    
     @Source("dateTriggerOver.png")
     ImageResource triggerArrowOver();
 
-    @Override
+    
     @Source("dateTriggerClick.png")
     ImageResource triggerArrowClick();
   }

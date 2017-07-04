@@ -55,7 +55,7 @@ public class Css3ProgressBarAppearance implements ProgressBarAppearance {
     StyleInjectorHelper.ensureInjected(styles, false);
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb, Double value, ProgressBarAppearanceOptions options) {
     value = value == null ? 0 : value;
 

@@ -25,10 +25,10 @@ public abstract class Css3ValueBaseFieldAppearance implements ValueBaseFieldAppe
   }
 
   public interface Css3ValueBaseFieldStyle extends CssResource, FieldStyles {
-    @Override
+    
     String focus();
 
-    @Override
+    
     String invalid();
 
     String empty();
@@ -49,22 +49,22 @@ public abstract class Css3ValueBaseFieldAppearance implements ValueBaseFieldAppe
     StyleInjectorHelper.ensureInjected(this.style, true);
   }
 
-  @Override
+  
   public void onEmpty(Element parent, boolean empty) {
     getInputElement(parent).setClassName(style.empty(), empty);
   }
 
-  @Override
+  
   public void onFocus(Element parent, boolean focus) {
     parent.<XElement>cast().setClassName(style.focus(), focus);
   }
 
-  @Override
+  
   public void onValid(Element parent, boolean valid) {
     parent.<XElement>cast().setClassName(style.invalid(), !valid);
   }
 
-  @Override
+  
   public void setReadOnly(Element parent, boolean readOnly) {
     getInputElement(parent).<InputElement>cast().setReadOnly(readOnly);
     getInputElement(parent).setClassName(style.readonly(), readOnly);

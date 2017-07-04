@@ -47,12 +47,12 @@ public class Css3TextAreaAppearance extends Css3ValueBaseFieldAppearance impleme
     this.style = resources.style();
   }
 
-  @Override
+  
   public XElement getInputElement(Element parent) {
     return parent.getFirstChildElement().getFirstChildElement().cast();
   }
 
-  @Override
+  
   public void onResize(XElement parent, int width, int height) {
     Element frame = parent.getFirstChildElement();
     XElement inputElement = getInputElement(parent);
@@ -72,7 +72,7 @@ public class Css3TextAreaAppearance extends Css3ValueBaseFieldAppearance impleme
     }
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb, String value, FieldAppearanceOptions options) {
     String inputStyles = "";
     String wrapStyles = "";

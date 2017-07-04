@@ -16,19 +16,19 @@ import com.sencha.gxt.widget.core.client.form.StoreFilterField.StoreFilterFieldA
  */
 public class Css3StoreFilterFieldAppearance extends Css3TriggerFieldAppearance implements StoreFilterFieldAppearance {
   public interface Css3StoreFilterFieldResources extends Css3TriggerFieldResources {
-    @Override
+    
     @Source({"Css3ValueBaseField.css", "Css3TextField.css", "Css3TriggerField.css", "Css3StoreFilterField.css"})
     Css3StoreFilterFieldStyle style();
 
-    @Override
+    
     @Source("clearTrigger.png")
     ImageResource triggerArrow();
 
-    @Override
+    
     @Source("clearTriggerOver.png")
     ImageResource triggerArrowOver();
 
-    @Override
+    
     @Source("clearTriggerClick.png")
     ImageResource triggerArrowClick();
   }

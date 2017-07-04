@@ -29,7 +29,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.base.field.Css3TextFieldA
 public class Css3TriggerFieldAppearance extends Css3ValueBaseFieldAppearance implements TriggerFieldAppearance {
 
   public interface Css3TriggerFieldResources extends Css3ValueBaseFieldResources, ClientBundle {
-    @Override
+    
     @Source({"Css3ValueBaseField.css", "Css3TextField.css", "Css3TriggerField.css"})
     Css3TriggerFieldStyle style();
 
@@ -64,17 +64,17 @@ public class Css3TriggerFieldAppearance extends Css3ValueBaseFieldAppearance imp
     this.style = resources.style();
   }
 
-  @Override
+  
   public XElement getInputElement(Element parent) {
     return parent.<XElement>cast().selectNode("input");
   }
 
-  @Override
+  
   public void onFocus(Element parent, boolean focus) {
     parent.<XElement>cast().setClassName(getResources().style().focus(), focus);
   }
 
-  @Override
+  
   public void onResize(XElement parent, int width, int height, boolean hideTrigger) {
     if (width != -1) {
       width = Math.max(0, width);
@@ -82,17 +82,17 @@ public class Css3TriggerFieldAppearance extends Css3ValueBaseFieldAppearance imp
     }
   }
 
-  @Override
+  
   public void onTriggerClick(XElement parent, boolean click) {
     parent.setClassName(getResources().style().click(), click);
   }
 
-  @Override
+  
   public void onTriggerOver(XElement parent, boolean over) {
     parent.setClassName(getResources().style().over(), over);
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb, String value, FieldAppearanceOptions options) {
     int width = options.getWidth();
     boolean hideTrigger = options.isHideTrigger();
@@ -128,12 +128,12 @@ public class Css3TriggerFieldAppearance extends Css3ValueBaseFieldAppearance imp
     sb.appendHtmlConstant("</div></div>");
   }
 
-  @Override
+  
   public void setEditable(XElement parent, boolean editable) {
     getInputElement(parent).setClassName(getStyle().noedit(), !editable);
   }
 
-  @Override
+  
   public boolean triggerIsOrHasChild(XElement parent, Element target) {
     return parent.isOrHasChild(target) && target.<XElement>cast().is("." + getStyle().trigger());
   }

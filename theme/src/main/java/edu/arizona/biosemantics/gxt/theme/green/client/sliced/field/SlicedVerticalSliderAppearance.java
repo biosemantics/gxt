@@ -29,7 +29,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 public class SlicedVerticalSliderAppearance extends SliderVerticalBaseAppearance {
 
   public interface SlicedVerticalSliderResources extends SliderVerticalResources, ClientBundle {
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/slider/Slider.css",
         "com/sencha/gxt/theme/base/client/slider/SliderVertical.css", "SlicedVerticalSlider.css"})
     SlicedVerticalSliderStyle style();
@@ -76,13 +76,13 @@ public class SlicedVerticalSliderAppearance extends SliderVerticalBaseAppearance
   }
 
 
-  @Override
+  
   public int getSliderLength(XElement parent) {
     SliderDetails sliderDetails = resources.theme().create().field().slider();
     return super.getSliderLength(parent) + getTrackPadding() - (sliderDetails.thumbBorder().top() + sliderDetails.thumbBorder().bottom());
   }
 
-  @Override
+  
   public void setThumbPosition(Element parent, int pos) {
     XElement thumbElement = XElement.as(getThumb(parent));
     pos -= getHalfThumbSize();
@@ -105,7 +105,7 @@ public class SlicedVerticalSliderAppearance extends SliderVerticalBaseAppearance
     return thumbStylesBuilder.toSafeStyles();
   }
 
-  @Override
+  
   protected int getHalfThumbSize() {
     return (int) Math.floor(resources.thumbVertical().getHeight() / 2);
   }

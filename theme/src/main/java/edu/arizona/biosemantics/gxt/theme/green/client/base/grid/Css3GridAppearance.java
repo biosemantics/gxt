@@ -60,17 +60,17 @@ public class Css3GridAppearance implements GridAppearance {
     StyleInjectorHelper.ensureInjected(style, true);
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.append(templates.render(style));
   }
 
-  @Override
+  
   public GridStyles styles() {
     return style;
   }
 
-  @Override
+  
   public Element findRow(Element elem) {
     if (Element.is(elem)) {
       return elem.<XElement> cast().findParentElement("." + style.row(), -1);
@@ -78,12 +78,12 @@ public class Css3GridAppearance implements GridAppearance {
     return null;
   }
 
-  @Override
+  
   public NodeList<Element> getRows(XElement parent) {
     return TableElement.as(parent.getFirstChildElement()).getTBodies().getItem(1).getRows().cast();
   }
 
-  @Override
+  
   public Element findCell(Element elem) {
     if (Element.is(elem)) {
       return elem.<XElement> cast().findParentElement("." + style.cell(), -1);
@@ -91,31 +91,31 @@ public class Css3GridAppearance implements GridAppearance {
     return null;
   }
 
-  @Override
+  
   public void onRowOver(Element row, boolean over) {
     row.<XElement> cast().setClassName(style.rowOver(), over);
   }
 
-  @Override
+  
   public void onRowHighlight(Element row, boolean highlight) {
     row.<XElement> cast().setClassName(style.rowHighlight(), highlight);
   }
 
-  @Override
+  
   public void onRowSelect(Element row, boolean select) {
   }
 
-  @Override
+  
   public void onCellSelect(Element cell, boolean select) {
   }
 
-  @Override
+  
   public Element getRowBody(Element row) {
     return TableElement.as(row.getFirstChildElement().getFirstChildElement().getFirstChildElement()).getTBodies().getItem(
             1).getRows().getItem(1).getCells().getItem(0).getFirstChildElement();
   }
 
-  @Override
+  
   public SafeHtml renderEmptyContent(String emptyText) {
     return SafeHtmlUtils.fromTrustedString(emptyText);
   }

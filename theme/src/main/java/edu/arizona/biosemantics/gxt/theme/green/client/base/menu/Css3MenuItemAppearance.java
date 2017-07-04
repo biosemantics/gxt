@@ -17,7 +17,7 @@ public class Css3MenuItemAppearance extends MenuItemBaseAppearance {
 
   public interface Css3MenuItemResources extends MenuItemResources, ClientBundle {
 
-    @Override
+    
     @Source("Css3MenuItem.css")
     Css3MenuItemStyle style();
 

@@ -16,7 +16,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.base.listview.Css3ListVie
 public class SlicedListViewAppearance<M> extends Css3ListViewAppearance<M> {
 
   public interface SlicedListViewResources extends Css3ListViewResources {
-    @Override
+    
     @Source("SlicedListView.css")
     SlicedListViewStyle css();
 

@@ -40,7 +40,7 @@ public class Css3DefaultInfoConfigAppearance implements DefaultInfoConfigAppeara
     style.ensureInjected();
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb, SafeHtml title, SafeHtml message) {
     sb.append(template.render(style, title, message));
   }

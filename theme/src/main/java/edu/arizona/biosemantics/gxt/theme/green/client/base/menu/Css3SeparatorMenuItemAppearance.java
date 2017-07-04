@@ -15,7 +15,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 public class Css3SeparatorMenuItemAppearance extends SeparatorMenuItemBaseAppearance {
 
   public interface Css3SeparatorMenuItemResources extends SeparatorMenuItemResources, ClientBundle {
-    @Override
+    
     @Source("Css3SeparatorMenuItem.css")
     Css3SeparatorMenuItemStyle style();
 

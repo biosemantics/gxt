@@ -41,12 +41,12 @@ public class Css3InfoAppearance implements InfoAppearance {
     styles.ensureInjected();
   }
 
-  @Override
+  
   public XElement getContentElement(XElement parent) {
     return parent.getFirstChildElement().getFirstChildElement().cast();
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.append(template.render(styles));
   }

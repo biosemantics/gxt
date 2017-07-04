@@ -23,7 +23,7 @@ public class Css3TabPanelBottomAppearance extends Css3TabPanelAppearance impleme
 
   public interface Css3TabPanelBottomResources extends Css3TabPanelResources {
     @Source("Css3TabPanelBottom.css")
-    @Override
+    
     Css3TabPanelBottomStyle style();
   }
 
@@ -40,12 +40,12 @@ public class Css3TabPanelBottomAppearance extends Css3TabPanelAppearance impleme
     super(resources);
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder builder) {
     builder.append(template.render((Css3TabPanelBottomStyle) style));
   }
 
-  @Override
+  
   public XElement getBar(XElement parent) {
     return parent.getLastChild().cast();
   }

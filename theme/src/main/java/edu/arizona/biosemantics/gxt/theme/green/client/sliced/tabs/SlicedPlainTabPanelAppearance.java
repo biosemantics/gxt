@@ -20,7 +20,7 @@ public class SlicedPlainTabPanelAppearance extends SlicedTabPanelAppearance impl
   }
   public interface SlicedPlainTabPanelResources extends SlicedTabPanelResources {
     @Source({"SlicedTabPanel.css","SlicedPlainTabPanel.css"})
-    @Override
+    
     SlicedPlainTabPanelStyle style();
   }
   public interface SlicedPlainTabPanelStyle extends SlicedTabPanelStyle {
@@ -32,7 +32,7 @@ public class SlicedPlainTabPanelAppearance extends SlicedTabPanelAppearance impl
     super(GWT.<SlicedPlainTabPanelResources>create(SlicedPlainTabPanelResources.class));
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder builder) {
     builder.append(template.renderPlain((SlicedPlainTabPanelStyle)resources.style()));
   }

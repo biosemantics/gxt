@@ -21,7 +21,7 @@ public class Css3TextFieldAppearance extends Css3ValueBaseFieldAppearance implem
 
   public interface Css3TextFieldResources extends Css3ValueBaseFieldResources, ClientBundle {
 
-    @Override
+    
     @Source({"Css3ValueBaseField.css", "Css3TextField.css"})
     Css3TextFieldStyle style();
   }
@@ -47,12 +47,12 @@ public class Css3TextFieldAppearance extends Css3ValueBaseFieldAppearance implem
     this.style = resources.style();
   }
 
-  @Override
+  
   public XElement getInputElement(Element parent) {
     return parent.getFirstChildElement().getFirstChildElement().cast();
   }
 
-  @Override
+  
   public void onResize(XElement parent, int width, int height) {
     Element wrap = parent.getFirstChildElement();
 
@@ -67,7 +67,7 @@ public class Css3TextFieldAppearance extends Css3ValueBaseFieldAppearance implem
     }
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb, String type, String value, FieldAppearanceOptions options) {
     String inputStyles = "";
     String wrapStyles = "";

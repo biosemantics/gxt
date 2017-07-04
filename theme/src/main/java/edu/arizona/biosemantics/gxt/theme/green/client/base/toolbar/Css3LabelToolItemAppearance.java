@@ -13,7 +13,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 
 public class Css3LabelToolItemAppearance extends LabelToolItemDefaultAppearance {
   public interface Css3LabelToolItemResources extends LabelToolItemResources {
-    @Override
+    
     @Source("Css3LabelToolItem.css")
     Css3LabelToolItemStyle css();
 

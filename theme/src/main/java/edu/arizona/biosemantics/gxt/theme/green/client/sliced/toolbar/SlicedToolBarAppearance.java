@@ -20,7 +20,7 @@ public class SlicedToolBarAppearance extends Css3ToolBarAppearance {
 
   public interface SlicedToolBarResources extends Css3ToolBarResources {
     @Source({"com/sencha/gxt/theme/base/client/container/BoxLayout.css", "edu/arizona/biosemantics/gxt/theme/green/client/base/container/Css3HBoxLayoutContainer.css", "SlicedToolBar.css"})
-    @Override
+    
     Css3ToolBarStyle style();
 
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)

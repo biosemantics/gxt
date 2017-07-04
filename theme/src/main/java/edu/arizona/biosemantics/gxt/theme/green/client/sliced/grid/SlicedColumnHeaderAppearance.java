@@ -36,7 +36,7 @@ public class SlicedColumnHeaderAppearance extends Css3ColumnHeaderAppearance {
     @Source("column-header-btn-bg-open.png")
     ImageResource columnHeaderBtnBgOpen();
 
-    @Override
+    
     @Source("SlicedColumnHeader.css")
     Styles style();
 

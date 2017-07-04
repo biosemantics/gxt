@@ -77,70 +77,70 @@ public class Css3HorizontalSliderAppearance implements HorizontalSliderAppearanc
     StyleInjectorHelper.ensureInjected(style, true);
   }
 
-  @Override
+  
   public int getClickedValue(Context context, Element parent, Point location) {
     XElement track = getTrack(parent);
     return location.getX() - track.getLeft(false) - (resources.theme().field().slider().thumbWidth());
   }
 
-  @Override
+  
   public int getSliderLength(XElement parent) {
     SliderDetails sliderDetails = resources.theme().field().slider();
     return getTrack(parent).getOffsetWidth() - sliderDetails.thumbWidth();
   }
 
-  @Override
+  
   public Element getThumb(Element parent) {
     return parent.<XElement>cast().selectNode("." + style.thumb());
   }
 
-  @Override
+  
   public boolean isVertical() {
     return false;
   }
 
-  @Override
+  
   public void onEmpty(Element parent, boolean empty) {
     // Not possible to "empty" a slider
   }
 
-  @Override
+  
   public void onFocus(Element parent, boolean focus) {
     // No visible effect on focussing
   }
 
-  @Override
+  
   public void onMouseDown(Context context, Element parent) {
     parent.addClassName(style.drag());
   }
 
-  @Override
+  
   public void onMouseOut(Context context, Element parent) {
     parent.removeClassName(style.over());
   }
 
-  @Override
+  
   public void onMouseOver(Context context, Element parent) {
     parent.addClassName(style.over());
   }
 
-  @Override
+  
   public void onMouseUp(Context context, Element parent) {
     parent.removeClassName(style.drag());
   }
 
-  @Override
+  
   public void onValid(Element parent, boolean valid) {
     // Always valid
   }
 
-  @Override
+  
   public void setReadOnly(Element parent, boolean readonly) {
     // TODO Not currently disableable
   }
 
 
-  @Override
+  
   public void render(double fractionalValue, int width, int height, SafeHtmlBuilder sb) {
     if (width == -1) {
       // default
@@ -189,7 +189,7 @@ public class Css3HorizontalSliderAppearance implements HorizontalSliderAppearanc
         trackStyleBuilder.toSafeStyles(), thumbStyleBuilder.toSafeStyles(), thumbCenterStyleBuilder.toSafeStyles()));
   }
 
-  @Override
+  
   public void setThumbPosition(Element parent, int pos) {
     XElement thumbElement = XElement.as(getThumb(parent));
     int halfThumbSize = resources.theme().field().slider().thumbWidth() / 2;

@@ -80,37 +80,37 @@ public class Css3CheckBoxColumnAppearance implements CheckBoxColumnAppearance {
     StyleInjectorHelper.ensureInjected(style, true);
   }
 
-  @Override
+  
   public String getCellClassName() {
     return style.cell();
   }
 
-  @Override
+  
   public void renderCellCheckBox(Context context, Object value, SafeHtmlBuilder sb) {
     sb.append(template.renderCell(style));
   }
 
-  @Override
+  
   public SafeHtml renderHeadCheckBox() {
     return template.renderHeader(style);
   }
 
-  @Override
+  
   public void onHeaderChecked(XElement header, boolean checked) {
     header.setClassName(style.headerChecked(), checked);
   }
 
-  @Override
+  
   public boolean isHeaderChecked(XElement header) {
     return header.findParent("." + style.headerChecked(), 3) != null;
   }
 
-  @Override
+  
   public boolean isRowChecker(XElement target) {
     return target.is("." + style.rowChecker());
   }
 
-  @Override
+  
   public String getCellInnerClassName() {
     return style.cellInner();
   }

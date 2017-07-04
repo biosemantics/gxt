@@ -31,7 +31,7 @@ public class Css3ToolBarAppearance extends Css3HBoxLayoutContainerAppearance imp
     String toolBar();
   }
 
-  @Override
+  
   public String toolBarClassName() {
     return style.toolBar();
   }

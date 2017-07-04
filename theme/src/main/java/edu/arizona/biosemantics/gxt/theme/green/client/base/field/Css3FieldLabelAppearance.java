@@ -13,7 +13,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 
 public class Css3FieldLabelAppearance extends FieldLabelDefaultAppearance {
   public interface Css3FieldLabelResources extends FieldLabelResources {
-    @Override
+    
     @Source("Css3FieldLabel.css")
     Css3FieldLabelStyles css();
 

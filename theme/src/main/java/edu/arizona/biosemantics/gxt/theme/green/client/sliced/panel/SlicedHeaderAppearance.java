@@ -22,7 +22,7 @@ public class SlicedHeaderAppearance extends Css3HeaderAppearance {
     @Source({"com/sencha/gxt/theme/base/client/widget/Header.css",
             "edu/arizona/biosemantics/gxt/theme/green/client/base/panel/Css3Header.css",
             "SlicedHeader.css"})
-    @Override
+    
     SlicedHeaderStyle style();
 
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)

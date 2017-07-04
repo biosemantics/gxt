@@ -59,7 +59,7 @@ public class Css3ButtonGroupAppearance implements ButtonGroupAppearance {
     StyleInjectorHelper.ensureInjected(resources.style(), true);
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.append(template.render(style));
   }
@@ -70,32 +70,32 @@ public class Css3ButtonGroupAppearance implements ButtonGroupAppearance {
   }
   
   //hong 618: this replaces updateText
-  @Override
+  
   public void setHeading(XElement parent, SafeHtml html) {
 	  getHeaderElement(parent).setInnerSafeHtml(html);  	
   }
   
-  @Override
+  
   public void onHideHeader(XElement parent, boolean hide) {
     getHeaderElement(parent).setVisible(!hide);
   }
 
-  @Override
+  
   public XElement getHeaderElement(XElement parent) {
     return parent.getFirstChildElement().cast();
   }
 
-  @Override
+  
   public XElement getContentElem(XElement parent) {
     return parent.selectNode("." + style.body());
   }
 
-  @Override
+  
   public int getFrameHeight(XElement parent) {
     return resources.theme().buttonGroup().borderRadius() * 2;
   }
 
-  @Override
+  
   public int getFrameWidth(XElement parent) {
     return resources.theme().buttonGroup().borderRadius() * 2;
   }

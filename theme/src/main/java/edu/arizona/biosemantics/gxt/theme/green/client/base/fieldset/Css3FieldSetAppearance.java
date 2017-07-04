@@ -14,7 +14,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 public class Css3FieldSetAppearance extends FieldSetDefaultAppearance {
   public interface Css3FieldSetResources extends FieldSetResources {
     @Source({"com/sencha/gxt/theme/base/client/field/FieldSet.css", "Css3FieldSet.css"})
-    @Override
+    
     Css3FieldSetStyle css();
 
     ThemeDetails theme();

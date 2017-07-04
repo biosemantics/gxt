@@ -16,7 +16,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.base.menu.Css3MenuAppeara
 public class SlicedMenuAppearance extends Css3MenuAppearance {
 
   public interface SlicedMenuResources extends Css3MenuResources {
-    @Override
+    
     @Source("SlicedMenu.css")
     SlicedMenuStyle style();
 

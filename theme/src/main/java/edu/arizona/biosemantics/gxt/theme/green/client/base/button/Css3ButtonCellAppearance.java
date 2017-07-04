@@ -124,37 +124,37 @@ public class Css3ButtonCellAppearance<M> implements ButtonCellAppearance<M> {
     StyleInjectorHelper.ensureInjected(resources.style(), true);
   }
 
-  @Override
+  
   public XElement getButtonElement(XElement parent) {
     return parent.getFirstChildElement().cast();
   }
 
-  @Override
+  
   public XElement getFocusElement(XElement parent) {
     return parent.getFirstChildElement().cast();
   }
 
-  @Override
+  
   public void onFocus(XElement parent, boolean focused) {
     parent.getFirstChildElement().<XElement> cast().setClassName(style.focused(), focused);
   }
 
-  @Override
+  
   public void onOver(XElement parent, boolean over) {
     parent.getFirstChildElement().<XElement> cast().setClassName(style.over(), over);
   }
 
-  @Override
+  
   public void onPress(XElement parent, boolean pressed) {
     parent.getFirstChildElement().<XElement> cast().setClassName(style.pressed(), pressed);
   }
 
-  @Override
+  
   public void onToggle(XElement parent, boolean pressed) {
     parent.getFirstChildElement().<XElement> cast().setClassName(style.pressed(), pressed);
   }
 
-  @Override
+  
   public void render(ButtonCell<M> cell, Context context, M value, SafeHtmlBuilder sb) {
     String constantHtml = cell.getHTML();
     boolean hasConstantHtml = constantHtml != null && constantHtml.length() != 0;

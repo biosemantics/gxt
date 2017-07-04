@@ -42,32 +42,32 @@ public class Css3PagingToolBarAppearance implements PagingToolBarAppearance {
     this.resources = resources;
   }
 
-  @Override
+  
   public ImageResource first() {
     return resources.first();
   }
 
-  @Override
+  
   public ImageResource last() {
     return resources.last();
   }
 
-  @Override
+  
   public ImageResource next() {
     return resources.next();
   }
 
-  @Override
+  
   public ImageResource prev() {
     return resources.prev();
   }
 
-  @Override
+  
   public ImageResource refresh() {
     return resources.refresh();
   }
 
-  @Override
+  
   public ImageResource loading() {
     return resources.loading();
   }

@@ -47,22 +47,22 @@ public class Css3ThemeAppearance implements ThemeAppearance {
   }
 
 
-  @Override
+  
   public Styles style() {
     return style;
   }
 
-  @Override
+  
   public String borderColor() {
     return resources.theme().borderColor();
   }
 
-  @Override
+  
   public String borderColorLight() {
     return resources.theme().borderColor();
   }
 
-  @Override
+  
   public String backgroundColorLight() {
     return resources.theme().backgroundColor();
   }

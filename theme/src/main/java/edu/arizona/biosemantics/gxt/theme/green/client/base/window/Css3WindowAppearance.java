@@ -14,7 +14,7 @@ import com.sencha.gxt.widget.core.client.Window.WindowAppearance;
 public class Css3WindowAppearance extends Css3FramedPanelAppearance implements WindowAppearance {
 
   public interface Css3WindowResources extends Css3FramedPanelResources {
-    @Override
+    
     @Source("Css3Window.css")
     Css3WindowStyle style();
   }
@@ -37,7 +37,7 @@ public class Css3WindowAppearance extends Css3FramedPanelAppearance implements W
     this.style = this.resources.style();
   }
 
-  @Override
+  
   public String ghostClass() {
     return style.ghost();
   }

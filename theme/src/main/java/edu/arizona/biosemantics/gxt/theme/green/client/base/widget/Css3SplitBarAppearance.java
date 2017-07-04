@@ -76,12 +76,12 @@ public class Css3SplitBarAppearance implements SplitBarAppearance {
     StyleInjectorHelper.ensureInjected(style, true);
   }
 
-  @Override
+  
   public int getDefaultBarWidth() {
     return resources.theme().splitbar().handleWidth();
   }
 
-  @Override
+  
   public String miniClass(Direction direction) {
     String cls = style.mini();
 
@@ -103,22 +103,22 @@ public class Css3SplitBarAppearance implements SplitBarAppearance {
     return cls;
   }
 
-  @Override
+  
   public String miniSelector() {
     return "." + style.mini();
   }
 
-  @Override
+  
   public void onMiniOver(XElement mini, boolean over) {
     mini.setClassName(style.miniOver(), over);
   }
 
-  @Override
+  
   public String proxyClass() {
     return style.proxy();
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb, LayoutRegion region) {
     String cls = "";
     if (region == LayoutRegion.SOUTH || region == LayoutRegion.NORTH) {

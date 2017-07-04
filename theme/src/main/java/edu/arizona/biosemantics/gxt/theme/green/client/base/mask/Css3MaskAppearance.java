@@ -43,7 +43,7 @@ public class Css3MaskAppearance implements MaskAppearance {
     StyleInjectorHelper.ensureInjected(resources.styles(), true);
   }
 
-  @Override
+  
   public void mask(XElement parent, String message) {
     XElement mask = XElement.createElement("div");
     mask.setClassName(resources.styles().mask());
@@ -66,17 +66,17 @@ public class Css3MaskAppearance implements MaskAppearance {
 
   }
 
-  @Override
+  
   public String masked() {
     return resources.styles().masked();
   }
 
-  @Override
+  
   public String positioned() {
     return resources.styles().positioned();
   }
 
-  @Override
+  
   public void unmask(XElement parent) {
     XElement mask = parent.selectNode("> ." + resources.styles().mask());
     if (mask != null) {

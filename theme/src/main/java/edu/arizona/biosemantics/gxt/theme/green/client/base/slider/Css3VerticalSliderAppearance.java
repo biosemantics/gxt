@@ -46,24 +46,24 @@ public class Css3VerticalSliderAppearance extends Css3HorizontalSliderAppearance
     this.resources = resources;
   }
 
-  @Override
+  
   public int getClickedValue(Context context, Element parent, Point location) {
     XElement track = getTrack(parent);
     return location.getY() - track.getTop(false) - (resources.theme().field().slider().thumbWidth() / 2);
   }
 
-  @Override
+  
   public int getSliderLength(XElement parent) {
     SliderDetails sliderDetails = resources.theme().field().slider();
     return getTrack(parent).getOffsetHeight() - sliderDetails.thumbWidth();
   }
 
-  @Override
+  
   public boolean isVertical() {
     return true;
   }
 
-  @Override
+  
   public void render(double fractionalValue, int width, int height, SafeHtmlBuilder sb) {
     if (height == -1) {
       // default
@@ -113,7 +113,7 @@ public class Css3VerticalSliderAppearance extends Css3HorizontalSliderAppearance
         trackStyleBuilder.toSafeStyles(), thumbStyleBuilder.toSafeStyles(), thumbCenterStyleBuilder.toSafeStyles()));
   }
 
-  @Override
+  
   public void setThumbPosition(Element parent, int pos) {
     XElement thumbElement = XElement.as(getThumb(parent));
     int halfThumbSize = resources.theme().field().slider().thumbWidth() / 2;

@@ -18,10 +18,10 @@ public class SlicedWindowHeaderAppearance extends SlicedHeaderAppearance {
     @Source({"com/sencha/gxt/theme/base/client/widget/Header.css",
             "edu/arizona/biosemantics/gxt/theme/green/client/base/panel/Css3Header.css",
             "edu/arizona/biosemantics/gxt/theme/green/client/sliced/panel/SlicedHeader.css"})
-    @Override
+    
     SlicedWindowHeaderStyle style();
 
-    @Override
+    
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     @Source("window-header-background.png")
     ImageResource headerBackground();

@@ -17,25 +17,25 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 public class Css3HeaderAppearance extends HeaderDefaultAppearance {
 
   public interface Css3HeaderStyle extends HeaderStyle {
-    @Override
+    
     String header();
 
-    @Override
+    
     String headerBar();
 
-    @Override
+    
     String headerHasIcon();
 
-    @Override
+    
     String headerIcon();
 
-    @Override
+    
     String headerText();
   }
 
   public interface Css3HeaderResources extends HeaderResources {
 
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/widget/Header.css", "Css3Header.css"})
     Css3HeaderStyle style();
     

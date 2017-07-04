@@ -15,14 +15,14 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 
 public class Css3StatusProxyAppearance extends StatusProxyBaseAppearance {
   public interface Css3StatusProxyResources extends StatusProxyResources, ClientBundle {
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/statusproxy/StatusProxy.css", "Css3StatusProxy.css"})
     Css3StatusProxyStyle style();
 
-    @Override
+    
     ImageResource dropAllowed();
 
-    @Override
+    
     ImageResource dropNotAllowed();
 
     ThemeDetails theme();

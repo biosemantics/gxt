@@ -61,17 +61,17 @@ public class Css3ListViewAppearance<M> implements ListViewAppearance<M> {
     this.template = GWT.create(Css3ListViewTemplates.class);
   }
 
-  @Override
+  
   public Element findCellParent(XElement item) {
     return item;
   }
 
-  @Override
+  
   public Element findElement(XElement child) {
     return child.findParentElement("." + style.item(), 20);
   }
 
-  @Override
+  
   public List<Element> findElements(XElement parent) {
     NodeList<Element> nodes = parent.select("." + style.item());
     List<Element> temp = new ArrayList<Element>();
@@ -82,26 +82,26 @@ public class Css3ListViewAppearance<M> implements ListViewAppearance<M> {
     return temp;
   }
 
-  @Override
+  
   public void onOver(XElement item, boolean over) {
     item.setClassName(style.over(), over);
   }
 
-  @Override
+  
   public void onSelect(XElement item, boolean select) {
     item.setClassName(style.sel(), select);
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder builder) {
     builder.append(template.renderBody(style));
   }
 
-  @Override
+  
   public void renderEnd(SafeHtmlBuilder builder) {
   }
 
-  @Override
+  
   public void renderItem(SafeHtmlBuilder sb, SafeHtml content) {
     sb.append(template.renderItem(style, content));
   }

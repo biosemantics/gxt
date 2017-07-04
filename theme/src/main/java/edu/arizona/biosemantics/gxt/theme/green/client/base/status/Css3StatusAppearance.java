@@ -13,7 +13,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 
 public class Css3StatusAppearance extends StatusDefaultAppearance {
   public interface Css3StatusResources extends StatusResources {
-    @Override
+    
     @Source("Css3Status.css")
     Css3StatusStyles style();
 

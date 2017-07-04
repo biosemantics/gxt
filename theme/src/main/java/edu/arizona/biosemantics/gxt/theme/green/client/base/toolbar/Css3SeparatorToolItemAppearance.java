@@ -57,7 +57,7 @@ public class Css3SeparatorToolItemAppearance implements SeparatorToolItemAppeara
     StyleInjectorHelper.ensureInjected(style, true);
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.append(template.render(style));
   }

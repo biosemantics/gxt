@@ -22,7 +22,7 @@ public class SlicedContentPanelAppearance extends Css3ContentPanelAppearance {
 
   public interface SlicedContentPanelResources extends Css3ContentPanelResources {
     @Source("SlicedContentPanel.css")
-    @Override
+    
     SlicedContentPanelStyle style();
 
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
@@ -45,7 +45,7 @@ public class SlicedContentPanelAppearance extends Css3ContentPanelAppearance {
     super(resources, template);
   }
 
-  @Override
+  
   public HeaderAppearance getHeaderAppearance() {
     return new Css3HeaderAppearance();
   }

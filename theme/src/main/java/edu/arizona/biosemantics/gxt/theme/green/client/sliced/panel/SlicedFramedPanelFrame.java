@@ -65,17 +65,17 @@ public class SlicedFramedPanelFrame implements CollapsibleFrame {
     StyleInjectorHelper.ensureInjected(this.resources.style(), true);
   }
 
-  @Override
+  
   public XElement getCollapseElem(XElement parent) {
     return getContentElem(parent);
   }
 
-  @Override
+  
   public XElement getContentElem(XElement parent) {
     return parent.child("." + resources.style().bodyContent());
   }
 
-  @Override
+  
   public Size getFrameSize(XElement parent) {
     int h = resources.topLeftBorder().getHeight();
     int w = resources.topLeftBorder().getWidth();
@@ -97,39 +97,39 @@ public class SlicedFramedPanelFrame implements CollapsibleFrame {
     return new Size(resources.leftBorder().getWidth() + resources.rightBorder().getWidth(), h
             + resources.bottomBorder().getHeight());  }
 
-  @Override
+  
   public XElement getHeaderElem(XElement parent) {
     return parent.child("." + resources.style().headerContent());
   }
 
-  @Override
+  
   public void onFocus(XElement parent, boolean focus) {
   }
 
-  @Override
+  
   public void onHideHeader(XElement parent, boolean hide) {
     getHeaderElem(parent).setVisible(!hide);
   }
 
-  @Override
+  
   public void onOver(XElement parent, boolean over) {
   }
 
-  @Override
+  
   public void onPress(XElement parent, boolean pressed) {
   }
 
-  @Override
+  
   public String overClass() {
     return null;
   }
 
-  @Override
+  
   public String pressedClass() {
     return null;
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder builder, FrameOptions options, SafeHtml content) {
     builder.append(template.render(resources.style(), content));
   }

@@ -19,7 +19,7 @@ import com.sencha.gxt.widget.core.client.PlainTabPanel.PlainTabPanelBottomAppear
 public class SlicedPlainTabPanelBottomAppearance extends SlicedTabPanelBottomAppearance implements PlainTabPanelBottomAppearance {
 
   public interface SlicedPlainTabPanelBottomResources extends SlicedTabPanelBottomResources {
-    @Override
+    
     @Source({"SlicedTabPanelBottom.css", "SlicedPlainTabPanelBottom.css"})
     SlicedPlainTabPanelBottomStyle style();
   }
@@ -51,7 +51,7 @@ public class SlicedPlainTabPanelBottomAppearance extends SlicedTabPanelBottomApp
   }
 
 
-  @Override
+  
   public void render(SafeHtmlBuilder builder) {
     builder.append(template.render(style));
   }

@@ -141,70 +141,70 @@ public class Css3DatePickerAppearance implements DatePickerAppearance {
   }
 
 
-  @Override
+  
   public String dateSelector() {
     return "." + style.date();
   }
 
-  @Override
+  
   public String daySelector() {
     return "." + style.dateAnchor();
   }
 
-  @Override
+  
   public NodeList<Element> getDateCells(XElement parent) {
     return parent.select("." + style.date());
   }
 
-  @Override
+  
   public boolean isDisabled(Element cell) {
     return cell.<XElement>cast().hasClassName(style.dateDisabled());
   }
 
-  @Override
+  
   public String leftMonthSelector() {
     return "." + style.monthLeftButton();
   }
 
-  @Override
+  
   public String leftYearSelector() {
     return "." + style.leftYearIcon();
   }
 
-  @Override
+  
   public String monthButtonSelector() {
     return "." + style.monthButton();
   }
 
-  @Override
+  
   public String monthPickerCancelSelector() {
     return "." + style.cancel();
   }
 
-  @Override
+  
   public String monthPickerMonthSelector() {
     return "." + style.month();
   }
 
-  @Override
+  
   public String monthPickerOkSelector() {
     return "." + style.ok();
   }
 
-  @Override
+  
   public String monthPickerYearSelector() {
     return "." + style.year();
   }
 
 
-  @Override
+  
   public void onMonthSelected(Element cell, boolean select) {
     cell.<XElement>cast().setClassName(style.monthSelected(), select);
   }
 
 
 
-  @Override
+  
   public void onUpdateDateStyle(Element cell, DateState type, boolean add) {
 
     String cls = "";
@@ -239,7 +239,7 @@ public class Css3DatePickerAppearance implements DatePickerAppearance {
 
   
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.appendHtmlConstant("<div class=" + style.datePicker() + ">");
 
@@ -280,7 +280,7 @@ public class Css3DatePickerAppearance implements DatePickerAppearance {
 
   }
 
-  @Override
+  
   public void renderMonthPicker(SafeHtmlBuilder sb, DatePickerMessages messages, String[] monthNames) {
     sb.appendHtmlConstant("<div class=" + style.monthPicker() + "><table border=0 cellspacing=0>");
 
@@ -311,22 +311,22 @@ public class Css3DatePickerAppearance implements DatePickerAppearance {
     sb.appendHtmlConstant("</td></tr></table></div>");
   }
 
-  @Override
+  
   public String rightMonthSelector() {
     return "." + style.monthRightButton();
   }
 
-  @Override
+  
   public String rightYearSelector() {
     return "." + style.rightYearIcon();
   }
 
-  @Override
+  
   public String todayButtonSelector() {
     return "." + style.bottom();
   }
 
-  @Override
+  
   public void onMonthPickerSize(XElement monthPicker, int width, int height) {
     int lb = resources.theme().datePicker().border().left();
     int rb = resources.theme().datePicker().border().right();
@@ -345,7 +345,7 @@ public class Css3DatePickerAppearance implements DatePickerAppearance {
     parent.selectNode("." + style.monthButtonText()).setInnerHTML(text);
   }
 
-@Override
+
 public void onMonthButtonHtmlChange(XElement parent, SafeHtml html) {
 	 parent.selectNode("." + style.monthButtonText()).setInnerHTML(html.asString());
 }
@@ -355,7 +355,7 @@ public void onTextChange(Element cell, String text) {
   cell.getFirstChildElement().setInnerHTML(text);
 }
 
-@Override
+
 public void onHtmlChange(Element cell, SafeHtml html) {
 	cell.getFirstChildElement().setInnerHTML(html.asString());
 	
@@ -368,7 +368,7 @@ public void onHtmlChange(Element cell, SafeHtml html) {
   }
 }*/
 
-@Override
+
 public void onUpdateDayOfWeeks(XElement parent, List<SafeHtml> days) {
 	NodeList<Element> elems = parent.select("." + style.columnHeaderInner());
 	  for (int i = 0; i < elems.getLength(); i++) {

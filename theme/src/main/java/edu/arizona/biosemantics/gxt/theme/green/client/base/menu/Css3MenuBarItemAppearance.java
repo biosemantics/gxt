@@ -15,7 +15,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuBarItem.MenuBarItemAppearance;
 
 public class Css3MenuBarItemAppearance extends MenuBarItemBaseAppearance implements MenuBarItemAppearance {
   public interface Css3MenuBarItemResources extends MenuBarItemResources, ClientBundle {
-    @Override
+    
     @Source("Css3MenuBarItem.css")
     Css3MenuBarItemStyle css();
 

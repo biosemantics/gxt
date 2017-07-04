@@ -65,33 +65,33 @@ public class Css3RowEditorAppearance implements RowEditorAppearance {
     StyleInjectorHelper.ensureInjected(style, false);
   }
 
-  @Override
+  
   public XElement getButtonWrap(XElement parent) {
     return parent.selectNode("." + style.buttonsInner());
   }
 
-  @Override
+  
   public XElement getContentWrap(XElement parent) {
     return parent.selectNode("." + style.editorInner());
   }
 
-  @Override
+  
   public String labelClass() {
     return style.label();
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.append(template.render(style));
   }
 
-  @Override
+  
   public void onResize(final XElement parent, final int width, final int height) {
     // button offset width not correct unless we run deferred and allow buttons to 
     // be rendered
     Scheduler.get().scheduleDeferred(new ScheduledCommand() {
       
-      @Override
+      
       public void execute() {
         Element buttons = getButtonWrap(parent).getParentElement();
         int buttonsWidth = buttons.getOffsetWidth();

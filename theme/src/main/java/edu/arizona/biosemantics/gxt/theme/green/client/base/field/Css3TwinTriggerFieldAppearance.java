@@ -22,7 +22,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.FieldDetails;
  */
 public class Css3TwinTriggerFieldAppearance extends Css3TriggerFieldAppearance implements TwinTriggerFieldAppearance {
   public interface Css3TwinTriggerFieldResources extends Css3TriggerFieldResources {
-    @Override
+    
     @Source({"Css3ValueBaseField.css", "Css3TextField.css", "Css3TriggerField.css", "Css3TwinTriggerField.css"})
     Css3TwinTriggerFieldStyle style();
   }
@@ -52,32 +52,32 @@ public class Css3TwinTriggerFieldAppearance extends Css3TriggerFieldAppearance i
     this.style = resources.style();
   }
 
-  @Override
+  
   public void onTriggerClick(XElement parent, boolean click) {
     parent.setClassName(style.triggerClick(), click);
   }
 
-  @Override
+  
   public void onTriggerOver(XElement parent, boolean over) {
     parent.setClassName(style.triggerOver(), over);
   }
 
-  @Override
+  
   public void onTwinTriggerClick(XElement parent, boolean click) {
     parent.setClassName(style.twinTriggerClick(), click);
   }
 
-  @Override
+  
   public void onTwinTriggerOver(XElement parent, boolean over) {
     parent.setClassName(style.twinTriggerOver(), over);
   }
 
-  @Override
+  
   public boolean twinTriggerIsOrHasChild(XElement parent, Element target) {
     return parent.isOrHasChild(target) && target.<XElement>cast().is("." + style.twinTrigger());
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb, String value, FieldAppearanceOptions options) {
     int width = options.getWidth();
     boolean hideTrigger = options.isHideTrigger();
@@ -113,7 +113,7 @@ public class Css3TwinTriggerFieldAppearance extends Css3TriggerFieldAppearance i
     sb.appendHtmlConstant("</div></div>");
   }
 
-  @Override
+  
   protected Css3TwinTriggerFieldStyle getStyle() {
     return style;
   }

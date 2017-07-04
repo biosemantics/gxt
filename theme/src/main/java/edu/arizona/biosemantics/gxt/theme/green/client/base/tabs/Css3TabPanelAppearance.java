@@ -138,7 +138,7 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
     StyleInjectorHelper.ensureInjected(this.style, true);
   }
 
-  @Override
+  
   public void createScrollers(XElement parent) {
     int h = getStripWrap(parent).getOffsetHeight();
     XElement scrollLeft = getBar(parent).insertFirst(SafeHtmlUtils.fromString("<div class='" + style.tabScrollerLeft() + "'></div>"));
@@ -150,27 +150,27 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
     scrollRight.setHeight(h);
   }
 
-  @Override
+  
   public XElement getBar(XElement parent) {
     return parent.getFirstChildElement().cast();
   }
 
-  @Override
+  
   public XElement getBody(XElement parent) {
     return parent.selectNode("." + style.tabBody());
   }
 
-  @Override
+  
   public String getItemSelector() {
     return ITEM_SELECTOR;
   }
 
-  @Override
+  
   public XElement getScrollLeft(XElement parent) {
     return getBar(parent).selectNode("." + style.tabScrollerLeft());
   }
 
-  @Override
+  
   public XElement getScrollRight(XElement parent) {
     return getBar(parent).selectNode("." + style.tabScrollerRight());
   }
@@ -179,17 +179,17 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
     return parent.selectNode("." + style.tabStrip());
   }
 
-  @Override
+  
   public XElement getStripEdge(XElement parent) {
     return parent.selectNode("." + style.tabEdge());
   }
 
-  @Override
+  
   public XElement getStripWrap(XElement parent) {
     return parent.selectNode("." + style.tabStripWrap());
   }
 
-  @Override
+  
   public void insert(XElement parent, TabItemConfig config, int index) {
     XElement item = XDOM.create(itemTemplate.render(style, config));
     item.setClassName(ThemeStyles.get().style().disabled(), !config.isEnabled());
@@ -211,17 +211,17 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
     }
   }
 
-  @Override
+  
   public boolean isClose(XElement target) {
     return target.is("." + style.tabStripClose());
   }
 
-  @Override
+  
   public void onDeselect(Element item) {
     item.removeClassName(style.tabStripActive());
   }
 
-  @Override
+  
   public void onMouseOut(XElement parent, XElement target) {
     NodeList<Element> nodeList = parent.select("." + style.tabStripOver());
     for (int i = 0; i < nodeList.getLength(); i++) {
@@ -234,7 +234,7 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
     }
   }
 
-  @Override
+  
   public void onMouseOver(XElement parent, XElement target) {
     Element item = findItem(target);
     if (item != null) {
@@ -246,22 +246,22 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
     }
   }
 
-  @Override
+  
   public void onScrolling(XElement parent, boolean scrolling) {
     parent.selectNode("." + style.tabBar()).setClassName(style.tabScrolling(), scrolling);
   }
 
-  @Override
+  
   public void onSelect(Element item) {
     item.addClassName(style.tabStripActive());
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder builder) {
     builder.append(template.render(style));
   }
 
-  @Override
+  
   public void setItemWidth(XElement element, int width) {
     XElement inner = element.selectNode("." + style.tabStripInner());
     int tw = element.getOffsetWidth();
@@ -269,7 +269,7 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
     inner.setWidth(width - (tw - iw));
   }
 
-  @Override
+  
   public void updateItem(XElement item, TabItemConfig config) {
     XElement textEl = item.selectNode("." + style.tabStripText());
 
@@ -288,7 +288,7 @@ public class Css3TabPanelAppearance implements TabPanelAppearance {
     item.setClassName(style.tabStripClosable(), config.isClosable());
   }
 
-  @Override
+  
   public void updateScrollButtons(XElement parent) {
     int pos = getScrollPos(parent);
     getScrollLeft(parent).setClassName(style.tabScrollerLeftDisabled(), pos == 0);

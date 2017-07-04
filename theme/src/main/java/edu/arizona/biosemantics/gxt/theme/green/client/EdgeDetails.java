@@ -19,7 +19,7 @@ public interface EdgeDetails {
   int left();
 
 
-  @Override
+  
   @DetailTemplate("{top}px {right}px {bottom}px {left}px")
   public String toString();
 }

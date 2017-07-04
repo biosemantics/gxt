@@ -14,11 +14,11 @@ import com.sencha.gxt.theme.base.client.container.HBoxLayoutDefaultAppearance;
 public class Css3HBoxLayoutContainerAppearance extends HBoxLayoutDefaultAppearance {
 
   public interface Css3HBoxLayoutContainerResources extends HBoxLayoutBaseResources {
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/container/BoxLayout.css", "Css3HBoxLayoutContainer.css"})
     HBoxLayoutStyle style();
 
-    @Override
+    
     ImageResource moreIcon();
 
     ImageResource moreIconToolBar();

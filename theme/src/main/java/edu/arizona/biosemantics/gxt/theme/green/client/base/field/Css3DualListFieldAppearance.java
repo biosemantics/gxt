@@ -84,32 +84,32 @@ public class Css3DualListFieldAppearance implements DualListFieldAppearance {
     StyleInjectorHelper.ensureInjected(style, false);
   }
 
-  @Override
+  
   public IconConfig allLeft() {
     return new IconConfig(style.allLeft());
   }
 
-  @Override
+  
   public IconConfig allRight() {
     return new IconConfig(style.allRight());
   }
 
-  @Override
+  
   public IconConfig down() {
     return new IconConfig(style.down());
   }
 
-  @Override
+  
   public IconConfig left() {
     return new IconConfig(style.left());
   }
 
-  @Override
+  
   public IconConfig right() {
     return new IconConfig(style.right());
   }
 
-  @Override
+  
   public IconConfig up() {
     return new IconConfig(style.up());
   }

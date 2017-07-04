@@ -29,51 +29,51 @@ public class SlicedTabPanelBottomAppearance extends SlicedTabPanelAppearance imp
 
   public interface SlicedTabPanelBottomResources extends SlicedTabPanelResources {
     @Source("SlicedTabPanelBottom.css")
-    @Override
+    
     SlicedTabPanelBottomStyle style();
 
-    @Override
+    
     @Source("inactive-bottom-tab-l.png")
     ImageResource tabLeft();
 
 
-    @Override
+    
     @Source("bottom-tab-l.png")
     ImageResource tabLeftOver();
 
-    @Override
+    
     @Source("bottom-tab-l.png")
     ImageResource tabLeftActive();
 
-    @Override
+    
     @Source("inactive-bottom-tab-r.png")
     ImageResource tabRight();
 
-    @Override
+    
     @Source("bottom-tab-r.png")
     ImageResource tabRightOver();
 
-    @Override
+    
     @Source("bottom-tab-r.png")
     ImageResource tabRightActive();
 
-    @Override
+    
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     @Source("inactive-bottom-tab-bg.png")
     ImageResource tabCenter();
 
-    @Override
+    
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     @Source("bottom-tab-bg.png")
     ImageResource tabCenterOver();
 
-    @Override
+    
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     @Source("bottom-tab-bg.png")
     ImageResource tabCenterActive();
 
 
-    @Override
+    
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     @Source("bottom-tab-strip-bg.png")
     ImageResource tabStripBackground();
@@ -94,12 +94,12 @@ public class SlicedTabPanelBottomAppearance extends SlicedTabPanelAppearance imp
     this.style = resources.style();
   }
 
-  @Override
+  
   public XElement getBar(XElement parent) {
     return parent.getLastChild().cast();
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder builder) {
     builder.append(template.render((SlicedTabPanelBottomStyle) style));
   }

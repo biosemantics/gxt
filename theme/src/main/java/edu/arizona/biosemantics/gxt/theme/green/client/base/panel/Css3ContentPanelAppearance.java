@@ -81,68 +81,68 @@ public class Css3ContentPanelAppearance implements ContentPanelAppearance {
     this.theme = bundle.theme();
   }
 
-  @Override
+  
   public Header.HeaderAppearance getHeaderAppearance() {
     return new Css3HeaderAppearance();
   }
 
-  @Override
+  
   public void onHideHeader(XElement parent, boolean hide) {
     parent.selectNode("." + style.header()).setVisible(!hide);
   }
 
-  @Override
+  
   public void onBodyBorder(XElement parent, boolean border) {
     getContentElem(parent).applyStyles(!border ? "border: 0px" : "");
   }
 
-  @Override
+  
   public XElement getBodyWrap(XElement parent) {
     return parent.selectNode("." + style.bodyWrap());
   }
 
-  @Override
+  
   public XElement getContentElem(XElement parent) {
     return parent.selectNode("." + style.body());
   }
 
-  @Override
+  
   public XElement getFooterElem(XElement parent) {
     return parent.selectNode("." + style.footer());
   }
 
-  @Override
+  
   public int getFrameHeight(XElement parent) {
     return theme.panel().border().top() + theme.panel().border().bottom();
   }
 
-  @Override
+  
   public int getFrameWidth(XElement parent) {
     int adj = parent.getBorders(Style.Side.LEFT, Style.Side.RIGHT);
     return adj + theme.panel().border().left() + theme.panel().border().right();
   }
 
-  @Override
+  
   public XElement getHeaderElem(XElement parent) {
     return parent.selectNode("." + style.header());
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder sb) {
     sb.append(template.render(style));
   }
 
-  @Override
+  
   public IconConfig collapseIcon() {
     return ToolButton.UP;
   }
 
-  @Override
+  
   public IconConfig expandIcon() {
     return ToolButton.DOWN;
   }
 
-  @Override
+  
   public Size getHeaderSize(XElement parent) {
     Element head = parent.getFirstChildElement();
     return new Size(head.getOffsetWidth(), head.getOffsetHeight());

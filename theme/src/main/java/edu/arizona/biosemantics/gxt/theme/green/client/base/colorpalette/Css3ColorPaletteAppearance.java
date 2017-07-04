@@ -14,7 +14,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 
 public class Css3ColorPaletteAppearance extends ColorPaletteBaseAppearance {
   public interface Css3ColorPaletteResources extends ColorPaletteResources, ClientBundle {
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/colorpalette/ColorPalette.css","Css3ColorPalette.css"})
     Css3ColorPaletteStyle style();
 

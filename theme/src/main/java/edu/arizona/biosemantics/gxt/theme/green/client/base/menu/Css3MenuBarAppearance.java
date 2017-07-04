@@ -46,7 +46,7 @@ public class Css3MenuBarAppearance implements MenuBarAppearance {
     style.ensureInjected();
   }
 
-  @Override
+  
   public void render(SafeHtmlBuilder builder) {
     builder.append(template.render(style.menuBar() + " " + CommonStyles.get().noFocusOutline()));
   }

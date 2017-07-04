@@ -15,7 +15,7 @@ import com.sencha.gxt.widget.core.client.form.error.SideErrorHandler.SideErrorRe
 public class Css3SideErrorResourcesAdapter implements SideErrorResources {
 
   interface Css3SideErrorResources extends SideErrorResources {
-    @Override
+    
     @Source("exclamation.png")
     ImageResource errorIcon();
   }

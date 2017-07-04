@@ -16,19 +16,19 @@ import com.sencha.gxt.cell.core.client.form.SpinnerFieldCell.SpinnerFieldAppeara
  */
 public class Css3SpinnerFieldAppearance extends Css3TwinTriggerFieldAppearance implements SpinnerFieldAppearance {
   public interface Css3SpinnerFieldResources extends Css3TwinTriggerFieldResources {
-    @Override
+    
     @Source({"Css3ValueBaseField.css", "Css3TextField.css", "Css3TriggerField.css", "Css3SpinnerField.css"})
     Css3SpinnerFieldStyle style();
 
-    @Override
+    
     @Source("spinnerUp.png")
     ImageResource triggerArrow();
 
-    @Override
+    
     @Source("spinnerUpOver.png")
     ImageResource triggerArrowOver();
 
-    @Override
+    
     @Source("spinnerUpClick.png")
     ImageResource triggerArrowClick();
 
@@ -59,7 +59,7 @@ public class Css3SpinnerFieldAppearance extends Css3TwinTriggerFieldAppearance i
     this.resources = resources;
   }
 
-  @Override
+  
   protected int getTriggerWrapHeight() {
     return resources.triggerArrow().getHeight() + resources.twinTriggerArrow().getHeight();
   }

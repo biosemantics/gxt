@@ -20,7 +20,7 @@ import com.sencha.gxt.widget.core.client.container.AccordionLayoutContainer.Acco
 public class Css3AccordionLayoutAppearance extends Css3ContentPanelAppearance implements AccordionLayoutAppearance {
 
   public interface Css3AccordionResources extends Css3ContentPanelResources {
-    @Override
+    
     @Source({"Css3AccordionLayout.css"})
     Css3AccordionStyle style();
   }
@@ -34,7 +34,7 @@ public class Css3AccordionLayoutAppearance extends Css3ContentPanelAppearance im
   }
 
   public interface Css3AccordionHeaderResources extends Css3HeaderResources {
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/widget/Header.css", "Css3AccordionLayoutHeader.css"})
     Css3AccordionHeaderStyle style();
   }
@@ -43,17 +43,17 @@ public class Css3AccordionLayoutAppearance extends Css3ContentPanelAppearance im
     super(GWT.<Css3AccordionResources>create(Css3AccordionResources.class));
   }
   
-  @Override
+  
   public HeaderAppearance getHeaderAppearance() {
     return new Css3HeaderAppearance(GWT.<Css3AccordionHeaderResources>create(Css3AccordionHeaderResources.class));
   }
   
-  @Override
+  
   public IconConfig collapseIcon() {
     return ToolButton.MINUS;
   }
 
-  @Override
+  
   public IconConfig expandIcon() {
     return ToolButton.PLUS;
   }

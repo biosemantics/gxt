@@ -19,7 +19,7 @@ import com.sencha.gxt.widget.core.client.grid.GroupSummaryView.GroupSummaryViewS
 public class Css3GroupSummaryViewAppearance extends Css3GroupingViewAppearance implements GroupSummaryViewAppearance {
 
   public interface Css3GroupSummaryResources extends Css3GroupingViewResources {
-    @Override
+    
     @Import(GridStateStyles.class)
     @Source({"Css3GroupingView.css", "Css3GroupSummaryView.css"})
     Css3GroupSummaryStyles style();
@@ -33,22 +33,22 @@ public class Css3GroupSummaryViewAppearance extends Css3GroupingViewAppearance i
     super(GWT.<Css3GroupSummaryResources>create(Css3GroupSummaryResources.class));
   }
 
-  @Override
+  
   public void toggleSummaries(XElement parent, boolean visible) {
     parent.setClassName(style().hideSummaries(), !visible);
   }
 
-  @Override
+  
   public NodeList<Element> getSummaries(XElement table) {
     return table.select("." + style().summaryRow());
   }
 
-  @Override
+  
   public int getGroupIndex(XElement group) {
     return group.getParentElement().<XElement>cast().indexOf(group) / 3;
   }
 
-  @Override
+  
   public Css3GroupSummaryStyles style() {
     return (Css3GroupSummaryStyles) super.style();
   }

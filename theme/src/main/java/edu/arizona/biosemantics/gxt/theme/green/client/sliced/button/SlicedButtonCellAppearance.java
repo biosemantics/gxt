@@ -31,7 +31,7 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 public class SlicedButtonCellAppearance<C> extends ButtonCellDefaultAppearance<C> {
 
   public interface SlicedButtonCellResources extends ButtonCellResources {
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/button/ButtonCell.css", "SlicedButtonCell.css", "SlicedToolBarButtonCell.css"})
     SlicedButtonCellStyle style();
 
@@ -86,7 +86,7 @@ public class SlicedButtonCellAppearance<C> extends ButtonCellDefaultAppearance<C
   }
 
 
-  @Override
+  
   public void render(final ButtonCell<C> cell, Context context, C value, SafeHtmlBuilder sb) {
     String constantHtml = cell.getHTML();
     boolean hasConstantHtml = constantHtml != null && constantHtml.length() != 0;

@@ -19,7 +19,7 @@ public class SlicedSeparatorToolItemAppearance extends Css3SeparatorToolItemAppe
   public interface SlicedSeparatorToolItemResources extends Css3SeparatorToolItemResources {
 
     @Source({"edu/arizona/biosemantics/gxt/theme/green/client/base/toolbar/Css3SeparatorToolItem.css", "SlicedSeparatorToolItem.css"})
-    @Override
+    
     Css3SeparatorToolItemStyle style();
 
     ImageResource separator();

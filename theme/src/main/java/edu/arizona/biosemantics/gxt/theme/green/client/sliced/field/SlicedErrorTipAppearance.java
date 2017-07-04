@@ -21,46 +21,46 @@ import edu.arizona.biosemantics.gxt.theme.green.client.ThemeDetails;
 public class SlicedErrorTipAppearance extends ErrorTipDefaultAppearance {
 
   public interface SlicedErrorTipFrameResources extends ErrorTipFrameResources {
-    @Override
+    
     @Source("tip-background.png")
     @ImageOptions(repeatStyle = RepeatStyle.Both)
     ImageResource background();
 
-    @Override
+    
     @Source("tip-bc.png")
     @ImageOptions(repeatStyle = RepeatStyle.Both)
     ImageResource bottomBorder();
 
-    @Override
+    
     @Source("tip-bl.png")
     @ImageOptions(repeatStyle = RepeatStyle.Both)
     ImageResource bottomLeftBorder();
 
-    @Override
+    
     @Source("tip-br.png")
     @ImageOptions(repeatStyle = RepeatStyle.Both)
     ImageResource bottomRightBorder();
 
-    @Override
+    
     @Source("tip-l.png")
     @ImageOptions(repeatStyle = RepeatStyle.Vertical)
     ImageResource leftBorder();
 
-    @Override
+    
     @Source("tip-r.png")
     @ImageOptions(repeatStyle = RepeatStyle.Both)
     ImageResource rightBorder();
 
-    @Override
+    
     @Source("tip-tc.png")
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     ImageResource topBorder();
 
-    @Override
+    
     @Source("tip-tl.png")
     ImageResource topLeftBorder();
 
-    @Override
+    
     @Source("tip-tr.png")
     @ImageOptions(repeatStyle = RepeatStyle.Both)
     ImageResource topRightBorder();
@@ -68,12 +68,12 @@ public class SlicedErrorTipAppearance extends ErrorTipDefaultAppearance {
 
 
   public interface SlicedErrorTipResources extends ErrorTipResources {
-    @Override
+    
     @Source("edu/arizona/biosemantics/gxt/theme/green/client/base/field/exclamation.png")
     @ImageOptions(preventInlining = true)
     ImageResource errorIcon();
 
-    @Override
+    
     @Source({"com/sencha/gxt/theme/base/client/tips/TipDefault.css", "SlicedErrorTip.css"})
     SlicedErrorTipStyle style();
 

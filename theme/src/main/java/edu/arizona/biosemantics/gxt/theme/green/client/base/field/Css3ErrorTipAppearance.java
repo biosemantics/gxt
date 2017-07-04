@@ -17,7 +17,7 @@ public class Css3ErrorTipAppearance extends Css3TipAppearance implements SideErr
     @Source("exclamation.png")
     ImageResource errorIcon();
 
-    @Override
+    
     @Source("Css3ErrorTip.css")
     Css3ErrorTipStyle style();
   }

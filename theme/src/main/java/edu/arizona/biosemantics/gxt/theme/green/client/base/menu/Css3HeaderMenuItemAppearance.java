@@ -38,16 +38,16 @@ public class Css3HeaderMenuItemAppearance implements HeaderMenuItemAppearance {
     this.style.ensureInjected();
   }
 
-  @Override
+  
   public void applyItemStyle(Element element) {
     element.addClassName(style.menuText());
   }
 
-  @Override
+  
   public void onActivate(XElement parent) {
   }
 
-  @Override
+  
   public void onDeactivate(XElement parent) {
   }
 }

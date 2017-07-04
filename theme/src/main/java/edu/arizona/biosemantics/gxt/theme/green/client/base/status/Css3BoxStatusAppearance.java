@@ -16,7 +16,7 @@ import com.sencha.gxt.widget.core.client.Status.BoxStatusAppearance;
 public class Css3BoxStatusAppearance extends BoxStatusBaseAppearance implements BoxStatusAppearance {
 
   public interface Css3BoxStatusResources extends BoxStatusResources, ClientBundle {
-    @Override
+    
     @Source("Css3BoxStatus.css")
     Css3BoxStatusStyle style();
 
