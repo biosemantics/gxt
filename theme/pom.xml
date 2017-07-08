@@ -8,6 +8,9 @@
   <version>0.0.3-SNAPSHOT-debug</version>
   <name>gxt themes</name>
   <properties>
+    <java.version>1.8</java.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <gxt.version>4.0.0</gxt.version>
     <gwt.version>2.8.0</gwt.version>
     <phantomjs.version>1.9.2</phantomjs.version>
@@ -55,13 +58,30 @@
       <version>${gxt.version}</version>
     </dependency>
   </dependencies>
+  
   <build>
+  <plugins>
+<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+					<!-- IMPORTANT -->
+					<useIncrementalCompilation>false</useIncrementalCompilation>
+				</configuration>
+			</plugin>
+  </plugins>
     <resources>
       <resource>
         <directory>src/main/java</directory>
       </resource>
     </resources>
   </build>
+  
+  
+  
   <profiles>
     <profile>
       <id>generate</id>

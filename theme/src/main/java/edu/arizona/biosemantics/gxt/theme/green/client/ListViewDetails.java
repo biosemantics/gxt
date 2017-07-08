@@ -1,17 +1,26 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
+ *
  * licensing@sencha.com
  *
  * http://www.sencha.com/products/gxt/license/
  */
 package edu.arizona.biosemantics.gxt.theme.green.client;
 
+import com.sencha.gxt.themebuilder.base.client.config.Optional;
 import com.sencha.gxt.themebuilder.base.client.config.TypeDetails;
 
 public interface ListViewDetails {
 
   public interface ItemDetails {
+
+    @TypeDetails(sampleValue = "'#ffffff'", comment = "item background color for non-gradient supporting browsers")
+    String backgroundColor();
+
+    @Optional(defaultValue = "#000000", comment = "item text color")
+    String color();
+
     @TypeDetails(sampleValue = "util.solidGradientString('#ffffff')", comment = "")
     String gradient();
 

@@ -1,6 +1,7 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
+ *
  * licensing@sencha.com
  *
  * http://www.sencha.com/products/gxt/license/
@@ -17,24 +18,35 @@ public interface FramedPanelDetails extends PanelDetails {
   EdgeDetails radiusMinusBorderWidth();
 
 
+  @Override
   @TypeDetails(sampleValue = "#ffffff", comment = "background color for the panel body")
   String backgroundColor();
 
+  @Override
   @TypeDetails(sampleValue = "util.padding(0)", comment = "entire panel padding")
   EdgeDetails padding();
 
+  @Override
   @TypeDetails(sampleValue = "util.padding(10)", comment = "header padding")
   EdgeDetails headerPadding();
 
+  @Override
   @TypeDetails(sampleValue = "#ccffff", comment = "background color to fill behind the header gradient")
   String headerBackgroundColor();
 
+  @Override
   @TypeDetails(sampleValue = "#ccffff, #ccffff", comment = "header gradient string")
   String headerGradient();
 
+  @Override
+  @TypeDetails(sampleValue = "15px", comment = "header line height")
+  String headerLineHeight();
+
+  @Override
   @TypeDetails(sampleValue = "util.border('solid', '#000000', 1)", comment = "border around the contentpanel")
   BorderDetails border();
 
+  @Override
   @TypeDetails(sampleValue = "util.fontStyle('sans-serif','medium')", comment = "panel heading text style")
   FontDetails font();
 }

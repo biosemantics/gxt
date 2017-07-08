@@ -26,6 +26,9 @@ public interface PanelDetails {
   @TypeDetails(sampleValue = "#ccffff, #ccffff", comment = "header gradient string")
   String headerGradient();
 
+  @TypeDetails(sampleValue = "15px", comment = "header Line Height")
+  String headerLineHeight();
+
   @TypeDetails(sampleValue = "util.border('solid', '#000000', 1)", comment = "border around the contentpanel")
   BorderDetails border();
 

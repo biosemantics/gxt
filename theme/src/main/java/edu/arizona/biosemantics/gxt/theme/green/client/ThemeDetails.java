@@ -1,6 +1,7 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
+ *
  * licensing@sencha.com
  *
  * http://www.sencha.com/products/gxt/license/
@@ -9,6 +10,7 @@ package edu.arizona.biosemantics.gxt.theme.green.client;
 
 import com.google.gwt.resources.client.ResourcePrototype;
 import com.google.gwt.resources.ext.ResourceGeneratorType;
+import com.sencha.gxt.themebuilder.base.client.config.ResizableDetails;
 import com.sencha.gxt.themebuilder.base.client.config.TypeDetails;
 import com.sencha.gxt.themebuilder.base.rebind.DetailsResourceGenerator;
 
@@ -81,4 +83,5 @@ public interface ThemeDetails extends ResourcePrototype {
 
   MessageBoxDetails messagebox();
 
+  ResizableDetails resizable();
 }

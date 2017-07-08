@@ -1,6 +1,7 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
+ *
  * licensing@sencha.com
  *
  * http://www.sencha.com/products/gxt/license/
@@ -16,11 +17,20 @@ public interface ToolIconDetails {
   @TypeDetails(sampleValue = "util.mixColors('#ffffff', '#157FCC', 0.5)", comment = "primary color of icons")
   String primaryColor();
 
+  @TypeDetails(sampleValue = "1", comment = "primary opacity of icons")
+  double primaryOpacity();
+
   @TypeDetails(sampleValue = "util.mixColors('#ffffff', '#157FCC', 0.3)", comment = "icon color when hover")
   String primaryOverColor();
 
+  @TypeDetails(sampleValue = "1", comment = "opacity when hover")
+  double primaryOverOpacity();
+
   @TypeDetails(sampleValue = "util.mixColors('#ffffff', '#157FCC', 0.25)", comment = "icon color when clicked")
   String primaryClickColor();
+
+  @TypeDetails(sampleValue = "1", comment = "icon opacity when clicked")
+  double primaryClickOpacity();
 
   @TypeDetails(sampleValue = "#ff0000", comment = "color used for warning actions, such as exclamation icon")
   String warningColor();

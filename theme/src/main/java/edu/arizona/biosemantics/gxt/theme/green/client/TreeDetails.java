@@ -1,6 +1,7 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
+ *
  * licensing@sencha.com
  *
  * http://www.sencha.com/products/gxt/license/
@@ -13,6 +14,9 @@ import com.sencha.gxt.themebuilder.base.client.config.TypeDetails;
  *
  */
 public interface TreeDetails {
+
+  @TypeDetails(sampleValue = "util.margin(0)", comment = "checkbox icon margin")
+  EdgeDetails checkboxMargin();
 
   @TypeDetails(sampleValue = "#e2eff8", comment = "tree node drag over background color")
   String dragOverBackgroundColor();

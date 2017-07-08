@@ -1,6 +1,6 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright(c) 2006-2015, Sencha, Inc.
  * licensing@sencha.com
  *
  * http://www.sencha.com/products/gxt/license/
@@ -15,4 +15,7 @@ public interface BorderLayoutDetails {
 
   @TypeDetails(sampleValue = "util.border('solid', '#DFEAF2', 1)", comment = "border styling for a non-mini collapsed region")
   BorderDetails collapsePanelBorder();
+
+  @TypeDetails(sampleValue = "#157FCC", comment = "background color for the collapsed panels")
+  String collapsePanelBackgroundColor();
 }

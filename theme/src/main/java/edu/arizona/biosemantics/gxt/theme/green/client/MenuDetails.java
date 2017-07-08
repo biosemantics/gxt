@@ -1,6 +1,7 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
+ *
  * licensing@sencha.com
  *
  * http://www.sencha.com/products/gxt/license/
@@ -11,6 +12,8 @@ import com.sencha.gxt.themebuilder.base.client.config.TypeDetails;
 
 public interface MenuDetails {
 
+  @TypeDetails(sampleValue = "#ffffff", comment = "background color for the menu list")
+  String backgroundColor();
   @TypeDetails(sampleValue = "util.border('solid', '#000000', 1)", comment = "border around the menu popup")
   BorderDetails border();
   @TypeDetails(sampleValue = "util.padding(0)", comment = "spacing between the border and the list of contents")
@@ -27,22 +30,33 @@ public interface MenuDetails {
   @TypeDetails(sampleValue = "util.padding(1,8)", comment = "padding around each individual menu item")
   EdgeDetails itemPadding();
 
-  @TypeDetails(sampleValue = "util.fontStyle('sans-serif','medium')", comment = "item text styling")
-  FontDetails activeItemText();
-  @TypeDetails(sampleValue = "util.solidGradientString('#cccccc')", comment = "gradient for active items (top to bottom)")
-  String activeItemGradient();
+  @TypeDetails(sampleValue = "#cccccc", comment = "background color for active items for browsers that dont support gradients")
+  String activeItemBackgroundColor();
   @TypeDetails(sampleValue = "util.border('solid', '#333333', 1)", comment = "border for active items")
   BorderDetails activeItemBorder();
+
+  @TypeDetails(sampleValue = "util.solidGradientString('#cccccc')", comment = "gradient for active items (top to bottom)")
+  String activeItemGradient();
+  @TypeDetails(sampleValue = "util.fontStyle('sans-serif','medium')", comment = "item text styling")
+  FontDetails activeItemText();
+
+
+  @TypeDetails(sampleValue = "16", comment = "height of the bottom/top scroller items")
+  int scrollerHeight();
 
   MenuBarDetails bar();
 
   public interface MenuBarDetails {
+
+    @TypeDetails(sampleValue = "#ffffff", comment = "background color of the menu bar for browsers that dont support gradients")
+    String backgroundColor();
     @TypeDetails(sampleValue = "util.border('none')", comment = "menu bar border")
     BorderDetails border();
-    @TypeDetails(sampleValue = "util.padding(1, 8)", comment = "spacing between the border and the items")
-    EdgeDetails padding();
     @TypeDetails(sampleValue = "util.solidGradientString('#ffffff')", comment = "background gradient of the menubar")
     String gradient();
+    @TypeDetails(sampleValue = "util.padding(1, 8)", comment = "spacing between the border and the items")
+    EdgeDetails padding();
+
 
     @TypeDetails(sampleValue = "util.fontStyle('sans-serif','medium')", comment = "item text styling")
     FontDetails itemText();
@@ -51,19 +65,32 @@ public interface MenuDetails {
     @TypeDetails(sampleValue = "util.padding(0)", comment = "menu bar item text padding")
     EdgeDetails itemPadding();
 
+   @TypeDetails(sampleValue = "#ffffff", comment = "hovered menu bar item background color for browsers that dont support gradients")
+    String hoverItemBackgroundColor();
+	
+	@TypeDetails(sampleValue = "util.border('none')", comment = "hovered menu bar item border")
+    BorderDetails hoverItemBorder();
+	
+	@TypeDetails(sampleValue = "util.solidGradientString('#ffffff')", comment = "hovered menu bar item background gradient")
+    String hoverItemGradient();
+
+	
     @TypeDetails(sampleValue = "util.fontStyle('sans-serif','medium')", comment = "hovered item text styling")
     FontDetails hoverItemText();
-    @TypeDetails(sampleValue = "util.solidGradientString('#ffffff')", comment = "hovered menu bar item background gradient")
-    String hoverItemGradient();
-    @TypeDetails(sampleValue = "util.border('none')", comment = "hovered menu bar item border")
-    BorderDetails hoverItemBorder();
 
-    @TypeDetails(sampleValue = "util.fontStyle('sans-serif','medium')", comment = "active item text styling")
-    FontDetails activeItemText();
-    @TypeDetails(sampleValue = "util.solidGradientString('#ffffff')", comment = "active menu bar item background gradient")
-    String activeItemGradient();
+
+    @TypeDetails(sampleValue = "#ffffff", comment = "active menu bar item background color for browsers that dont support gradients")
+    String activeItemBackgroundColor();
+
+
     @TypeDetails(sampleValue = "util.border('none')", comment = "active menu bar item horder")
     BorderDetails activeItemBorder();
+	
+	    @TypeDetails(sampleValue = "util.solidGradientString('#ffffff')", comment = "active menu bar item background gradient")
+    String activeItemGradient();
+	
+	    @TypeDetails(sampleValue = "util.fontStyle('sans-serif','medium')", comment = "active item text styling")
+    FontDetails activeItemText();
   }
 
   MenuSeparatorDetails separator();

@@ -1,18 +1,22 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright(c) 2006-2015, Sencha, Inc.
  * licensing@sencha.com
  *
  * http://www.sencha.com/products/gxt/license/
  */
 package edu.arizona.biosemantics.gxt.theme.green.client;
 
+import com.sencha.gxt.themebuilder.base.client.config.Optional;
 import com.sencha.gxt.themebuilder.base.client.config.TypeDetails;
 
 /**
  *
  */
 public interface DatePickerDetails {
+  @Optional(defaultValue = "", comment = "Optional additional CSS classes to add to the top level element of this widget")
+  String additionalCssStyles();
+
   @TypeDetails(sampleValue = "util.border('solid', '#000000', 1)", comment = "DatePicker border")
   BorderDetails border();
 
@@ -75,6 +79,9 @@ public interface DatePickerDetails {
   @TypeDetails(sampleValue = "util.fontStyle('sans-serif', '12px', '#000000')", comment = "previous month day font style")
   FontDetails dayPreviousText();
 
+  @TypeDetails(sampleValue = "util.border('solid', '#0000ff', 1)", comment = "hovered item border")
+  BorderDetails itemOverBorder();
+
   @TypeDetails(sampleValue = "#000000", comment = "over text color")
   String itemOverColor();
 
@@ -104,4 +111,16 @@ public interface DatePickerDetails {
 
   @TypeDetails(sampleValue = "212px", comment = "width of the DatePicker widget")
   String width();
+
+  @TypeDetails(sampleValue = "util.margin(0)", comment = "left month button margin")
+  EdgeDetails monthLeftButtonMargin();
+
+  @TypeDetails(sampleValue = "util.margin(0)", comment = "right month button margin")
+  EdgeDetails monthRightButtonMargin();
+
+  @TypeDetails(sampleValue = "0.7", comment = "left month button opacity")
+  String monthLeftButtonOpacity();
+
+  @TypeDetails(sampleValue = "1", comment = "right month button opacity")
+  String monthRightButtonOpacity();
 }

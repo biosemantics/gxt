@@ -1,6 +1,7 @@
 /**
- * Sencha GXT 3.1.1 - Sencha for GWT
- * Copyright(c) 2007-2014, Sencha, Inc.
+ * Sencha GXT 4.0.0 - Sencha for GWT
+ * Copyright (c) 2006-2015, Sencha Inc.
+ *
  * licensing@sencha.com
  *
  * http://www.sencha.com/products/gxt/license/
@@ -29,8 +30,12 @@ public interface GridDetails {
     @TypeDetails(sampleValue = "'solid'", comment = "style of borders around header cells")
     String borderStyle();
 
+    @TypeDetails(sampleValue = "#add2ed", comment = "column header background color for browsers that dont support gradients")
+    String backgroundColor();
     @TypeDetails(sampleValue = "util.solidGradientString('#add2ed')", comment = "css gradient string for column headers")
     String gradient();
+    @TypeDetails(sampleValue = "#5fa7db", comment = "column header with mouseover background color for browsers that dont support gradients")
+    String overBackgroundColor();
     @TypeDetails(sampleValue = "util.solidGradientString('#5fa7db')", comment = "css gradient string for column header with mouseover")
     String overGradient();
 
@@ -46,21 +51,30 @@ public interface GridDetails {
     @TypeDetails(sampleValue = "18", comment = "width of the menu icon")
     int menuButtonWidth();
 
+    @TypeDetails(sampleValue = "#e8e8e8", comment = "background color of the menu icon for browsers that dont support gradients")
+    String menuBackgroundColor();
     @TypeDetails(sampleValue = "util.solidGradientString('#e8e8e8')", comment = "background gradient of the menu icon")
     String menuGradient();
     @TypeDetails(sampleValue = "util.border('solid', '#222222', 0, 0, 0, 1)", comment = "border around the menu icon")
     BorderDetails menuBorder();
 
+    @TypeDetails(sampleValue = "#828282", comment = "mouseover background color of the menu icon for browsers that dont support gradients")
+    String menuHoverBackgroundColor();
     @TypeDetails(sampleValue = "util.solidGradientString('#828282')", comment = "mouseover background gradient of the menu icon")
     String menuHoverGradient();
     @TypeDetails(sampleValue = "util.border('solid', '#222222', 0, 0, 0, 1)", comment = "mouseover border around the menu icon")
     BorderDetails menuHoverBorder();
 
-    @TypeDetails(sampleValue = "util.solidGradientString('add2ed')", comment = "active background gradient of the menu icon")
+    @TypeDetails(sampleValue = "#add2ed", comment = "active background color of the menu icon for browsers that dont support gradients")
+    String menuActiveBackgroundColor();
+    @TypeDetails(sampleValue = "util.solidGradientString('#add2ed')", comment = "active background gradient of the menu icon")
     String menuActiveGradient();
     @TypeDetails(sampleValue = "util.border('solid', '#222222', 0, 0, 0, 1)", comment = "active border around the menu icon")
     BorderDetails menuActiveBorder();
   }
+
+  @TypeDetails(sampleValue = "util.border('none')", comment = "border around the body of the grid")
+  BorderDetails bodyBorder();
 
   @TypeDetails(sampleValue = "util.padding(4,3,3,5)", comment = "cell padding")
   EdgeDetails cellPadding();
