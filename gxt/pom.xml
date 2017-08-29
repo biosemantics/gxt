@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>edu.arizona.biosemantics</groupId>
 	<artifactId>gxt</artifactId>
-	<version>0.0.11-SNAPSHOT-debug</version>
+	<version>0.0.12-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.8.0</gwtVersion>
@@ -51,13 +51,13 @@
 	</repositories>
 
 	<dependencies>
-	   <!-- definitely don't need this, because we want to use our hacked version of gxt
+	   <!-- definitely don't need this, because we want to use our hacked version of gxt  
           <dependency>
             <groupId>com.sencha.gxt</groupId>
             <artifactId>gxt</artifactId>
             <version>4.0.0</version>
           </dependency>
-          GXT -->
+        GXT -->
 		<dependency>
 			<groupId>com.google.gwt</groupId>
 			<artifactId>gwt-servlet</artifactId>
